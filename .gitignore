@@ -1,0 +1,37 @@
+# dependencies
+node_modules/
+
+# environment variables
+.env
+.env.local
+.env.*.local
+
+# next.js
+.next/
+out/
+
+# build
+dist/
+build/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+
+# vercel
+.vercel
+
+# audio files (trop lourds pour git)
+*.mp3
+*.wav
+*.flac
+*.aiff
+*.m4a
