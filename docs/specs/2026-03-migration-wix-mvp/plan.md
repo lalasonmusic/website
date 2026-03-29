@@ -118,15 +118,15 @@ youtube_channels  → Channel IDs YouTube des abonnes (user_id, channel_id, stat
 ### Epic 1 : Foundation & Setup
 
 #### Story 1.1 : Initialisation du projet Next.js
-- [ ] 1.1.1 : Initialiser Next.js 15 avec TypeScript (`create-next-app`) dans le dossier actuel
-- [ ] 1.1.2 : Configurer Tailwind CSS v4 avec le design system Lalason (variables CSS couleurs, spacings, font Poppins via Google Fonts)
-- [ ] 1.1.3 : Installer et configurer shadcn/ui (theme sombre, composants de base)
-- [ ] 1.1.4 : Installer les dependances core : `zustand`, `zod`, `next-intl`, `drizzle-orm`, `@supabase/supabase-js`, `@supabase/ssr`, `stripe`, `posthog-js`
-- [ ] 1.1.5 : Configurer `.env.local` avec toutes les variables (Supabase URL+anon key, Stripe keys, PostHog key)
+- [x] 1.1.1 : Initialiser Next.js 15 avec TypeScript (`create-next-app`) dans le dossier actuel
+- [x] 1.1.2 : Configurer Tailwind CSS v4 avec le design system Lalason (variables CSS couleurs, spacings, font Poppins via Google Fonts)
+- [x] 1.1.3 : Installer et configurer shadcn/ui (theme sombre, composants de base)
+- [x] 1.1.4 : Installer les dependances core : `zustand`, `zod`, `next-intl`, `drizzle-orm`, `@supabase/supabase-js`, `@supabase/ssr`, `stripe`, `posthog-js`
+- [x] 1.1.5 : Configurer `.env.local` avec toutes les variables (Supabase URL+anon key, Stripe keys, PostHog key)
 - [ ] 1.1.6 : Configurer `next.config.ts` (next-intl plugin, headers de securite CSP/HSTS, redirections 301)
-- [ ] 1.1.7 : Creer la structure des repertoires (`src/app`, `src/components`, `src/lib`, `src/db`, `messages/`)
-- [ ] 1.1.8 : Configurer `.gitignore` (`.env.local`, `node_modules`, `.next`, fichiers audio)
-- [ ] 1.1.9 : Deployer sur Vercel et verifier que le build passe
+- [x] 1.1.7 : Creer la structure des repertoires (`src/app`, `src/components`, `src/lib`, `src/db`, `messages/`)
+- [x] 1.1.8 : Configurer `.gitignore` (`.env.local`, `node_modules`, `.next`, fichiers audio)
+- [x] 1.1.9 : Deployer sur Vercel et verifier que le build passe
 
 #### Story 1.2 : Design System
 - [ ] 1.2.1 : Extraire les tokens de design depuis les screenshots (couleurs exactes : fond sombre, accent dore, blanc, etc.)
