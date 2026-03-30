@@ -27,21 +27,25 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }
   }
 
-  const posts = await db
-    .select({ slug: blogPosts.slug, updatedAt: blogPosts.updatedAt })
-    .from(blogPosts)
-    .where(eq(blogPosts.isPublished, true))
-    .orderBy(desc(blogPosts.publishedAt));
+  try {
+    const posts = await db
+      .select({ slug: blogPosts.slug, updatedAt: blogPosts.updatedAt })
+      .from(blogPosts)
+      .where(eq(blogPosts.isPublished, true))
+      .orderBy(desc(blogPosts.publishedAt));
 
-  for (const post of posts) {
-    for (const locale of LOCALES) {
-      entries.push({
-        url: `${BASE_URL}/${locale}/blog/${post.slug}`,
-        lastModified: post.updatedAt,
-        changeFrequency: "monthly",
-        priority: 0.7,
-      });
+    for (const post of posts) {
+      for (const locale of LOCALES) {
+        entries.push({
+          url: `${BASE_URL}/${locale}/blog/${post.slug}`,
+          lastModified: post.updatedAt,
+          changeFrequency: "monthly",
+          priority: 0.7,
+        });
+      }
     }
+  } catch {
+    // blog_posts table may not exist yet
   }
 
   return entries;
