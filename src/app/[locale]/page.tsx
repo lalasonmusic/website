@@ -24,11 +24,22 @@ export default async function HomePage({ params }: Props) {
   const { locale } = await params;
   const t = await getTranslations("home");
 
-  const [{ tracks: popularTracks }, allCategories, allArtists] = await Promise.all([
-    trackService.getPublished({ page: 1, limit: 8 }),
-    trackService.getAllCategories(),
-    artistService.getAll(),
-  ]);
+  let popularTracks: Awaited<ReturnType<typeof trackService.getPublished>>["tracks"] = [];
+  let allCategories: Awaited<ReturnType<typeof trackService.getAllCategories>> = [];
+  let allArtists: Awaited<ReturnType<typeof artistService.getAll>> = [];
+
+  try {
+    const [tracksResult, cats, artists] = await Promise.all([
+      trackService.getPublished({ page: 1, limit: 8 }),
+      trackService.getAllCategories(),
+      artistService.getAll(),
+    ]);
+    popularTracks = tracksResult.tracks;
+    allCategories = cats;
+    allArtists = artists;
+  } catch {
+    // DB tables may not exist yet or be empty — show page without dynamic sections
+  }
 
   const styles = allCategories.filter((c) => c.type === "STYLE");
   const themes = allCategories.filter((c) => c.type === "THEME");
