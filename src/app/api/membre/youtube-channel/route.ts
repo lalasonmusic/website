@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { db } from "@/db";
 import { youtubeChannels, subscriptions } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
+import { sendAdminEmail } from "@/lib/services/emailService";
 
 export async function POST(req: NextRequest) {
   const supabase = await createClient();
@@ -38,7 +39,17 @@ export async function POST(req: NextRequest) {
     status: "pending",
   });
 
-  // TODO: send email notification to admin once mailer is configured
+  sendAdminEmail({
+    subject: `Nouvelle whitelist YouTube — ${channelId}`,
+    html: `<p>Un créateur a soumis son Channel ID YouTube.</p>
+<ul>
+  <li><strong>Channel ID :</strong> ${channelId}</li>
+  <li><strong>User ID :</strong> ${user.id}</li>
+  <li><strong>Email :</strong> ${user.email ?? "inconnu"}</li>
+  <li><strong>Plan :</strong> ${activeSub.planType}</li>
+</ul>
+<p><a href="https://www.youtube.com/channel/${channelId}">Voir la chaîne</a></p>`,
+  }).catch(() => {});
 
   return NextResponse.json({ success: true });
 }

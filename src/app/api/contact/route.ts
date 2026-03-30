@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
+import { sendAdminEmail } from "@/lib/services/emailService";
 
 const schema = z.object({
   name: z.string().min(2).max(100),
@@ -15,9 +16,14 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Invalid input" }, { status: 400 });
   }
 
-  // TODO: send email notification to admin once a transactional email
-  // service is configured (e.g. Resend). For now we log and return success.
-  console.log("[contact]", parsed.data);
+  const { name, email, subject, message } = parsed.data;
+
+  sendAdminEmail({
+    subject: `Contact Lalason — ${subject}`,
+    html: `<p><strong>${name}</strong> (${email}) a envoyé un message :</p>
+<blockquote>${message.replace(/\n/g, "<br>")}</blockquote>
+<p>Répondre à : <a href="mailto:${email}">${email}</a></p>`,
+  }).catch(() => {});
 
   return NextResponse.json({ ok: true });
 }

@@ -257,7 +257,7 @@ youtube_channels  → Channel IDs YouTube des abonnes (user_id, channel_id, stat
 - [x] 8.1.2 : Historique telechargements (20 derniers, pagines)
 - [x] 8.1.3 : Bouton "Gerer mon abonnement" → Stripe Customer Portal
 - [x] 8.1.4 : Formulaire Channel ID YouTube (input + validation + sauvegarde)
-- [ ] 8.1.5 : Notification email admin a la soumission Channel ID
+- [x] 8.1.5 : Notification email admin a la soumission Channel ID
 - [x] 8.1.6 : Composant `<SubscriptionStatus>` (badge Actif/Expire/Gratuit)
 
 ---
