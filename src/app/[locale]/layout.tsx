@@ -46,7 +46,7 @@ export default async function LocaleLayout({ children, params }: Props) {
     <NextIntlClientProvider locale={locale} messages={messages}>
       <PostHogProvider>
         <Header locale={locale} />
-        <main style={{ minHeight: "calc(100vh - 60px)", paddingBottom: "var(--player-height-desktop)" }}>
+        <main style={{ minHeight: "calc(100vh - 60px)" }}>
           {children}
         </main>
         <Footer locale={locale} />

@@ -142,11 +142,6 @@ export default function PlayerProvider({ isSubscribed }: Props) {
     return unsub;
   }, []);
 
-  return (
-    <>
-      <PlayerDesktop />
-      <PlayerMobileMini />
-      <PlayerMobileExpanded />
-    </>
-  );
+  // Audio-only provider — visual player is handled by FloatingPlayer
+  return null;
 }

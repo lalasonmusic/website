@@ -33,9 +33,40 @@ export default function FloatingPlayer({ tracks, locale }: Props) {
   const [dismissed, setDismissed] = useState(false);
   const [visible, setVisible] = useState(false);
   const hasAutoPlayed = useRef(false);
+  const [position, setPosition] = useState({ x: 0, y: 0 });
+  const [isDragging, setIsDragging] = useState(false);
+  const dragOffset = useRef({ x: 0, y: 0 });
+  const widgetRef = useRef<HTMLDivElement>(null);
 
   const { currentTrack, isPlaying, progress, duration, playTrack, togglePlay, next, prev } =
     usePlayerStore();
+
+  // Drag handlers
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if ((e.target as HTMLElement).closest("button, a")) return;
+    setIsDragging(true);
+    dragOffset.current = {
+      x: e.clientX - position.x,
+      y: e.clientY - position.y,
+    };
+  };
+
+  useEffect(() => {
+    if (!isDragging) return;
+    const handleMouseMove = (e: MouseEvent) => {
+      setPosition({
+        x: e.clientX - dragOffset.current.x,
+        y: e.clientY - dragOffset.current.y,
+      });
+    };
+    const handleMouseUp = () => setIsDragging(false);
+    window.addEventListener("mousemove", handleMouseMove);
+    window.addEventListener("mouseup", handleMouseUp);
+    return () => {
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("mouseup", handleMouseUp);
+    };
+  }, [isDragging]);
 
   // Auto-play a random track on mount
   useEffect(() => {
@@ -66,10 +97,14 @@ export default function FloatingPlayer({ tracks, locale }: Props) {
 
   return (
     <div
+      ref={widgetRef}
+      onMouseDown={handleMouseDown}
       style={{
         position: "fixed",
-        bottom: 100,
-        right: 24,
+        bottom: position.y === 0 ? 32 : undefined,
+        right: position.x === 0 ? 24 : undefined,
+        top: position.y !== 0 ? position.y : undefined,
+        left: position.x !== 0 ? position.x : undefined,
         zIndex: 1000,
         width: 340,
         backgroundColor: "rgba(20, 30, 40, 0.95)",
@@ -78,9 +113,11 @@ export default function FloatingPlayer({ tracks, locale }: Props) {
         border: "1px solid rgba(245,166,35,0.2)",
         boxShadow: "0 8px 32px rgba(0,0,0,0.4)",
         padding: "1.25rem",
+        cursor: isDragging ? "grabbing" : "grab",
+        userSelect: "none",
         transform: visible ? "translateY(0)" : "translateY(20px)",
         opacity: visible ? 1 : 0,
-        transition: "transform 0.4s ease, opacity 0.4s ease",
+        transition: isDragging ? "none" : "transform 0.4s ease, opacity 0.4s ease",
       }}
     >
       {/* Close button */}
