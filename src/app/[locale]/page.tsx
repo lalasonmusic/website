@@ -61,44 +61,56 @@ export default async function HomePage({ params }: Props) {
       {/* ── HERO ── */}
       <section
         style={{
+          position: "relative",
           minHeight: "calc(100vh - 60px)",
           display: "flex",
           flexDirection: "column",
-          alignItems: "center",
+          alignItems: "flex-start",
           justifyContent: "center",
-          textAlign: "center",
           padding: "4rem 1.5rem",
-          background: `radial-gradient(ellipse at 50% 0%, rgba(245,166,35,0.12) 0%, transparent 60%), var(--color-bg-primary)`,
+          backgroundImage: "url(/hero-bg.png)",
+          backgroundSize: "cover",
+          backgroundPosition: "center right",
         }}
       >
-        <h1
+        {/* Dark overlay for text readability */}
+        <div
           style={{
-            fontFamily: "var(--font-poppins)",
-            fontWeight: 800,
-            fontSize: "clamp(2.5rem, 6vw, 4.5rem)",
-            lineHeight: 1.1,
-            letterSpacing: "-0.03em",
-            marginBottom: "1.5rem",
-            maxWidth: "800px",
+            position: "absolute",
+            inset: 0,
+            background: "linear-gradient(to right, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.3) 50%, rgba(0,0,0,0.1) 100%)",
           }}
-        >
-          {t("hero_title")}{" "}
-          <span style={{ color: "var(--color-accent)" }}>{t("hero_title_accent")}</span>
-        </h1>
+        />
 
-        <p
-          style={{
-            fontSize: "clamp(1rem, 2vw, 1.25rem)",
-            color: "var(--color-text-secondary)",
-            maxWidth: "560px",
-            lineHeight: 1.6,
-            marginBottom: "2.5rem",
-          }}
-        >
-          {t("hero_subtitle")}
-        </p>
+        <div style={{ position: "relative", zIndex: 1, maxWidth: "700px", paddingLeft: "clamp(1rem, 5vw, 4rem)" }}>
+          <h1
+            style={{
+              fontFamily: "var(--font-poppins)",
+              fontWeight: 800,
+              fontSize: "clamp(2.25rem, 5vw, 3.5rem)",
+              lineHeight: 1.15,
+              letterSpacing: "-0.02em",
+              marginBottom: "1.25rem",
+              color: "white",
+            }}
+          >
+            {t("hero_title")}{" "}
+            <span style={{ color: "var(--color-accent)" }}>{t("hero_title_accent")}</span>
+          </h1>
 
-        <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap", justifyContent: "center" }}>
+          <p
+            style={{
+              fontSize: "clamp(1rem, 2vw, 1.2rem)",
+              color: "rgba(255,255,255,0.8)",
+              maxWidth: "500px",
+              lineHeight: 1.6,
+              marginBottom: "2rem",
+            }}
+          >
+            {t("hero_subtitle")}
+          </p>
+
+          <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap" }}>
           <a
             href={`/${locale}/catalogue`}
             style={{
@@ -118,16 +130,17 @@ export default async function HomePage({ params }: Props) {
             style={{
               padding: "0.875rem 2rem",
               backgroundColor: "transparent",
-              color: "var(--color-text-primary)",
+              color: "white",
               fontWeight: 500,
               fontSize: "1rem",
               borderRadius: "var(--radius-full)",
-              border: "1px solid var(--color-border)",
+              border: "1px solid rgba(255,255,255,0.4)",
               textDecoration: "none",
             }}
           >
             {t("hero_cta_secondary")}
           </a>
+          </div>
         </div>
       </section>
 
