@@ -29,17 +29,20 @@ export default async function LocaleLayout({ children, params }: Props) {
   const messages = await getMessages();
 
   // Check subscription status for the player
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-
   let isSubscribed = false;
-  if (user) {
-    const [sub] = await db
-      .select({ id: subscriptions.id })
-      .from(subscriptions)
-      .where(and(eq(subscriptions.userId, user.id), eq(subscriptions.status, "active")))
-      .limit(1);
-    isSubscribed = !!sub;
+  try {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      const [sub] = await db
+        .select({ id: subscriptions.id })
+        .from(subscriptions)
+        .where(and(eq(subscriptions.userId, user.id), eq(subscriptions.status, "active")))
+        .limit(1);
+      isSubscribed = !!sub;
+    }
+  } catch {
+    // DB may not be available yet
   }
 
   return (
