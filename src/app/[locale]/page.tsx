@@ -4,6 +4,7 @@ import { buildMetadata, BASE_URL } from "@/lib/seo";
 import { trackService } from "@/lib/services/trackService";
 import { artistService } from "@/lib/services/artistService";
 import HomeTrackList from "@/components/catalogue/HomeTrackList";
+import AutoPlayHero from "@/components/catalogue/AutoPlayHero";
 
 type Props = {
   params: Promise<{ locale: string }>;
@@ -54,6 +55,9 @@ export default async function HomePage({ params }: Props) {
 
   return (
     <div>
+      {/* Auto-play a random track when the page loads */}
+      {popularTracks.length > 0 && <AutoPlayHero tracks={popularTracks} />}
+
       {/* ── HERO ── */}
       <section
         style={{
