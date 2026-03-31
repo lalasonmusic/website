@@ -58,8 +58,10 @@ export default function FloatingPlayer({ tracks, locale }: Props) {
     setTimeout(() => setVisible(true), 500);
   }, [tracks, playTrack]);
 
-  if (dismissed || !currentTrack || tracks.length === 0) return null;
+  if (dismissed || tracks.length === 0) return null;
 
+  // Show widget even before currentTrack is set (useEffect needs one render cycle)
+  const displayTrack = currentTrack ?? toPlayerTrack(tracks[0]);
   const progressPercent = duration > 0 ? (progress / duration) * 100 : 0;
 
   return (
@@ -131,9 +133,9 @@ export default function FloatingPlayer({ tracks, locale }: Props) {
             overflow: "hidden",
           }}
         >
-          {currentTrack.coverUrl ? (
+          {displayTrack.coverUrl ? (
             <img
-              src={currentTrack.coverUrl}
+              src={displayTrack.coverUrl}
               alt=""
               width={48}
               height={48}
@@ -156,10 +158,10 @@ export default function FloatingPlayer({ tracks, locale }: Props) {
               margin: 0,
             }}
           >
-            {currentTrack.title}
+            {displayTrack.title}
           </p>
           <p style={{ fontSize: "0.8125rem", color: "rgba(255,255,255,0.6)", margin: 0 }}>
-            {currentTrack.artistName}
+            {displayTrack.artistName}
           </p>
         </div>
       </div>
