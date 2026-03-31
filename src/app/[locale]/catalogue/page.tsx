@@ -90,6 +90,7 @@ export default async function CataloguePage({ params, searchParams }: Props) {
             mood: t("filters.mood"),
             all: t("filters.all"),
           }}
+          locale={locale}
         />
       </Suspense>
 

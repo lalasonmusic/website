@@ -1,19 +1,22 @@
 "use client";
 
-import { useRouter, usePathname } from "@/i18n/navigation";
-import { useSearchParams } from "next/navigation";
+import { useRouter, usePathname, useSearchParams } from "next/navigation";
+import { useState, useRef } from "react";
 import type { TrackCategory } from "@/types/track";
 
 type Props = {
   categories: TrackCategory[];
   searchPlaceholder: string;
   filterLabels: { style: string; theme: string; mood: string; all: string };
+  locale: string;
 };
 
-export default function CatalogueFilters({ categories, searchPlaceholder, filterLabels }: Props) {
+export default function CatalogueFilters({ categories, searchPlaceholder, filterLabels, locale }: Props) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const [isSearching, setIsSearching] = useState(false);
+  const debounceRef = useRef<ReturnType<typeof setTimeout>>(null);
 
   const currentSearch = searchParams.get("q") ?? "";
   const currentStyle = searchParams.get("style") ?? "";
@@ -31,13 +34,50 @@ export default function CatalogueFilters({ categories, searchPlaceholder, filter
     router.push(`${pathname}?${params.toString()}`);
   }
 
-  function handleSearch(value: string) {
-    const params = new URLSearchParams(searchParams.toString());
-    if (value) {
-      params.set("q", value);
-    } else {
+  function setFilters(filters: { styles: string[]; moods: string[]; themes: string[]; keywords: string[] }) {
+    const params = new URLSearchParams();
+    if (filters.styles[0]) params.set("style", filters.styles[0]);
+    if (filters.moods[0]) params.set("mood", filters.moods[0]);
+    if (filters.themes[0]) params.set("theme", filters.themes[0]);
+    if (filters.keywords[0]) params.set("q", filters.keywords[0]);
+    router.push(`${pathname}?${params.toString()}`);
+  }
+
+  async function handleSearch(value: string) {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+
+    if (!value || value.length < 3) {
+      const params = new URLSearchParams(searchParams.toString());
       params.delete("q");
+      params.delete("page");
+      router.push(`${pathname}?${params.toString()}`);
+      return;
     }
+
+    // If the query looks like natural language (more than 2 words or contains common phrases)
+    const isNaturalLanguage = value.split(/\s+/).length > 2 || /pour|for|cherche|looking|besoin|need|want|veux/i.test(value);
+
+    if (isNaturalLanguage) {
+      setIsSearching(true);
+      try {
+        const res = await fetch("/api/search/smart", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ query: value }),
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setFilters(data);
+          setIsSearching(false);
+          return;
+        }
+      } catch {}
+      setIsSearching(false);
+    }
+
+    // Fallback: regular text search
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("q", value);
     params.delete("page");
     router.push(`${pathname}?${params.toString()}`);
   }
@@ -48,26 +88,46 @@ export default function CatalogueFilters({ categories, searchPlaceholder, filter
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "1rem", marginBottom: "1.5rem" }}>
-      {/* Search */}
-      <input
-        type="search"
-        defaultValue={currentSearch}
-        placeholder={searchPlaceholder}
-        onChange={(e) => {
-          const val = e.target.value;
-          const timer = setTimeout(() => handleSearch(val), 400);
-          return () => clearTimeout(timer);
-        }}
-        style={{
-          width: "100%",
-          padding: "0.625rem 1rem",
-          backgroundColor: "var(--color-bg-card)",
-          border: "1px solid var(--color-border)",
-          borderRadius: "var(--radius-sm)",
-          color: "var(--color-text-primary)",
-          fontSize: "0.9375rem",
-        }}
-      />
+      {/* Smart Search */}
+      <div style={{ position: "relative" }}>
+        <input
+          type="search"
+          defaultValue={currentSearch}
+          placeholder={locale === "fr"
+            ? "Rechercher ou décrire ce que vous cherchez... ex: \"musique pour un mariage\""
+            : "Search or describe what you need... e.g. \"music for a wedding\""
+          }
+          onChange={(e) => {
+            const val = e.target.value;
+            if (debounceRef.current) clearTimeout(debounceRef.current);
+            debounceRef.current = setTimeout(() => handleSearch(val), 600);
+          }}
+          style={{
+            width: "100%",
+            padding: "0.75rem 1rem",
+            paddingRight: isSearching ? "3rem" : "1rem",
+            backgroundColor: "var(--color-bg-card)",
+            border: "1px solid var(--color-border)",
+            borderRadius: "var(--radius-sm)",
+            color: "var(--color-text-primary)",
+            fontSize: "0.9375rem",
+          }}
+        />
+        {isSearching && (
+          <span
+            style={{
+              position: "absolute",
+              right: 12,
+              top: "50%",
+              transform: "translateY(-50%)",
+              fontSize: "0.8125rem",
+              color: "var(--color-accent)",
+            }}
+          >
+            ✨
+          </span>
+        )}
+      </div>
 
       {/* Filter rows */}
       <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem" }}>
