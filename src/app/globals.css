@@ -43,8 +43,8 @@
   --radius-full: 9999px;
 
   /* Hauteur du player */
-  --player-height-desktop: 80px;
-  --player-height-mobile: 60px;
+  --player-height-desktop: 64px;
+  --player-height-mobile: 52px;
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
   --card: oklch(1 0 0);

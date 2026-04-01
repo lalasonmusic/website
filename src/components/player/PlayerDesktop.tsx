@@ -18,6 +18,7 @@ export default function PlayerDesktop() {
     progress,
     duration,
     volume,
+    isSubscribed,
     showSubscribeCta,
     togglePlay,
     next,
@@ -28,102 +29,149 @@ export default function PlayerDesktop() {
 
   if (!currentTrack) return null;
 
+  const progressPercent = duration > 0 ? (progress / duration) * 100 : 0;
+
   return (
     <div
+      className="player-desktop"
       style={{
         position: "fixed",
         bottom: 0,
         left: 0,
         right: 0,
-        height: "var(--player-height-desktop)",
-        backgroundColor: "var(--color-bg-secondary)",
-        borderTop: "1px solid var(--color-border)",
+        height: 64,
+        backgroundColor: "#0f2533",
+        borderTop: "1px solid rgba(255,255,255,0.08)",
         zIndex: 100,
         display: "none",
         alignItems: "center",
         padding: "0 1.5rem",
-        gap: "1.5rem",
+        gap: "1rem",
       }}
-      className="player-desktop"
     >
       {/* Cover + info */}
-      <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", minWidth: "200px", flex: "0 0 auto" }}>
-        {currentTrack.coverUrl ? (
-          <img
-            src={currentTrack.coverUrl}
-            alt={currentTrack.title}
-            width={44}
-            height={44}
-            style={{ borderRadius: "var(--radius-sm)", objectFit: "cover" }}
-          />
-        ) : (
-          <div style={{ width: 44, height: 44, borderRadius: "var(--radius-sm)", backgroundColor: "var(--color-bg-primary)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.25rem" }}>
-            🎵
-          </div>
-        )}
+      <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", minWidth: 180, flex: "0 0 auto" }}>
+        <div style={{
+          width: 40,
+          height: 40,
+          borderRadius: 6,
+          overflow: "hidden",
+          flexShrink: 0,
+          backgroundColor: "#1b3a4b",
+        }}>
+          {currentTrack.coverUrl ? (
+            <img src={currentTrack.coverUrl} alt="" width={40} height={40} style={{ objectFit: "cover" }} />
+          ) : (
+            <div style={{
+              width: "100%",
+              height: "100%",
+              background: "linear-gradient(135deg, #1b3a4b 0%, #2d5f7a 100%)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}>
+              <span style={{ fontSize: "1rem", color: "rgba(255,255,255,0.4)" }}>♪</span>
+            </div>
+          )}
+        </div>
         <div style={{ overflow: "hidden" }}>
-          <p style={{ fontWeight: 600, fontSize: "0.875rem", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: "140px" }}>
+          <p style={{
+            fontWeight: 600,
+            fontSize: "0.8125rem",
+            color: "white",
+            whiteSpace: "nowrap",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            maxWidth: 140,
+            margin: 0,
+          }}>
             {currentTrack.title}
           </p>
-          <p style={{ fontSize: "0.75rem", color: "var(--color-text-muted)", whiteSpace: "nowrap" }}>
+          <p style={{ fontSize: "0.6875rem", color: "rgba(255,255,255,0.5)", margin: 0 }}>
             {currentTrack.artistName}
           </p>
         </div>
       </div>
 
-      {/* Center: controls + progress */}
-      <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: "0.375rem" }}>
-        {/* Controls */}
-        <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
-          <button onClick={prev} style={btnStyle}>⏮</button>
-          <button
-            onClick={togglePlay}
-            style={{
-              ...btnStyle,
-              width: 40,
-              height: 40,
-              backgroundColor: "var(--color-accent)",
-              color: "var(--color-accent-text)",
-              borderRadius: "50%",
-              fontSize: "1rem",
-            }}
-          >
-            {isPlaying ? "⏸" : "▶"}
-          </button>
-          <button onClick={next} style={btnStyle}>⏭</button>
-        </div>
-
-        {/* Progress bar */}
-        <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", width: "100%", maxWidth: "480px" }}>
-          <span style={{ fontSize: "0.6875rem", color: "var(--color-text-muted)", minWidth: "32px", textAlign: "right" }}>
-            {formatTime(progress)}
-          </span>
-          <div
-            style={{ flex: 1, height: "4px", backgroundColor: "var(--color-border)", borderRadius: "2px", cursor: "pointer", position: "relative" }}
-            onClick={(e) => {
-              const rect = (e.currentTarget as HTMLDivElement).getBoundingClientRect();
-              const ratio = (e.clientX - rect.left) / rect.width;
-              seek(ratio * (duration || 0));
-            }}
-          >
-            <div
-              style={{
-                height: "100%",
-                backgroundColor: "var(--color-accent)",
-                borderRadius: "2px",
-                width: `${duration ? (progress / duration) * 100 : 0}%`,
-              }}
-            />
-          </div>
-          <span style={{ fontSize: "0.6875rem", color: "var(--color-text-muted)", minWidth: "32px" }}>
-            {formatTime(duration)}
-          </span>
-        </div>
+      {/* Controls */}
+      <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+        <button onClick={prev} style={controlBtn} aria-label="Previous">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg>
+        </button>
+        <button
+          onClick={togglePlay}
+          style={{
+            width: 36,
+            height: 36,
+            borderRadius: "50%",
+            backgroundColor: "var(--color-accent)",
+            border: "none",
+            color: "var(--color-accent-text)",
+            cursor: "pointer",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            fontSize: "0.875rem",
+          }}
+          aria-label={isPlaying ? "Pause" : "Play"}
+        >
+          {isPlaying ? "⏸" : "▶"}
+        </button>
+        <button onClick={next} style={controlBtn} aria-label="Next">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg>
+        </button>
       </div>
 
+      {/* Progress section */}
+      <div style={{ flex: 1, display: "flex", alignItems: "center", gap: "0.625rem" }}>
+        <span style={{ fontSize: "0.6875rem", color: "rgba(255,255,255,0.4)", minWidth: 28, textAlign: "right", fontVariantNumeric: "tabular-nums" }}>
+          {formatTime(progress)}
+        </span>
+        <div
+          style={{
+            flex: 1,
+            height: 4,
+            backgroundColor: "rgba(255,255,255,0.1)",
+            borderRadius: 2,
+            cursor: "pointer",
+            position: "relative",
+          }}
+          onClick={(e) => {
+            const rect = e.currentTarget.getBoundingClientRect();
+            const ratio = (e.clientX - rect.left) / rect.width;
+            seek(ratio * (duration || 0));
+          }}
+        >
+          <div style={{
+            height: "100%",
+            backgroundColor: "var(--color-accent)",
+            borderRadius: 2,
+            width: `${progressPercent}%`,
+            transition: "width 0.3s linear",
+          }} />
+        </div>
+        <span style={{ fontSize: "0.6875rem", color: "rgba(255,255,255,0.4)", minWidth: 28, fontVariantNumeric: "tabular-nums" }}>
+          {duration > 0 ? formatTime(duration) : "--:--"}
+        </span>
+      </div>
+
+      {/* Preview badge */}
+      {!isSubscribed && (
+        <span style={{
+          fontSize: "0.5625rem",
+          color: "var(--color-accent)",
+          fontWeight: 600,
+          textTransform: "uppercase",
+          letterSpacing: "0.05em",
+          flexShrink: 0,
+        }}>
+          {locale === "fr" ? "Extrait" : "Preview"}
+        </span>
+      )}
+
       {/* Volume */}
-      <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", minWidth: "120px", flex: "0 0 auto" }}>
-        <span style={{ fontSize: "0.875rem" }}>🔊</span>
+      <div style={{ display: "flex", alignItems: "center", gap: "0.375rem", flexShrink: 0 }}>
+        <span style={{ fontSize: "0.75rem", color: "rgba(255,255,255,0.4)" }}>♪</span>
         <input
           type="range"
           min={0}
@@ -131,7 +179,7 @@ export default function PlayerDesktop() {
           step={0.01}
           value={volume}
           onChange={(e) => setVolume(parseFloat(e.target.value))}
-          style={{ width: "80px", accentColor: "var(--color-accent)" }}
+          style={{ width: 64, accentColor: "var(--color-accent)", height: 3 }}
         />
       </div>
 
@@ -140,26 +188,29 @@ export default function PlayerDesktop() {
         <div style={{
           position: "absolute",
           inset: 0,
-          backgroundColor: "rgba(15,37,51,0.95)",
+          backgroundColor: "rgba(15,37,51,0.97)",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
           gap: "1rem",
+          borderTop: "1px solid rgba(245,166,35,0.3)",
         }}>
-          <p style={{ fontWeight: 600, fontSize: "0.9375rem" }}>{"Ce morceau continue..."}</p>
+          <p style={{ fontWeight: 500, fontSize: "0.875rem", color: "white", margin: 0 }}>
+            {locale === "fr" ? "Ce morceau continue..." : "This track continues..."}
+          </p>
           <Link
             href={`/${locale}/abonnements`}
             style={{
-              padding: "0.5rem 1.25rem",
+              padding: "0.4rem 1.25rem",
               backgroundColor: "var(--color-accent)",
               color: "var(--color-accent-text)",
-              fontWeight: 700,
-              borderRadius: "var(--radius-full)",
+              fontWeight: 600,
+              borderRadius: "9999px",
               textDecoration: "none",
-              fontSize: "0.875rem",
+              fontSize: "0.8125rem",
             }}
           >
-            {"S'abonner →"}
+            {locale === "fr" ? "S'abonner" : "Subscribe"} →
           </Link>
         </div>
       )}
@@ -167,13 +218,12 @@ export default function PlayerDesktop() {
   );
 }
 
-const btnStyle: React.CSSProperties = {
+const controlBtn: React.CSSProperties = {
   background: "none",
   border: "none",
-  color: "var(--color-text-primary)",
+  color: "rgba(255,255,255,0.6)",
   cursor: "pointer",
-  fontSize: "1.125rem",
-  padding: "0.25rem",
+  padding: 4,
   display: "flex",
   alignItems: "center",
   justifyContent: "center",

@@ -5,7 +5,7 @@ import { usePlayerStore } from "@/store/playerStore";
 import { track } from "@/lib/analytics";
 import PlayerDesktop from "./PlayerDesktop";
 import PlayerMobileMini from "./PlayerMobileMini";
-import PlayerMobileExpanded from "./PlayerMobileExpanded";
+
 
 type Props = {
   isSubscribed: boolean;
@@ -142,6 +142,10 @@ export default function PlayerProvider({ isSubscribed }: Props) {
     return unsub;
   }, []);
 
-  // Audio-only provider — visual player is handled by FloatingPlayer
-  return null;
+  return (
+    <>
+      <PlayerDesktop />
+      <PlayerMobileMini />
+    </>
+  );
 }
