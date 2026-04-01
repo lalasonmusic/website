@@ -4,7 +4,12 @@ import * as schema from "./schema";
 
 const connectionString = process.env.DATABASE_URL!;
 
-// Desactiver le prefetch pour le mode transaction (pooler Supabase)
-const client = postgres(connectionString, { prepare: false });
+// Config optimisee pour Vercel serverless + Supabase pooler
+const client = postgres(connectionString, {
+  prepare: false,
+  max: 3,
+  idle_timeout: 20,
+  connect_timeout: 10,
+});
 
 export const db = drizzle(client, { schema });
