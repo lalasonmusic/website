@@ -128,9 +128,9 @@ export default function CatalogueFilters({ categories, filterLabels, locale, dar
         )}
       </div>
 
-      {/* Filter rows — theme & mood only (style is in the hero) */}
+      {/* Filter rows — theme & mood */}
       {(themes.length > 0 || moods.length > 0) && (
-        <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem" }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
           <FilterGroup
             label={filterLabels.theme}
             options={themes}
@@ -166,20 +166,28 @@ function FilterGroup({ label, options, current, allLabel, onChange, darkMode }: 
   if (options.length === 0) return null;
 
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: "0.375rem", flexWrap: "wrap" }}>
-      <span style={{ fontSize: "0.75rem", fontWeight: 600, color: darkMode ? "rgba(255,255,255,0.6)" : "#6b7280", marginRight: "0.25rem" }}>
-        {label}:
+    <div style={{ display: "grid", gridTemplateColumns: "4.5rem 1fr", alignItems: "start", gap: "0.5rem" }}>
+      <span style={{
+        fontSize: "0.8125rem",
+        fontWeight: 600,
+        color: darkMode ? "rgba(255,255,255,0.7)" : "#6b7280",
+        paddingTop: "0.3rem",
+        whiteSpace: "nowrap",
+      }}>
+        {label} :
       </span>
-      <FilterChip label={allLabel} active={!current} onClick={() => onChange("")} darkMode={darkMode} />
-      {options.map((opt) => (
-        <FilterChip
-          key={opt.slug}
-          label={opt.labelFr}
-          active={current === opt.slug}
-          onClick={() => onChange(current === opt.slug ? "" : opt.slug)}
-          darkMode={darkMode}
-        />
-      ))}
+      <div style={{ display: "flex", flexWrap: "wrap", gap: "0.375rem" }}>
+        <FilterChip label={allLabel} active={!current} onClick={() => onChange("")} darkMode={darkMode} />
+        {options.map((opt) => (
+          <FilterChip
+            key={opt.slug}
+            label={opt.labelFr}
+            active={current === opt.slug}
+            onClick={() => onChange(current === opt.slug ? "" : opt.slug)}
+            darkMode={darkMode}
+          />
+        ))}
+      </div>
     </div>
   );
 }
