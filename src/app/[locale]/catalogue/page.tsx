@@ -105,45 +105,34 @@ export default async function CataloguePage({ params, searchParams }: Props) {
           }}
         />
         <div style={{ position: "relative", maxWidth: "900px", margin: "0 auto" }}>
-          <h1
-            style={{
-              fontFamily: "var(--font-poppins, Poppins, sans-serif)",
-              fontWeight: 600,
-              fontSize: "1.25rem",
-              color: "white",
-              margin: 0,
-              lineHeight: 1.4,
-            }}
-          >
-            {t("heroTitle")}
-          </h1>
-          <p
-            style={{
-              fontFamily: "var(--font-poppins, Poppins, sans-serif)",
-              fontWeight: 800,
-              fontSize: "2.5rem",
-              color: "white",
-              margin: "0.25rem 0 0.75rem",
-              lineHeight: 1.2,
-            }}
-          >
-            {t("heroSubtitle")}
-          </p>
-          <p
-            style={{
-              fontFamily: "var(--font-poppins, Poppins, sans-serif)",
-              fontWeight: 400,
-              fontSize: "0.9375rem",
-              color: "rgba(255, 255, 255, 0.8)",
-              margin: "0 0 1.75rem",
-              maxWidth: "550px",
-              lineHeight: 1.6,
-            }}
-          >
-            {t("heroDescription")}
-          </p>
+          {/* Subtle value prop + CTA */}
+          {!isSubscribed && (
+            <p
+              style={{
+                fontFamily: "var(--font-poppins, Poppins, sans-serif)",
+                fontSize: "0.9375rem",
+                color: "rgba(255, 255, 255, 0.85)",
+                margin: "0 0 1.5rem",
+                lineHeight: 1.6,
+              }}
+            >
+              {locale === "fr"
+                ? "Des milliers de morceaux originaux — "
+                : "Thousands of original tracks — "}
+              <a
+                href={`/${locale}/abonnements`}
+                style={{
+                  color: "var(--color-accent)",
+                  fontWeight: 600,
+                  textDecoration: "none",
+                }}
+              >
+                {locale === "fr" ? "Accès illimité dès 99\u00A0€/an" : "Unlimited access from €99/year"}
+              </a>
+            </p>
+          )}
 
-          {/* Search + Theme/Mood filters inside the hero */}
+          {/* Search + Theme/Mood filters */}
           <Suspense>
             <CatalogueFilters
               categories={filterCategories}
@@ -164,26 +153,7 @@ export default async function CataloguePage({ params, searchParams }: Props) {
       {/* White section — CTA + tracks */}
       <div style={{ backgroundColor: "white", color: "#1b3a4b", padding: "2rem 1.5rem 2.5rem" }}>
         <div style={{ maxWidth: "900px", margin: "0 auto" }}>
-          {/* CTA Banner */}
-          {!isSubscribed && (
-            <div style={{ textAlign: "center", marginBottom: "1.5rem" }}>
-              <a
-                href={`/${locale}/abonnements`}
-                style={{
-                  display: "inline-block",
-                  padding: "0.75rem 2rem",
-                  backgroundColor: "var(--color-accent)",
-                  color: "var(--color-accent-text)",
-                  fontWeight: 600,
-                  fontSize: "0.9375rem",
-                  borderRadius: "var(--radius-full)",
-                  textDecoration: "none",
-                }}
-              >
-                {locale === "fr" ? "Toute la musique en illimité ? Clique ici !" : "Unlimited music? Click here!"}
-              </a>
-            </div>
-          )}
+
 
           {/* Track list */}
           {tracks.length === 0 ? (
