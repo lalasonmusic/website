@@ -144,48 +144,78 @@ export default async function CataloguePage({ params, searchParams }: Props) {
           >
             {t("heroDescription")}
           </p>
-          {/* Style filter chips — server-rendered as links */}
-          <div
-            style={{
-              display: "flex",
-              flexWrap: "wrap",
-              gap: "0.75rem",
-              maxWidth: "550px",
-            }}
-          >
-            {styleCategories.map((cat) => {
-              const isActive = style === cat.slug;
-              const params = new URLSearchParams({
-                ...(q && { q }),
-                ...(!isActive && { style: cat.slug }),
-                ...(theme && { theme }),
-                ...(mood && { mood }),
-              });
-              const href = `/${locale}/catalogue?${params.toString()}`;
-              return (
+          {/* Style filter chips — 3-column grid like Wix */}
+          {(() => {
+            const noStyleSelected = !style;
+            const nouveautesParams = new URLSearchParams({
+              ...(q && { q }),
+              ...(theme && { theme }),
+              ...(mood && { mood }),
+            });
+            const nouveautesHref = `/${locale}/catalogue?${nouveautesParams.toString()}`;
+
+            return (
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(3, 1fr)",
+                  gap: "0.75rem",
+                  maxWidth: "580px",
+                }}
+              >
+                {/* Nouveautés — always first, gold when no style filter active */}
                 <a
-                  key={cat.slug}
-                  href={href}
+                  href={nouveautesHref}
                   style={{
-                    padding: "0.5rem 1.5rem",
+                    padding: "0.625rem 1rem",
                     borderRadius: "9999px",
-                    border: isActive ? "2px solid var(--color-accent)" : "1px solid rgba(255, 255, 255, 0.5)",
-                    backgroundColor: isActive ? "var(--color-accent)" : "transparent",
-                    color: isActive ? "var(--color-accent-text)" : "white",
+                    border: noStyleSelected ? "2px solid var(--color-accent)" : "1px solid rgba(255, 255, 255, 0.5)",
+                    backgroundColor: noStyleSelected ? "var(--color-accent)" : "transparent",
+                    color: noStyleSelected ? "var(--color-accent-text)" : "white",
                     fontSize: "0.9375rem",
                     fontFamily: "var(--font-poppins, Poppins, sans-serif)",
                     fontWeight: 500,
                     textDecoration: "none",
-                    minWidth: "120px",
                     textAlign: "center",
                     transition: "all 0.2s ease",
                   }}
                 >
-                  {locale === "fr" ? cat.labelFr : cat.labelEn}
+                  {locale === "fr" ? "Nouveautés" : "New releases"}
                 </a>
-              );
-            })}
-          </div>
+                {styleCategories.map((cat) => {
+                  const isActive = style === cat.slug;
+                  const params = new URLSearchParams({
+                    ...(q && { q }),
+                    ...(!isActive && { style: cat.slug }),
+                    ...(theme && { theme }),
+                    ...(mood && { mood }),
+                  });
+                  const href = `/${locale}/catalogue?${params.toString()}`;
+                  return (
+                    <a
+                      key={cat.slug}
+                      href={href}
+                      style={{
+                        padding: "0.625rem 1rem",
+                        borderRadius: "9999px",
+                        border: isActive ? "2px solid var(--color-accent)" : "1px solid rgba(255, 255, 255, 0.5)",
+                        backgroundColor: isActive ? "var(--color-accent)" : "transparent",
+                        color: isActive ? "var(--color-accent-text)" : "white",
+                        fontSize: "0.9375rem",
+                        fontFamily: "var(--font-poppins, Poppins, sans-serif)",
+                        fontWeight: 500,
+                        textDecoration: "none",
+                        textAlign: "center",
+                        transition: "all 0.2s ease",
+                      }}
+                    >
+                      {locale === "fr" ? cat.labelFr : cat.labelEn}
+                    </a>
+                  );
+                })}
+              </div>
+            );
+          })()}
         </div>
       </section>
 
