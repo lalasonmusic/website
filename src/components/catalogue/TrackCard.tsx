@@ -35,6 +35,7 @@ function toPlayerTrack(t: TrackWithDetails): PlayerTrack {
 export default function TrackCard({ track, queue, queueIndex, locale, isSubscribed }: Props) {
   const { currentTrack, isPlaying, playTrack, togglePlay } = usePlayerStore();
   const isCurrentTrack = currentTrack?.id === track.id;
+  const isEven = queueIndex % 2 === 0;
 
   function handlePlay() {
     if (isCurrentTrack) {
@@ -51,29 +52,32 @@ export default function TrackCard({ track, queue, queueIndex, locale, isSubscrib
 
   const tags = track.categories.slice(0, 3);
 
+  const baseBg = isCurrentTrack
+    ? "rgba(245,166,35,0.06)"
+    : isEven ? "rgba(0,0,0,0.02)" : "transparent";
+
   return (
     <div
       onClick={handlePlay}
-      onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "#f8f9fa"; }}
-      onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = isCurrentTrack ? "rgba(245,166,35,0.05)" : "transparent"; }}
+      onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "rgba(0,0,0,0.04)"; }}
+      onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = baseBg; }}
       style={{
         display: "flex",
         alignItems: "center",
         gap: "0.875rem",
         padding: "0.625rem 1rem",
-        borderBottom: "1px solid #f0f0f0",
         borderRadius: "8px",
         transition: "background-color 0.15s",
         cursor: "pointer",
-        backgroundColor: isCurrentTrack ? "rgba(245,166,35,0.05)" : "transparent",
+        backgroundColor: baseBg,
       }}
     >
       {/* Cover art + play overlay */}
-      <div style={{ position: "relative", flexShrink: 0, width: 52, height: 52 }}>
+      <div style={{ position: "relative", flexShrink: 0, width: 48, height: 48 }}>
         <div
           style={{
-            width: 52,
-            height: 52,
+            width: 48,
+            height: 48,
             borderRadius: "6px",
             overflow: "hidden",
             backgroundColor: "#e5e7eb",
@@ -96,11 +100,10 @@ export default function TrackCard({ track, queue, queueIndex, locale, isSubscrib
                 justifyContent: "center",
               }}
             >
-              <span style={{ fontSize: "1.25rem" }}>♪</span>
+              <span style={{ fontSize: "1.125rem", color: "rgba(255,255,255,0.5)" }}>♪</span>
             </div>
           )}
         </div>
-        {/* Play button overlay */}
         <button
           onClick={(e) => { e.stopPropagation(); handlePlay(); }}
           style={{
@@ -120,13 +123,13 @@ export default function TrackCard({ track, queue, queueIndex, locale, isSubscrib
           onMouseLeave={(e) => { if (!isCurrentTrack) e.currentTarget.style.opacity = "0"; }}
           aria-label={isCurrentTrack && isPlaying ? "Pause" : "Play"}
         >
-          <span style={{ color: "white", fontSize: "1rem", marginLeft: isCurrentTrack && isPlaying ? 0 : 2 }}>
+          <span style={{ color: "white", fontSize: "0.875rem", marginLeft: isCurrentTrack && isPlaying ? 0 : 2 }}>
             {isCurrentTrack && isPlaying ? "⏸" : "▶"}
           </span>
         </button>
       </div>
 
-      {/* Track info: title + artist */}
+      {/* Track info: title + artist + tags */}
       <div style={{ flex: 1, minWidth: 0 }}>
         <p style={{
           margin: 0,
@@ -139,53 +142,45 @@ export default function TrackCard({ track, queue, queueIndex, locale, isSubscrib
         }}>
           {track.title}
         </p>
-        <p style={{
-          margin: "0.125rem 0 0",
-          fontSize: "0.8125rem",
-          color: "#9ca3af",
-          whiteSpace: "nowrap",
-          overflow: "hidden",
-          textOverflow: "ellipsis",
-        }}>
-          {track.artistName}
-        </p>
-      </div>
-
-      {/* Tags */}
-      {tags.length > 0 && (
-        <div style={{
-          display: "flex",
-          gap: "0.375rem",
-          flexShrink: 0,
-        }}>
-          {tags.map((tag) => (
-            <span
-              key={tag.slug}
-              style={{
-                fontSize: "0.6875rem",
-                padding: "0.1875rem 0.5rem",
-                borderRadius: "4px",
-                backgroundColor: "#f3f4f6",
-                color: "#6b7280",
-                fontWeight: 500,
-                whiteSpace: "nowrap",
-              }}
-            >
-              {locale === "fr" ? tag.labelFr : tag.labelEn}
-            </span>
-          ))}
+        <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginTop: "0.125rem" }}>
+          <span style={{
+            fontSize: "0.8125rem",
+            color: "#9ca3af",
+            whiteSpace: "nowrap",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+          }}>
+            {track.artistName}
+          </span>
+          {tags.length > 0 && (
+            <>
+              <span style={{ color: "#d1d5db", fontSize: "0.625rem" }}>•</span>
+              {tags.map((tag) => (
+                <span
+                  key={tag.slug}
+                  style={{
+                    fontSize: "0.625rem",
+                    color: "#9ca3af",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {locale === "fr" ? tag.labelFr : tag.labelEn}
+                </span>
+              ))}
+            </>
+          )}
         </div>
-      )}
+      </div>
 
       {/* BPM */}
       {track.bpm && (
         <span style={{
           fontSize: "0.75rem",
-          color: "#9ca3af",
+          color: "#b0b0b0",
           flexShrink: 0,
           whiteSpace: "nowrap",
         }}>
-          {track.bpm} BPM
+          {track.bpm}
         </span>
       )}
 

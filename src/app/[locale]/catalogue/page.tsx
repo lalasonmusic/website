@@ -157,8 +157,12 @@ export default async function CataloguePage({ params, searchParams }: Props) {
         </div>
       </section>
 
-      {/* White section — CTA + tracks */}
-      <div style={{ backgroundColor: "white", color: "#1b3a4b", padding: "2rem 1.5rem 2.5rem" }}>
+      {/* Track section — soft background with gradient transition */}
+      <div style={{
+        background: "linear-gradient(to bottom, #e8edf0 0%, #f8f7f5 80px, #f8f7f5 100%)",
+        color: "#1b3a4b",
+        padding: "2.5rem 1.5rem 2.5rem",
+      }}>
         <div style={{ maxWidth: "900px", margin: "0 auto" }}>
 
 
