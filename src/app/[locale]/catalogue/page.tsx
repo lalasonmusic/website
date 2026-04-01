@@ -85,18 +85,16 @@ export default async function CataloguePage({ params, searchParams }: Props) {
     type: c.type as "STYLE" | "THEME" | "MOOD",
   }));
 
-  const styleCategories = filterCategories.filter((c) => c.type === "STYLE");
-
   return (
     <div style={{ minHeight: "100vh" }}>
-      {/* Hero banner — server-rendered for immediate display */}
+      {/* Hero banner — title + search + filters */}
       <section
         style={{
           position: "relative",
           backgroundImage: "url(/catalogue-hero.jpg)",
           backgroundSize: "cover",
           backgroundPosition: "center",
-          padding: "5rem 1.5rem 3.5rem",
+          padding: "4rem 1.5rem 2.5rem",
         }}
       >
         <div
@@ -144,82 +142,26 @@ export default async function CataloguePage({ params, searchParams }: Props) {
           >
             {t("heroDescription")}
           </p>
-          {/* Style filter chips — 3-column grid like Wix */}
-          {(() => {
-            const noStyleSelected = !style;
-            const nouveautesParams = new URLSearchParams({
-              ...(q && { q }),
-              ...(theme && { theme }),
-              ...(mood && { mood }),
-            });
-            const nouveautesHref = `/${locale}/catalogue?${nouveautesParams.toString()}`;
 
-            return (
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "repeat(3, 1fr)",
-                  gap: "0.75rem",
-                  maxWidth: "580px",
-                }}
-              >
-                {/* Nouveautés — always first, gold when no style filter active */}
-                <a
-                  href={nouveautesHref}
-                  style={{
-                    padding: "0.625rem 1rem",
-                    borderRadius: "9999px",
-                    border: noStyleSelected ? "2px solid var(--color-accent)" : "1px solid rgba(255, 255, 255, 0.5)",
-                    backgroundColor: noStyleSelected ? "var(--color-accent)" : "transparent",
-                    color: noStyleSelected ? "var(--color-accent-text)" : "white",
-                    fontSize: "0.9375rem",
-                    fontFamily: "var(--font-poppins, Poppins, sans-serif)",
-                    fontWeight: 500,
-                    textDecoration: "none",
-                    textAlign: "center",
-                    transition: "all 0.2s ease",
-                  }}
-                >
-                  {locale === "fr" ? "Nouveautés" : "New releases"}
-                </a>
-                {styleCategories.map((cat) => {
-                  const isActive = style === cat.slug;
-                  const params = new URLSearchParams({
-                    ...(q && { q }),
-                    ...(!isActive && { style: cat.slug }),
-                    ...(theme && { theme }),
-                    ...(mood && { mood }),
-                  });
-                  const href = `/${locale}/catalogue?${params.toString()}`;
-                  return (
-                    <a
-                      key={cat.slug}
-                      href={href}
-                      style={{
-                        padding: "0.625rem 1rem",
-                        borderRadius: "9999px",
-                        border: isActive ? "2px solid var(--color-accent)" : "1px solid rgba(255, 255, 255, 0.5)",
-                        backgroundColor: isActive ? "var(--color-accent)" : "transparent",
-                        color: isActive ? "var(--color-accent-text)" : "white",
-                        fontSize: "0.9375rem",
-                        fontFamily: "var(--font-poppins, Poppins, sans-serif)",
-                        fontWeight: 500,
-                        textDecoration: "none",
-                        textAlign: "center",
-                        transition: "all 0.2s ease",
-                      }}
-                    >
-                      {locale === "fr" ? cat.labelFr : cat.labelEn}
-                    </a>
-                  );
-                })}
-              </div>
-            );
-          })()}
+          {/* Search + Theme/Mood filters inside the hero */}
+          <Suspense>
+            <CatalogueFilters
+              categories={filterCategories}
+              searchPlaceholder={t("searchPlaceholder")}
+              filterLabels={{
+                style: t("filters.style"),
+                theme: t("filters.theme"),
+                mood: t("filters.mood"),
+                all: t("filters.all"),
+              }}
+              locale={locale}
+              darkMode
+            />
+          </Suspense>
         </div>
       </section>
 
-      {/* White section — search + tracks */}
+      {/* White section — CTA + tracks */}
       <div style={{ backgroundColor: "white", color: "#1b3a4b", padding: "2rem 1.5rem 2.5rem" }}>
         <div style={{ maxWidth: "900px", margin: "0 auto" }}>
           {/* CTA Banner */}
@@ -242,20 +184,6 @@ export default async function CataloguePage({ params, searchParams }: Props) {
               </a>
             </div>
           )}
-
-          <Suspense>
-            <CatalogueFilters
-              categories={filterCategories}
-              searchPlaceholder={t("searchPlaceholder")}
-              filterLabels={{
-                style: t("filters.style"),
-                theme: t("filters.theme"),
-                mood: t("filters.mood"),
-                all: t("filters.all"),
-              }}
-              locale={locale}
-            />
-          </Suspense>
 
           {/* Track list */}
           {tracks.length === 0 ? (

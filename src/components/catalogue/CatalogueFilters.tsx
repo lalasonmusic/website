@@ -9,9 +9,10 @@ type Props = {
   searchPlaceholder: string;
   filterLabels: { style: string; theme: string; mood: string; all: string };
   locale: string;
+  darkMode?: boolean;
 };
 
-export default function CatalogueFilters({ categories, filterLabels, locale }: Props) {
+export default function CatalogueFilters({ categories, filterLabels, locale, darkMode }: Props) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -104,10 +105,10 @@ export default function CatalogueFilters({ categories, filterLabels, locale }: P
             width: "100%",
             padding: "0.75rem 1rem",
             paddingRight: isSearching ? "3rem" : "1rem",
-            backgroundColor: "#f9fafb",
-            border: "1px solid #d1d5db",
+            backgroundColor: darkMode ? "rgba(255, 255, 255, 0.15)" : "#f9fafb",
+            border: darkMode ? "1px solid rgba(255, 255, 255, 0.3)" : "1px solid #d1d5db",
             borderRadius: "8px",
-            color: "#1b3a4b",
+            color: darkMode ? "white" : "#1b3a4b",
             fontSize: "0.9375rem",
           }}
         />
@@ -136,6 +137,7 @@ export default function CatalogueFilters({ categories, filterLabels, locale }: P
             current={currentTheme}
             allLabel={filterLabels.all}
             onChange={(v) => updateParam("theme", v)}
+            darkMode={darkMode}
           />
           <FilterGroup
             label={filterLabels.mood}
@@ -143,6 +145,7 @@ export default function CatalogueFilters({ categories, filterLabels, locale }: P
             current={currentMood}
             allLabel={filterLabels.all}
             onChange={(v) => updateParam("mood", v)}
+            darkMode={darkMode}
           />
         </div>
       )}
@@ -156,43 +159,41 @@ type FilterGroupProps = {
   current: string;
   allLabel: string;
   onChange: (v: string) => void;
+  darkMode?: boolean;
 };
 
-function FilterGroup({ label, options, current, allLabel, onChange }: FilterGroupProps) {
+function FilterGroup({ label, options, current, allLabel, onChange, darkMode }: FilterGroupProps) {
   if (options.length === 0) return null;
 
   return (
     <div style={{ display: "flex", alignItems: "center", gap: "0.375rem", flexWrap: "wrap" }}>
-      <span style={{ fontSize: "0.75rem", fontWeight: 600, color: "#6b7280", marginRight: "0.25rem" }}>
+      <span style={{ fontSize: "0.75rem", fontWeight: 600, color: darkMode ? "rgba(255,255,255,0.6)" : "#6b7280", marginRight: "0.25rem" }}>
         {label}:
       </span>
-      <FilterChip
-        label={allLabel}
-        active={!current}
-        onClick={() => onChange("")}
-      />
+      <FilterChip label={allLabel} active={!current} onClick={() => onChange("")} darkMode={darkMode} />
       {options.map((opt) => (
         <FilterChip
           key={opt.slug}
           label={opt.labelFr}
           active={current === opt.slug}
           onClick={() => onChange(current === opt.slug ? "" : opt.slug)}
+          darkMode={darkMode}
         />
       ))}
     </div>
   );
 }
 
-function FilterChip({ label, active, onClick }: { label: string; active: boolean; onClick: () => void }) {
+function FilterChip({ label, active, onClick, darkMode }: { label: string; active: boolean; onClick: () => void; darkMode?: boolean }) {
   return (
     <button
       onClick={onClick}
       style={{
         padding: "0.25rem 0.75rem",
         borderRadius: "9999px",
-        border: `1px solid ${active ? "var(--color-accent)" : "#d1d5db"}`,
-        backgroundColor: active ? "rgba(245,166,35,0.12)" : "white",
-        color: active ? "#b47a14" : "#4b5563",
+        border: `1px solid ${active ? "var(--color-accent)" : darkMode ? "rgba(255,255,255,0.4)" : "#d1d5db"}`,
+        backgroundColor: active ? (darkMode ? "var(--color-accent)" : "rgba(245,166,35,0.12)") : "transparent",
+        color: active ? (darkMode ? "var(--color-accent-text)" : "#b47a14") : darkMode ? "white" : "#4b5563",
         fontSize: "0.8125rem",
         cursor: "pointer",
         fontWeight: active ? 600 : 400,
