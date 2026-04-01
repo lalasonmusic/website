@@ -20,15 +20,17 @@ export default function PlayerMobileMini() {
         bottom: 0,
         left: 0,
         right: 0,
-        backgroundColor: "#0f2533",
-        borderTop: "1px solid rgba(255,255,255,0.08)",
+        backgroundColor: "rgba(15, 37, 51, 0.9)",
+        backdropFilter: "blur(20px)",
+        WebkitBackdropFilter: "blur(20px)",
+        borderTop: "1px solid rgba(255,255,255,0.1)",
         zIndex: 100,
         display: "none",
         flexDirection: "column",
       }}
     >
-      {/* Thin progress bar on top */}
-      <div style={{ height: 2, backgroundColor: "rgba(255,255,255,0.08)" }}>
+      {/* Progress bar on top */}
+      <div style={{ height: 2, backgroundColor: "rgba(255,255,255,0.06)" }}>
         <div style={{
           height: "100%",
           width: `${progressPercent}%`,
@@ -41,20 +43,19 @@ export default function PlayerMobileMini() {
       <div style={{
         display: "flex",
         alignItems: "center",
-        padding: "0.5rem 1rem",
-        gap: "0.75rem",
+        padding: "0.4rem 0.75rem",
+        gap: "0.625rem",
       }}>
         {/* Cover */}
         <div style={{
-          width: 36,
-          height: 36,
+          width: 34,
+          height: 34,
           borderRadius: 4,
           overflow: "hidden",
           flexShrink: 0,
-          backgroundColor: "#1b3a4b",
         }}>
           {currentTrack.coverUrl ? (
-            <img src={currentTrack.coverUrl} alt="" width={36} height={36} style={{ objectFit: "cover" }} />
+            <img src={currentTrack.coverUrl} alt="" width={34} height={34} style={{ objectFit: "cover" }} />
           ) : (
             <div style={{
               width: "100%",
@@ -64,7 +65,7 @@ export default function PlayerMobileMini() {
               alignItems: "center",
               justifyContent: "center",
             }}>
-              <span style={{ fontSize: "0.875rem", color: "rgba(255,255,255,0.4)" }}>♪</span>
+              <span style={{ fontSize: "0.75rem", color: "rgba(255,255,255,0.4)" }}>♪</span>
             </div>
           )}
         </div>
@@ -73,7 +74,7 @@ export default function PlayerMobileMini() {
         <div style={{ flex: 1, overflow: "hidden" }}>
           <p style={{
             fontWeight: 600,
-            fontSize: "0.8125rem",
+            fontSize: "0.75rem",
             color: "white",
             whiteSpace: "nowrap",
             overflow: "hidden",
@@ -81,30 +82,45 @@ export default function PlayerMobileMini() {
             margin: 0,
           }}>
             {currentTrack.title}
-          </p>
-          <p style={{ fontSize: "0.6875rem", color: "rgba(255,255,255,0.5)", margin: 0 }}>
-            {currentTrack.artistName}
             {!isSubscribed && (
               <span style={{ color: "var(--color-accent)", marginLeft: "0.375rem", fontSize: "0.5625rem", fontWeight: 600, textTransform: "uppercase" }}>
                 {locale === "fr" ? "Extrait" : "Preview"}
               </span>
             )}
           </p>
+          <p style={{ fontSize: "0.625rem", color: "rgba(255,255,255,0.45)", margin: 0 }}>
+            {currentTrack.artistName}
+          </p>
         </div>
+
+        {/* Catalogue link */}
+        <Link
+          href={`/${locale}/catalogue`}
+          style={{
+            fontSize: "0.5625rem",
+            color: "var(--color-accent)",
+            textDecoration: "none",
+            fontWeight: 500,
+            whiteSpace: "nowrap",
+            flexShrink: 0,
+          }}
+        >
+          {locale === "fr" ? "Catalogue" : "Browse"}
+        </Link>
 
         {/* Play/Pause or Subscribe */}
         {!showSubscribeCta ? (
           <button
             onClick={togglePlay}
             style={{
-              width: 32,
-              height: 32,
+              width: 30,
+              height: 30,
               borderRadius: "50%",
               backgroundColor: "var(--color-accent)",
               color: "var(--color-accent-text)",
               border: "none",
               cursor: "pointer",
-              fontSize: "0.75rem",
+              fontSize: "0.6875rem",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
@@ -117,7 +133,7 @@ export default function PlayerMobileMini() {
           <Link
             href={`/${locale}/abonnements`}
             style={{
-              fontSize: "0.6875rem",
+              fontSize: "0.625rem",
               fontWeight: 600,
               color: "var(--color-accent)",
               textDecoration: "none",
