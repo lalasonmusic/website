@@ -76,6 +76,27 @@ export default async function CataloguePage({ params, searchParams }: Props) {
 
   return (
     <div style={{ maxWidth: "900px", margin: "0 auto", padding: "2.5rem 1.5rem" }}>
+      {/* CTA Banner */}
+      {!isSubscribed && (
+        <div style={{ textAlign: "center", marginBottom: "2rem" }}>
+          <a
+            href={`/${locale}/abonnements`}
+            style={{
+              display: "inline-block",
+              padding: "0.75rem 2rem",
+              backgroundColor: "var(--color-accent)",
+              color: "var(--color-accent-text)",
+              fontWeight: 600,
+              fontSize: "0.9375rem",
+              borderRadius: "var(--radius-full)",
+              textDecoration: "none",
+            }}
+          >
+            {locale === "fr" ? "Toute la musique en illimité ? Clique ici !" : "Unlimited music? Click here!"}
+          </a>
+        </div>
+      )}
+
       <h1 style={{ fontWeight: 800, fontSize: "2rem", marginBottom: "1.75rem" }}>
         {t("title")}
       </h1>
@@ -103,7 +124,7 @@ export default async function CataloguePage({ params, searchParams }: Props) {
           </p>
         </div>
       ) : (
-        <div style={{ display: "flex", flexDirection: "column", gap: "0.625rem" }}>
+        <div style={{ display: "flex", flexDirection: "column" }}>
           {tracks.map((track, index) => (
             <TrackCard
               key={track.id}
