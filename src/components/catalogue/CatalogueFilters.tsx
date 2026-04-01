@@ -55,7 +55,6 @@ export default function CatalogueFilters({ categories, filterLabels, locale, dar
       return;
     }
 
-    // If the query looks like natural language (more than 2 words or contains common phrases)
     const isNaturalLanguage = value.split(/\s+/).length > 2 || /pour|for|cherche|looking|besoin|need|want|veux/i.test(value);
 
     if (isNaturalLanguage) {
@@ -76,7 +75,6 @@ export default function CatalogueFilters({ categories, filterLabels, locale, dar
       setIsSearching(false);
     }
 
-    // Fallback: regular text search
     const params = new URLSearchParams(searchParams.toString());
     params.set("q", value);
     params.delete("page");
@@ -87,9 +85,33 @@ export default function CatalogueFilters({ categories, filterLabels, locale, dar
   const themes = categories.filter((c) => c.type === "THEME");
   const moods = categories.filter((c) => c.type === "MOOD");
 
+  const selectBase: React.CSSProperties = {
+    padding: "0.5rem 2rem 0.5rem 0.75rem",
+    borderRadius: "8px",
+    border: darkMode ? "1px solid rgba(255, 255, 255, 0.3)" : "1px solid #d1d5db",
+    backgroundColor: darkMode ? "rgba(255, 255, 255, 0.1)" : "white",
+    color: darkMode ? "white" : "#1b3a4b",
+    fontSize: "0.875rem",
+    fontWeight: 500,
+    cursor: "pointer",
+    appearance: "none" as const,
+    backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='${darkMode ? "rgba(255,255,255,0.7)" : "%236b7280"}' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E")`,
+    backgroundRepeat: "no-repeat",
+    backgroundPosition: "right 0.625rem center",
+    minWidth: "120px",
+  };
+
+  const activeSelectStyle: React.CSSProperties = {
+    ...selectBase,
+    border: "1px solid var(--color-accent)",
+    backgroundColor: darkMode ? "rgba(245, 166, 35, 0.2)" : "rgba(245,166,35,0.1)",
+    color: darkMode ? "var(--color-accent)" : "#b47a14",
+    fontWeight: 600,
+  };
+
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "1rem", marginBottom: "1.5rem" }}>
-      {/* Smart Search */}
+    <div style={{ display: "flex", flexDirection: "column", gap: "1rem", marginBottom: "0.5rem" }}>
+      {/* Search bar */}
       <div style={{ position: "relative" }}>
         <input
           type="search"
@@ -105,23 +127,23 @@ export default function CatalogueFilters({ categories, filterLabels, locale, dar
           }}
           style={{
             width: "100%",
-            padding: "0.75rem 1rem",
-            paddingRight: isSearching ? "3rem" : "1rem",
-            backgroundColor: darkMode ? "rgba(255, 255, 255, 0.15)" : "#f9fafb",
-            border: darkMode ? "1px solid rgba(255, 255, 255, 0.3)" : "1px solid #d1d5db",
-            borderRadius: "8px",
+            padding: "0.875rem 1.25rem",
+            paddingRight: isSearching ? "3rem" : "1.25rem",
+            backgroundColor: darkMode ? "rgba(255, 255, 255, 0.12)" : "#f9fafb",
+            border: darkMode ? "1px solid rgba(255, 255, 255, 0.25)" : "1px solid #d1d5db",
+            borderRadius: "12px",
             color: darkMode ? "white" : "#1b3a4b",
-            fontSize: "0.9375rem",
+            fontSize: "1rem",
           }}
         />
         {isSearching && (
           <span
             style={{
               position: "absolute",
-              right: 12,
+              right: 16,
               top: "50%",
               transform: "translateY(-50%)",
-              fontSize: "0.8125rem",
+              fontSize: "0.875rem",
               color: "var(--color-accent)",
             }}
           >
@@ -130,93 +152,51 @@ export default function CatalogueFilters({ categories, filterLabels, locale, dar
         )}
       </div>
 
-      {/* Filter rows — style, theme, mood — each on one line */}
-      <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
-        <FilterGroup
-          label={filterLabels.style}
-          options={styles}
-          current={currentStyle}
-          allLabel={filterLabels.all}
-          onChange={(v) => updateParam("style", v)}
-          darkMode={darkMode}
-        />
-        <FilterGroup
-          label={filterLabels.theme}
-          options={themes}
-          current={currentTheme}
-          allLabel={filterLabels.all}
-          onChange={(v) => updateParam("theme", v)}
-          darkMode={darkMode}
-        />
-        <FilterGroup
-          label={filterLabels.mood}
-          options={moods}
-          current={currentMood}
-          allLabel={filterLabels.all}
-          onChange={(v) => updateParam("mood", v)}
-          darkMode={darkMode}
-        />
+      {/* 3 compact dropdown selects on one row */}
+      <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
+        {styles.length > 0 && (
+          <select
+            value={currentStyle}
+            onChange={(e) => updateParam("style", e.target.value)}
+            style={currentStyle ? activeSelectStyle : selectBase}
+          >
+            <option value="">{filterLabels.style}</option>
+            {styles.map((s) => (
+              <option key={s.slug} value={s.slug}>
+                {locale === "fr" ? s.labelFr : s.labelEn}
+              </option>
+            ))}
+          </select>
+        )}
+        {themes.length > 0 && (
+          <select
+            value={currentTheme}
+            onChange={(e) => updateParam("theme", e.target.value)}
+            style={currentTheme ? activeSelectStyle : selectBase}
+          >
+            <option value="">{filterLabels.theme}</option>
+            {themes.map((t) => (
+              <option key={t.slug} value={t.slug}>
+                {locale === "fr" ? t.labelFr : t.labelEn}
+              </option>
+            ))}
+          </select>
+        )}
+        {moods.length > 0 && (
+          <select
+            value={currentMood}
+            onChange={(e) => updateParam("mood", e.target.value)}
+            style={currentMood ? activeSelectStyle : selectBase}
+          >
+            <option value="">{filterLabels.mood}</option>
+            {moods.map((m) => (
+              <option key={m.slug} value={m.slug}>
+                {locale === "fr" ? m.labelFr : m.labelEn}
+              </option>
+            ))}
+          </select>
+        )}
       </div>
     </div>
-  );
-}
-
-type FilterGroupProps = {
-  label: string;
-  options: TrackCategory[];
-  current: string;
-  allLabel: string;
-  onChange: (v: string) => void;
-  darkMode?: boolean;
-};
-
-function FilterGroup({ label, options, current, allLabel, onChange, darkMode }: FilterGroupProps) {
-  if (options.length === 0) return null;
-
-  return (
-    <div style={{ display: "grid", gridTemplateColumns: "4.5rem 1fr", alignItems: "start", gap: "0.5rem" }}>
-      <span style={{
-        fontSize: "0.8125rem",
-        fontWeight: 600,
-        color: darkMode ? "rgba(255,255,255,0.7)" : "#6b7280",
-        paddingTop: "0.3rem",
-        whiteSpace: "nowrap",
-      }}>
-        {label} :
-      </span>
-      <div style={{ display: "flex", flexWrap: "nowrap", gap: "0.375rem", overflowX: "auto" }}>
-        <FilterChip label={allLabel} active={!current} onClick={() => onChange("")} darkMode={darkMode} />
-        {options.map((opt) => (
-          <FilterChip
-            key={opt.slug}
-            label={opt.labelFr}
-            active={current === opt.slug}
-            onClick={() => onChange(current === opt.slug ? "" : opt.slug)}
-            darkMode={darkMode}
-          />
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function FilterChip({ label, active, onClick, darkMode }: { label: string; active: boolean; onClick: () => void; darkMode?: boolean }) {
-  return (
-    <button
-      onClick={onClick}
-      style={{
-        padding: "0.25rem 0.75rem",
-        borderRadius: "9999px",
-        border: `1px solid ${active ? "var(--color-accent)" : darkMode ? "rgba(255,255,255,0.4)" : "#d1d5db"}`,
-        backgroundColor: active ? (darkMode ? "var(--color-accent)" : "rgba(245,166,35,0.12)") : "transparent",
-        color: active ? (darkMode ? "var(--color-accent-text)" : "#b47a14") : darkMode ? "white" : "#4b5563",
-        fontSize: "0.8125rem",
-        cursor: "pointer",
-        fontWeight: active ? 600 : 400,
-        transition: "all 0.15s",
-      }}
-    >
-      {label}
-    </button>
   );
 }
