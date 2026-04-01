@@ -56,7 +56,7 @@ export default function TrackCard({ track, queue, queueIndex, locale, isSubscrib
         alignItems: "center",
         gap: "1rem",
         padding: "1rem 0",
-        borderBottom: "1px solid var(--color-border)",
+        borderBottom: "1px solid #e5e7eb",
       }}
     >
       {/* Play button — round circle like Wix */}
@@ -66,7 +66,7 @@ export default function TrackCard({ track, queue, queueIndex, locale, isSubscrib
           width: 44,
           height: 44,
           borderRadius: "50%",
-          border: isCurrentTrack ? "2px solid var(--color-accent)" : "2px solid var(--color-border)",
+          border: isCurrentTrack ? "2px solid var(--color-accent)" : "2px solid #d1d5db",
           backgroundColor: isCurrentTrack ? "rgba(245,166,35,0.1)" : "transparent",
           cursor: "pointer",
           display: "flex",
@@ -77,7 +77,7 @@ export default function TrackCard({ track, queue, queueIndex, locale, isSubscrib
         }}
         aria-label={isCurrentTrack && isPlaying ? "Pause" : "Lire"}
       >
-        <span style={{ fontSize: "1rem", color: isCurrentTrack ? "var(--color-accent)" : "var(--color-text-primary)", marginLeft: isCurrentTrack && isPlaying ? 0 : 2 }}>
+        <span style={{ fontSize: "1rem", color: isCurrentTrack ? "var(--color-accent)" : "#1b3a4b", marginLeft: isCurrentTrack && isPlaying ? 0 : 2 }}>
           {isCurrentTrack && isPlaying ? "⏸" : "▶"}
         </span>
       </button>
@@ -88,7 +88,7 @@ export default function TrackCard({ track, queue, queueIndex, locale, isSubscrib
           flex: 1,
           fontSize: "0.9375rem",
           fontWeight: isCurrentTrack ? 600 : 400,
-          color: isCurrentTrack ? "var(--color-accent)" : "var(--color-text-primary)",
+          color: isCurrentTrack ? "var(--color-accent)" : "#1b3a4b",
           whiteSpace: "nowrap",
           overflow: "hidden",
           textOverflow: "ellipsis",
@@ -102,7 +102,7 @@ export default function TrackCard({ track, queue, queueIndex, locale, isSubscrib
       <span
         style={{
           fontSize: "0.875rem",
-          color: "var(--color-text-muted)",
+          color: "#6b7280",
           flexShrink: 0,
         }}
       >

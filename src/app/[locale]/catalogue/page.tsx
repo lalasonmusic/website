@@ -84,7 +84,7 @@ export default async function CataloguePage({ params, searchParams }: Props) {
   }));
 
   return (
-    <div style={{ maxWidth: "900px", margin: "0 auto", padding: "2.5rem 1.5rem" }}>
+    <div style={{ maxWidth: "900px", margin: "0 auto", padding: "2.5rem 1.5rem", backgroundColor: "white", color: "#1b3a4b", minHeight: "100vh" }}>
       {/* CTA Banner */}
       {!isSubscribed && (
         <div style={{ textAlign: "center", marginBottom: "2rem" }}>
@@ -106,7 +106,7 @@ export default async function CataloguePage({ params, searchParams }: Props) {
         </div>
       )}
 
-      <h1 style={{ fontWeight: 800, fontSize: "2rem", marginBottom: "1.75rem" }}>
+      <h1 style={{ fontWeight: 800, fontSize: "2rem", marginBottom: "1.75rem", color: "#1b3a4b" }}>
         {t("title")}
       </h1>
 
