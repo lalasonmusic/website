@@ -6,6 +6,7 @@ import { db } from "@/db";
 import { subscriptions } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
 import { Suspense } from "react";
+import CatalogueHero from "@/components/catalogue/CatalogueHero";
 import CatalogueFilters from "@/components/catalogue/CatalogueFilters";
 import TrackCard from "@/components/catalogue/TrackCard";
 import type { TrackCategory } from "@/types/track";
@@ -85,99 +86,111 @@ export default async function CataloguePage({ params, searchParams }: Props) {
     type: c.type as "STYLE" | "THEME" | "MOOD",
   }));
 
+  const styleCategories = filterCategories.filter((c) => c.type === "STYLE");
+
   return (
-    <div style={{ backgroundColor: "white", color: "#1b3a4b", minHeight: "100vh", padding: "2.5rem 1.5rem" }}>
-    <div style={{ maxWidth: "900px", margin: "0 auto" }}>
-      {/* CTA Banner */}
-      {!isSubscribed && (
-        <div style={{ textAlign: "center", marginBottom: "2rem" }}>
-          <a
-            href={`/${locale}/abonnements`}
-            style={{
-              display: "inline-block",
-              padding: "0.75rem 2rem",
-              backgroundColor: "var(--color-accent)",
-              color: "var(--color-accent-text)",
-              fontWeight: 600,
-              fontSize: "0.9375rem",
-              borderRadius: "var(--radius-full)",
-              textDecoration: "none",
-            }}
-          >
-            {locale === "fr" ? "Toute la musique en illimité ? Clique ici !" : "Unlimited music? Click here!"}
-          </a>
-        </div>
-      )}
-
-      <h1 style={{ fontWeight: 800, fontSize: "2rem", marginBottom: "1.75rem", color: "#1b3a4b" }}>
-        {t("title")}
-      </h1>
-
+    <div style={{ minHeight: "100vh" }}>
+      {/* Hero banner — dark bg image + style filters */}
       <Suspense>
-        <CatalogueFilters
-          categories={filterCategories}
-          searchPlaceholder={t("searchPlaceholder")}
-          filterLabels={{
-            style: t("filters.style"),
-            theme: t("filters.theme"),
-            mood: t("filters.mood"),
-            all: t("filters.all"),
-          }}
+        <CatalogueHero
+          categories={styleCategories}
+          heroTitle={t("heroTitle")}
+          heroSubtitle={t("heroSubtitle")}
+          heroDescription={t("heroDescription")}
           locale={locale}
         />
       </Suspense>
 
-      {/* Track list */}
-      {tracks.length === 0 ? (
-        <div style={{ textAlign: "center", padding: "4rem 0" }}>
-          <p style={{ color: "var(--color-text-secondary)" }}>{t("noResults")}</p>
-          <p style={{ color: "var(--color-text-muted)", fontSize: "0.875rem", marginTop: "0.5rem" }}>
-            {t("noResultsSuggestion")}
-          </p>
-        </div>
-      ) : (
-        <div style={{ display: "flex", flexDirection: "column" }}>
-          {tracks.map((track, index) => (
-            <TrackCard
-              key={track.id}
-              track={track}
-              queue={tracks}
-              queueIndex={index}
-              locale={locale}
-              isSubscribed={isSubscribed}
-            />
-          ))}
-        </div>
-      )}
+      {/* White section — search + tracks */}
+      <div style={{ backgroundColor: "white", color: "#1b3a4b", padding: "2rem 1.5rem 2.5rem" }}>
+        <div style={{ maxWidth: "900px", margin: "0 auto" }}>
+          {/* CTA Banner */}
+          {!isSubscribed && (
+            <div style={{ textAlign: "center", marginBottom: "1.5rem" }}>
+              <a
+                href={`/${locale}/abonnements`}
+                style={{
+                  display: "inline-block",
+                  padding: "0.75rem 2rem",
+                  backgroundColor: "var(--color-accent)",
+                  color: "var(--color-accent-text)",
+                  fontWeight: 600,
+                  fontSize: "0.9375rem",
+                  borderRadius: "var(--radius-full)",
+                  textDecoration: "none",
+                }}
+              >
+                {locale === "fr" ? "Toute la musique en illimité ? Clique ici !" : "Unlimited music? Click here!"}
+              </a>
+            </div>
+          )}
 
-      {/* Pagination */}
-      {totalPages > 1 && (
-        <div style={{ display: "flex", justifyContent: "center", gap: "0.5rem", marginTop: "2.5rem" }}>
-          {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
-            <a
-              key={p}
-              href={`?${new URLSearchParams({ ...(q && { q }), ...(style && { style }), ...(theme && { theme }), ...(mood && { mood }), page: String(p) }).toString()}`}
-              style={{
-                width: 36,
-                height: 36,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                borderRadius: "var(--radius-sm)",
-                border: `1px solid ${p === page ? "var(--color-accent)" : "var(--color-border)"}`,
-                backgroundColor: p === page ? "rgba(245,166,35,0.15)" : "transparent",
-                color: p === page ? "var(--color-accent)" : "var(--color-text-secondary)",
-                fontWeight: p === page ? 600 : 400,
-                fontSize: "0.875rem",
-                textDecoration: "none",
+          <Suspense>
+            <CatalogueFilters
+              categories={filterCategories}
+              searchPlaceholder={t("searchPlaceholder")}
+              filterLabels={{
+                style: t("filters.style"),
+                theme: t("filters.theme"),
+                mood: t("filters.mood"),
+                all: t("filters.all"),
               }}
-            >
-              {p}
-            </a>
-          ))}
+              locale={locale}
+            />
+          </Suspense>
+
+          {/* Track list */}
+          {tracks.length === 0 ? (
+            <div style={{ textAlign: "center", padding: "4rem 0" }}>
+              <p style={{ color: "#6b7280" }}>{t("noResults")}</p>
+              <p style={{ color: "#9ca3af", fontSize: "0.875rem", marginTop: "0.5rem" }}>
+                {t("noResultsSuggestion")}
+              </p>
+            </div>
+          ) : (
+            <div style={{ display: "flex", flexDirection: "column" }}>
+              {tracks.map((track, index) => (
+                <TrackCard
+                  key={track.id}
+                  track={track}
+                  queue={tracks}
+                  queueIndex={index}
+                  locale={locale}
+                  isSubscribed={isSubscribed}
+                />
+              ))}
+            </div>
+          )}
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div style={{ display: "flex", justifyContent: "center", gap: "0.5rem", marginTop: "2.5rem" }}>
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+                <a
+                  key={p}
+                  href={`?${new URLSearchParams({ ...(q && { q }), ...(style && { style }), ...(theme && { theme }), ...(mood && { mood }), page: String(p) }).toString()}`}
+                  style={{
+                    width: 36,
+                    height: 36,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    borderRadius: "var(--radius-sm)",
+                    border: `1px solid ${p === page ? "var(--color-accent)" : "#d1d5db"}`,
+                    backgroundColor: p === page ? "rgba(245,166,35,0.15)" : "transparent",
+                    color: p === page ? "var(--color-accent)" : "#6b7280",
+                    fontWeight: p === page ? 600 : 400,
+                    fontSize: "0.875rem",
+                    textDecoration: "none",
+                  }}
+                >
+                  {p}
+                </a>
+              ))}
+            </div>
+          )}
         </div>
-      )}
-    </div>
+      </div>
     </div>
   );
 }

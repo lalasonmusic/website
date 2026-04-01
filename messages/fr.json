@@ -64,6 +64,9 @@
   },
   "catalogue": {
     "title": "Catalogue",
+    "heroTitle": "Musiques libres de droit originales",
+    "heroSubtitle": "Par style",
+    "heroDescription": "T'es plutôt rock, pop, hip-hop, trap, dubstep...? C'est par ici que tu trouveras ton bonheur !",
     "searchPlaceholder": "Rechercher une musique...",
     "filters": {
       "style": "Style",

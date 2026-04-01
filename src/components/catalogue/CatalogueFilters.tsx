@@ -11,7 +11,7 @@ type Props = {
   locale: string;
 };
 
-export default function CatalogueFilters({ categories, searchPlaceholder, filterLabels, locale }: Props) {
+export default function CatalogueFilters({ categories, filterLabels, locale }: Props) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -19,7 +19,6 @@ export default function CatalogueFilters({ categories, searchPlaceholder, filter
   const debounceRef = useRef<ReturnType<typeof setTimeout>>(null);
 
   const currentSearch = searchParams.get("q") ?? "";
-  const currentStyle = searchParams.get("style") ?? "";
   const currentTheme = searchParams.get("theme") ?? "";
   const currentMood = searchParams.get("mood") ?? "";
 
@@ -82,7 +81,6 @@ export default function CatalogueFilters({ categories, searchPlaceholder, filter
     router.push(`${pathname}?${params.toString()}`);
   }
 
-  const styles = categories.filter((c) => c.type === "STYLE");
   const themes = categories.filter((c) => c.type === "THEME");
   const moods = categories.filter((c) => c.type === "MOOD");
 
@@ -129,30 +127,25 @@ export default function CatalogueFilters({ categories, searchPlaceholder, filter
         )}
       </div>
 
-      {/* Filter rows */}
-      <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem" }}>
-        <FilterGroup
-          label={filterLabels.style}
-          options={styles}
-          current={currentStyle}
-          allLabel={filterLabels.all}
-          onChange={(v) => updateParam("style", v)}
-        />
-        <FilterGroup
-          label={filterLabels.theme}
-          options={themes}
-          current={currentTheme}
-          allLabel={filterLabels.all}
-          onChange={(v) => updateParam("theme", v)}
-        />
-        <FilterGroup
-          label={filterLabels.mood}
-          options={moods}
-          current={currentMood}
-          allLabel={filterLabels.all}
-          onChange={(v) => updateParam("mood", v)}
-        />
-      </div>
+      {/* Filter rows — theme & mood only (style is in the hero) */}
+      {(themes.length > 0 || moods.length > 0) && (
+        <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem" }}>
+          <FilterGroup
+            label={filterLabels.theme}
+            options={themes}
+            current={currentTheme}
+            allLabel={filterLabels.all}
+            onChange={(v) => updateParam("theme", v)}
+          />
+          <FilterGroup
+            label={filterLabels.mood}
+            options={moods}
+            current={currentMood}
+            allLabel={filterLabels.all}
+            onChange={(v) => updateParam("mood", v)}
+          />
+        </div>
+      )}
     </div>
   );
 }

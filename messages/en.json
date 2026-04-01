@@ -64,6 +64,9 @@
   },
   "catalogue": {
     "title": "Catalogue",
+    "heroTitle": "Original royalty-free music",
+    "heroSubtitle": "By style",
+    "heroDescription": "Rock, pop, hip-hop, trap, dubstep...? You'll find what you need right here!",
     "searchPlaceholder": "Search for music...",
     "filters": {
       "style": "Style",
