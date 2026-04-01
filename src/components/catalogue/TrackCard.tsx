@@ -33,8 +33,11 @@ function toPlayerTrack(t: TrackWithDetails): PlayerTrack {
 }
 
 export default function TrackCard({ track, queue, queueIndex, locale, isSubscribed }: Props) {
-  const { currentTrack, isPlaying, playTrack, togglePlay } = usePlayerStore();
+  const { currentTrack, isPlaying, progress, duration, playTrack, togglePlay } = usePlayerStore();
   const isCurrentTrack = currentTrack?.id === track.id;
+  const isActive = isCurrentTrack && (isPlaying || progress > 0);
+  const progressPercent = isCurrentTrack && duration > 0 ? (progress / duration) * 100 : 0;
+  const previewLimit = !isSubscribed ? 30 : null;
   const isEven = queueIndex % 2 === 0;
 
   function handlePlay() {
@@ -170,6 +173,47 @@ export default function TrackCard({ track, queue, queueIndex, locale, isSubscrib
             </>
           )}
         </div>
+
+        {/* Progress bar — visible when this track is active */}
+        {isActive && (
+          <div style={{
+            marginTop: "0.375rem",
+            display: "flex",
+            alignItems: "center",
+            gap: "0.5rem",
+          }}>
+            <div style={{
+              flex: 1,
+              height: 3,
+              backgroundColor: "rgba(0,0,0,0.08)",
+              borderRadius: 2,
+              overflow: "hidden",
+            }}>
+              <div style={{
+                height: "100%",
+                width: `${progressPercent}%`,
+                backgroundColor: "var(--color-accent)",
+                borderRadius: 2,
+                transition: "width 0.3s linear",
+              }} />
+            </div>
+            <span style={{ fontSize: "0.6875rem", color: "#9ca3af", flexShrink: 0, fontVariantNumeric: "tabular-nums" }}>
+              {formatDuration(Math.floor(progress))}{previewLimit ? ` / 0:${previewLimit}` : ""}
+            </span>
+            {previewLimit && (
+              <span style={{
+                fontSize: "0.5625rem",
+                color: "var(--color-accent)",
+                fontWeight: 600,
+                textTransform: "uppercase",
+                letterSpacing: "0.03em",
+                flexShrink: 0,
+              }}>
+                {locale === "fr" ? "Extrait" : "Preview"}
+              </span>
+            )}
+          </div>
+        )}
       </div>
 
       {/* BPM */}
