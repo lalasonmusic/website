@@ -20,6 +20,7 @@ export default function CatalogueFilters({ categories, filterLabels, locale, dar
   const debounceRef = useRef<ReturnType<typeof setTimeout>>(null);
 
   const currentSearch = searchParams.get("q") ?? "";
+  const currentStyle = searchParams.get("style") ?? "";
   const currentTheme = searchParams.get("theme") ?? "";
   const currentMood = searchParams.get("mood") ?? "";
 
@@ -82,6 +83,7 @@ export default function CatalogueFilters({ categories, filterLabels, locale, dar
     router.push(`${pathname}?${params.toString()}`);
   }
 
+  const styles = categories.filter((c) => c.type === "STYLE");
   const themes = categories.filter((c) => c.type === "THEME");
   const moods = categories.filter((c) => c.type === "MOOD");
 
@@ -128,27 +130,33 @@ export default function CatalogueFilters({ categories, filterLabels, locale, dar
         )}
       </div>
 
-      {/* Filter rows — theme & mood */}
-      {(themes.length > 0 || moods.length > 0) && (
-        <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
-          <FilterGroup
-            label={filterLabels.theme}
-            options={themes}
-            current={currentTheme}
-            allLabel={filterLabels.all}
-            onChange={(v) => updateParam("theme", v)}
-            darkMode={darkMode}
-          />
-          <FilterGroup
-            label={filterLabels.mood}
-            options={moods}
-            current={currentMood}
-            allLabel={filterLabels.all}
-            onChange={(v) => updateParam("mood", v)}
-            darkMode={darkMode}
-          />
-        </div>
-      )}
+      {/* Filter rows — style, theme, mood — each on one line */}
+      <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+        <FilterGroup
+          label={filterLabels.style}
+          options={styles}
+          current={currentStyle}
+          allLabel={filterLabels.all}
+          onChange={(v) => updateParam("style", v)}
+          darkMode={darkMode}
+        />
+        <FilterGroup
+          label={filterLabels.theme}
+          options={themes}
+          current={currentTheme}
+          allLabel={filterLabels.all}
+          onChange={(v) => updateParam("theme", v)}
+          darkMode={darkMode}
+        />
+        <FilterGroup
+          label={filterLabels.mood}
+          options={moods}
+          current={currentMood}
+          allLabel={filterLabels.all}
+          onChange={(v) => updateParam("mood", v)}
+          darkMode={darkMode}
+        />
+      </div>
     </div>
   );
 }
@@ -176,7 +184,7 @@ function FilterGroup({ label, options, current, allLabel, onChange, darkMode }: 
       }}>
         {label} :
       </span>
-      <div style={{ display: "flex", flexWrap: "wrap", gap: "0.375rem" }}>
+      <div style={{ display: "flex", flexWrap: "nowrap", gap: "0.375rem", overflowX: "auto" }}>
         <FilterChip label={allLabel} active={!current} onClick={() => onChange("")} darkMode={darkMode} />
         {options.map((opt) => (
           <FilterChip
