@@ -75,6 +75,8 @@ export default async function CataloguePage({ params, searchParams }: Props) {
     withRetry(() => trackService.getAllCategories()),
   ]);
 
+  let isFallback = false;
+
   if (tracksResult) {
     tracks = tracksResult.tracks;
     total = tracksResult.total;
@@ -83,7 +85,17 @@ export default async function CataloguePage({ params, searchParams }: Props) {
     allCategories = cats;
   }
 
-  const totalPages = Math.ceil(total / TRACKS_PER_PAGE);
+  // If search returned no results, show random tracks as suggestions
+  if (tracks.length === 0 && (q || style || theme || mood)) {
+    const fallbackResult = await withRetry(() => trackService.getPublished({ page: 1, limit: TRACKS_PER_PAGE }));
+    if (fallbackResult && fallbackResult.tracks.length > 0) {
+      tracks = fallbackResult.tracks;
+      total = fallbackResult.total;
+      isFallback = true;
+    }
+  }
+
+  const totalPages = isFallback ? 0 : Math.ceil(total / TRACKS_PER_PAGE);
 
   const filterCategories: TrackCategory[] = allCategories.map((c) => ({
     slug: c.slug,
@@ -165,6 +177,20 @@ export default async function CataloguePage({ params, searchParams }: Props) {
       }}>
         <div style={{ maxWidth: "900px", margin: "0 auto" }}>
 
+
+          {/* Fallback suggestion banner */}
+          {isFallback && (
+            <div style={{
+              textAlign: "center",
+              padding: "1rem 0 1.5rem",
+            }}>
+              <p style={{ color: "#6b7280", fontSize: "0.9375rem", margin: 0 }}>
+                {locale === "fr"
+                  ? "Pas de résultat exact — voici des morceaux qui pourraient vous plaire :"
+                  : "No exact match — here are some tracks you might like:"}
+              </p>
+            </div>
+          )}
 
           {/* Track list */}
           {tracks.length === 0 ? (
