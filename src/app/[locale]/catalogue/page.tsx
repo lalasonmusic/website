@@ -72,7 +72,9 @@ export default async function CataloguePage({ params, searchParams }: Props) {
     tracks = tracksResult.tracks;
     total = tracksResult.total;
     allCategories = cats;
-  } catch {}
+  } catch (err) {
+    console.error("[catalogue] DB error:", err);
+  }
 
   const totalPages = Math.ceil(total / TRACKS_PER_PAGE);
 
