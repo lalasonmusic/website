@@ -106,10 +106,10 @@ export default function CatalogueFilters({ categories, searchPlaceholder, filter
             width: "100%",
             padding: "0.75rem 1rem",
             paddingRight: isSearching ? "3rem" : "1rem",
-            backgroundColor: "var(--color-bg-card)",
-            border: "1px solid var(--color-border)",
-            borderRadius: "var(--radius-sm)",
-            color: "var(--color-text-primary)",
+            backgroundColor: "#f9fafb",
+            border: "1px solid #d1d5db",
+            borderRadius: "8px",
+            color: "#1b3a4b",
             fontSize: "0.9375rem",
           }}
         />
@@ -170,7 +170,7 @@ function FilterGroup({ label, options, current, allLabel, onChange }: FilterGrou
 
   return (
     <div style={{ display: "flex", alignItems: "center", gap: "0.375rem", flexWrap: "wrap" }}>
-      <span style={{ fontSize: "0.75rem", fontWeight: 500, color: "var(--color-text-muted)", marginRight: "0.25rem" }}>
+      <span style={{ fontSize: "0.75rem", fontWeight: 600, color: "#6b7280", marginRight: "0.25rem" }}>
         {label}:
       </span>
       <FilterChip
@@ -197,9 +197,9 @@ function FilterChip({ label, active, onClick }: { label: string; active: boolean
       style={{
         padding: "0.25rem 0.75rem",
         borderRadius: "9999px",
-        border: `1px solid ${active ? "var(--color-accent)" : "var(--color-border)"}`,
-        backgroundColor: active ? "rgba(245,166,35,0.15)" : "transparent",
-        color: active ? "var(--color-accent)" : "var(--color-text-secondary)",
+        border: `1px solid ${active ? "var(--color-accent)" : "#d1d5db"}`,
+        backgroundColor: active ? "rgba(245,166,35,0.12)" : "white",
+        color: active ? "#b47a14" : "#4b5563",
         fontSize: "0.8125rem",
         cursor: "pointer",
         fontWeight: active ? 600 : 400,
