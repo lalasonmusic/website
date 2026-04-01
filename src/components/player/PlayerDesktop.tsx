@@ -78,18 +78,35 @@ export default function PlayerDesktop() {
             </div>
           )}
         </div>
-        <div style={{ overflow: "hidden", maxWidth: 130 }}>
-          <p style={{
-            fontWeight: 600,
-            fontSize: "0.75rem",
-            color: "white",
-            whiteSpace: "nowrap",
-            overflow: "hidden",
-            textOverflow: "ellipsis",
-            margin: 0,
-          }}>
-            {currentTrack.title}
-          </p>
+        <div style={{ overflow: "hidden", maxWidth: 160 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "0.375rem" }}>
+            <p style={{
+              fontWeight: 600,
+              fontSize: "0.75rem",
+              color: "white",
+              whiteSpace: "nowrap",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              margin: 0,
+            }}>
+              {currentTrack.title}
+            </p>
+            {!isSubscribed && (
+              <span style={{
+                fontSize: "0.5rem",
+                color: "var(--color-accent)",
+                fontWeight: 700,
+                textTransform: "uppercase",
+                letterSpacing: "0.04em",
+                flexShrink: 0,
+                border: "1px solid rgba(245,166,35,0.3)",
+                borderRadius: 3,
+                padding: "0.0625rem 0.25rem",
+              }}>
+                {locale === "fr" ? "Extrait" : "Preview"}
+              </span>
+            )}
+          </div>
           <p style={{ fontSize: "0.625rem", color: "rgba(255,255,255,0.5)", margin: 0 }}>
             {currentTrack.artistName}
           </p>
@@ -155,18 +172,6 @@ export default function PlayerDesktop() {
         <span style={{ fontSize: "0.625rem", color: "rgba(255,255,255,0.4)", minWidth: 24, fontVariantNumeric: "tabular-nums" }}>
           {duration > 0 ? formatTime(duration) : "--:--"}
         </span>
-        {!isSubscribed && (
-          <span style={{
-            fontSize: "0.5625rem",
-            color: "var(--color-accent)",
-            fontWeight: 600,
-            textTransform: "uppercase",
-            letterSpacing: "0.03em",
-            flexShrink: 0,
-          }}>
-            {locale === "fr" ? "Extrait" : "Preview"}
-          </span>
-        )}
       </div>
 
       {/* Browse catalogue link */}
