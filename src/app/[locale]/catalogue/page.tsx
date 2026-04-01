@@ -6,7 +6,7 @@ import { db } from "@/db";
 import { subscriptions } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
 import { Suspense } from "react";
-import CatalogueHero from "@/components/catalogue/CatalogueHero";
+import StyleFilterChips from "@/components/catalogue/CatalogueHero";
 import CatalogueFilters from "@/components/catalogue/CatalogueFilters";
 import TrackCard from "@/components/catalogue/TrackCard";
 import type { TrackCategory } from "@/types/track";
@@ -90,16 +90,66 @@ export default async function CataloguePage({ params, searchParams }: Props) {
 
   return (
     <div style={{ minHeight: "100vh" }}>
-      {/* Hero banner — dark bg image + style filters */}
-      <Suspense>
-        <CatalogueHero
-          categories={styleCategories}
-          heroTitle={t("heroTitle")}
-          heroSubtitle={t("heroSubtitle")}
-          heroDescription={t("heroDescription")}
-          locale={locale}
+      {/* Hero banner — server-rendered for immediate display */}
+      <section
+        style={{
+          position: "relative",
+          backgroundImage: "url(/catalogue-hero.jpg)",
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          padding: "5rem 1.5rem 3.5rem",
+        }}
+      >
+        <div
+          style={{
+            position: "absolute",
+            inset: 0,
+            backgroundColor: "rgba(27, 58, 75, 0.82)",
+          }}
         />
-      </Suspense>
+        <div style={{ position: "relative", maxWidth: "900px", margin: "0 auto" }}>
+          <h1
+            style={{
+              fontFamily: "var(--font-poppins, Poppins, sans-serif)",
+              fontWeight: 600,
+              fontSize: "1.25rem",
+              color: "white",
+              margin: 0,
+              lineHeight: 1.4,
+            }}
+          >
+            {t("heroTitle")}
+          </h1>
+          <p
+            style={{
+              fontFamily: "var(--font-poppins, Poppins, sans-serif)",
+              fontWeight: 800,
+              fontSize: "2.5rem",
+              color: "white",
+              margin: "0.25rem 0 0.75rem",
+              lineHeight: 1.2,
+            }}
+          >
+            {t("heroSubtitle")}
+          </p>
+          <p
+            style={{
+              fontFamily: "var(--font-poppins, Poppins, sans-serif)",
+              fontWeight: 400,
+              fontSize: "0.9375rem",
+              color: "rgba(255, 255, 255, 0.8)",
+              margin: "0 0 1.75rem",
+              maxWidth: "550px",
+              lineHeight: 1.6,
+            }}
+          >
+            {t("heroDescription")}
+          </p>
+          <Suspense>
+            <StyleFilterChips categories={styleCategories} locale={locale} />
+          </Suspense>
+        </div>
+      </section>
 
       {/* White section — search + tracks */}
       <div style={{ backgroundColor: "white", color: "#1b3a4b", padding: "2rem 1.5rem 2.5rem" }}>
