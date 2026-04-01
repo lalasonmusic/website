@@ -6,7 +6,6 @@ import { db } from "@/db";
 import { subscriptions } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
 import { Suspense } from "react";
-import StyleFilterChips from "@/components/catalogue/CatalogueHero";
 import CatalogueFilters from "@/components/catalogue/CatalogueFilters";
 import TrackCard from "@/components/catalogue/TrackCard";
 import type { TrackCategory } from "@/types/track";
@@ -145,9 +144,48 @@ export default async function CataloguePage({ params, searchParams }: Props) {
           >
             {t("heroDescription")}
           </p>
-          <Suspense>
-            <StyleFilterChips categories={styleCategories} locale={locale} />
-          </Suspense>
+          {/* Style filter chips — server-rendered as links */}
+          <div
+            style={{
+              display: "flex",
+              flexWrap: "wrap",
+              gap: "0.75rem",
+              maxWidth: "550px",
+            }}
+          >
+            {styleCategories.map((cat) => {
+              const isActive = style === cat.slug;
+              const params = new URLSearchParams({
+                ...(q && { q }),
+                ...(!isActive && { style: cat.slug }),
+                ...(theme && { theme }),
+                ...(mood && { mood }),
+              });
+              const href = `/${locale}/catalogue?${params.toString()}`;
+              return (
+                <a
+                  key={cat.slug}
+                  href={href}
+                  style={{
+                    padding: "0.5rem 1.5rem",
+                    borderRadius: "9999px",
+                    border: isActive ? "2px solid var(--color-accent)" : "1px solid rgba(255, 255, 255, 0.5)",
+                    backgroundColor: isActive ? "var(--color-accent)" : "transparent",
+                    color: isActive ? "var(--color-accent-text)" : "white",
+                    fontSize: "0.9375rem",
+                    fontFamily: "var(--font-poppins, Poppins, sans-serif)",
+                    fontWeight: 500,
+                    textDecoration: "none",
+                    minWidth: "120px",
+                    textAlign: "center",
+                    transition: "all 0.2s ease",
+                  }}
+                >
+                  {locale === "fr" ? cat.labelFr : cat.labelEn}
+                </a>
+              );
+            })}
+          </div>
         </div>
       </section>
 
