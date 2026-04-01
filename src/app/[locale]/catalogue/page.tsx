@@ -39,31 +39,40 @@ export default async function CataloguePage({ params, searchParams }: Props) {
   const page = parseInt(pageStr ?? "1", 10);
 
   // Check subscription
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-
   let isSubscribed = false;
-  if (user) {
-    const [sub] = await db
-      .select({ id: subscriptions.id })
-      .from(subscriptions)
-      .where(and(eq(subscriptions.userId, user.id), eq(subscriptions.status, "active")))
-      .limit(1);
-    isSubscribed = !!sub;
-  }
+  try {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      const [sub] = await db
+        .select({ id: subscriptions.id })
+        .from(subscriptions)
+        .where(and(eq(subscriptions.userId, user.id), eq(subscriptions.status, "active")))
+        .limit(1);
+      isSubscribed = !!sub;
+    }
+  } catch {}
 
   // Fetch tracks + categories
-  const [{ tracks, total }, allCategories] = await Promise.all([
-    trackService.getPublished({
-      page,
-      limit: TRACKS_PER_PAGE,
-      search: q,
-      style,
-      theme,
-      mood,
-    }),
-    trackService.getAllCategories(),
-  ]);
+  let tracks: Awaited<ReturnType<typeof trackService.getPublished>>["tracks"] = [];
+  let total = 0;
+  let allCategories: Awaited<ReturnType<typeof trackService.getAllCategories>> = [];
+  try {
+    const [tracksResult, cats] = await Promise.all([
+      trackService.getPublished({
+        page,
+        limit: TRACKS_PER_PAGE,
+        search: q,
+        style,
+        theme,
+        mood,
+      }),
+      trackService.getAllCategories(),
+    ]);
+    tracks = tracksResult.tracks;
+    total = tracksResult.total;
+    allCategories = cats;
+  } catch {}
 
   const totalPages = Math.ceil(total / TRACKS_PER_PAGE);
 
