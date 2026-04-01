@@ -53,27 +53,34 @@ export default async function CataloguePage({ params, searchParams }: Props) {
     }
   } catch {}
 
-  // Fetch tracks + categories
+  // Fetch tracks + categories (separate queries with retry so one failure doesn't kill the other)
+  async function withRetry<T>(fn: () => Promise<T>, retries = 2): Promise<T | null> {
+    for (let i = 0; i <= retries; i++) {
+      try {
+        return await fn();
+      } catch (err) {
+        console.error(`[catalogue] DB attempt ${i + 1}/${retries + 1} failed:`, err);
+        if (i < retries) await new Promise((r) => setTimeout(r, 500 * (i + 1)));
+      }
+    }
+    return null;
+  }
+
   let tracks: Awaited<ReturnType<typeof trackService.getPublished>>["tracks"] = [];
   let total = 0;
   let allCategories: Awaited<ReturnType<typeof trackService.getAllCategories>> = [];
-  try {
-    const [tracksResult, cats] = await Promise.all([
-      trackService.getPublished({
-        page,
-        limit: TRACKS_PER_PAGE,
-        search: q,
-        style,
-        theme,
-        mood,
-      }),
-      trackService.getAllCategories(),
-    ]);
+
+  const [tracksResult, cats] = await Promise.all([
+    withRetry(() => trackService.getPublished({ page, limit: TRACKS_PER_PAGE, search: q, style, theme, mood })),
+    withRetry(() => trackService.getAllCategories()),
+  ]);
+
+  if (tracksResult) {
     tracks = tracksResult.tracks;
     total = tracksResult.total;
+  }
+  if (cats) {
     allCategories = cats;
-  } catch (err) {
-    console.error("[catalogue] DB error:", err);
   }
 
   const totalPages = Math.ceil(total / TRACKS_PER_PAGE);
