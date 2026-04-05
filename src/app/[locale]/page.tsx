@@ -178,7 +178,7 @@ export default async function HomePage({ params }: Props) {
       <section
         style={{
           padding: "4.5rem 1.5rem",
-          backgroundColor: "#1b3a4b",
+          background: "linear-gradient(180deg, #0f2533 0%, #1b3a4b 50%, #0f2533 100%)",
         }}
       >
         <div style={{ maxWidth: "960px", margin: "0 auto" }}>
@@ -191,9 +191,9 @@ export default async function HomePage({ params }: Props) {
               color: "white",
             }}
           >
-            {t("features_title").replace("Lalason", "").trim()}{" "}
+            {locale === "fr" ? "Pourquoi " : "Why "}
             <span style={{ color: "var(--color-accent)" }}>Lalason</span>
-            {t("features_title").includes("?") ? " ?" : ""}
+            {" ?"}
           </h2>
 
           <div
@@ -204,28 +204,16 @@ export default async function HomePage({ params }: Props) {
             }}
           >
             {[
-              { title: t("feature1_title"), desc: t("feature1_desc"), anim: "feature-icon-sway", icon: (
-                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--color-accent)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>
-                </svg>
-              )},
-              { title: t("feature2_title"), desc: t("feature2_desc"), anim: "feature-icon-float", icon: (
-                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--color-accent)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>
-                </svg>
-              )},
-              { title: t("feature3_title"), desc: t("feature3_desc"), anim: "feature-icon-pulse", icon: (
-                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--color-accent)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                  <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
-                </svg>
-              )},
+              { title: t("feature1_title"), desc: t("feature1_desc"), anim: "feature-icon-sway", icon: "🎶" },
+              { title: t("feature2_title"), desc: t("feature2_desc"), anim: "feature-icon-float", icon: "✅" },
+              { title: t("feature3_title"), desc: t("feature3_desc"), anim: "feature-icon-pulse", icon: "⚡" },
             ].map((f, i) => (
               <div
                 key={f.title}
                 style={{
                   padding: "1.5rem 2rem",
                   textAlign: "center",
-                  borderLeft: i > 0 ? "1px solid rgba(255,255,255,0.1)" : "none",
+                  borderLeft: i > 0 ? "1px solid rgba(255,255,255,0.08)" : "none",
                 }}
               >
                 <div style={{
@@ -236,14 +224,14 @@ export default async function HomePage({ params }: Props) {
                   <div
                     className={f.anim}
                     style={{
-                      width: 60,
-                      height: 60,
+                      width: 56,
+                      height: 56,
                       borderRadius: "50%",
-                      background: "rgba(245, 166, 35, 0.1)",
-                      border: "1px solid rgba(245, 166, 35, 0.2)",
+                      background: "rgba(245, 166, 35, 0.08)",
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
+                      fontSize: "1.5rem",
                     }}
                   >
                     {f.icon}
