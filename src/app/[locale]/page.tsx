@@ -25,22 +25,31 @@ export default async function HomePage({ params }: Props) {
   const { locale } = await params;
   const t = await getTranslations("home");
 
+  async function withRetry<T>(fn: () => Promise<T>, retries = 2): Promise<T | null> {
+    for (let i = 0; i <= retries; i++) {
+      try {
+        return await fn();
+      } catch (err) {
+        console.error(`[homepage] DB attempt ${i + 1}/${retries + 1} failed:`, err);
+        if (i < retries) await new Promise((r) => setTimeout(r, 500 * (i + 1)));
+      }
+    }
+    return null;
+  }
+
   let popularTracks: Awaited<ReturnType<typeof trackService.getPublished>>["tracks"] = [];
   let allCategories: Awaited<ReturnType<typeof trackService.getAllCategories>> = [];
   let allArtists: Awaited<ReturnType<typeof artistService.getAll>> = [];
 
-  try {
-    const [tracksResult, cats, artists] = await Promise.all([
-      trackService.getPublished({ page: 1, limit: 8 }),
-      trackService.getAllCategories(),
-      artistService.getAll(),
-    ]);
-    popularTracks = tracksResult.tracks;
-    allCategories = cats;
-    allArtists = artists;
-  } catch {
-    // DB tables may not exist yet or be empty — show page without dynamic sections
-  }
+  const [tracksResult, cats, artists] = await Promise.all([
+    withRetry(() => trackService.getPublished({ page: 1, limit: 8 })),
+    withRetry(() => trackService.getAllCategories()),
+    withRetry(() => artistService.getAll()),
+  ]);
+
+  if (tracksResult) popularTracks = tracksResult.tracks;
+  if (cats) allCategories = cats;
+  if (artists) allArtists = artists;
 
   const styles = allCategories.filter((c) => c.type === "STYLE");
   const themes = allCategories.filter((c) => c.type === "THEME");
