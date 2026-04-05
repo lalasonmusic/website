@@ -30,33 +30,15 @@ function toPlayerTrack(t: TrackWithDetails): PlayerTrack {
   };
 }
 
-const GENRE_GRADIENTS: Record<string, string> = {
-  "chill-out": "linear-gradient(135deg, #0f4c75 0%, #3282b8 50%, #0f4c75 100%)",
-  "cinematique": "linear-gradient(135deg, #6b0f1a 0%, #b91d3a 50%, #d4a24e 100%)",
-  "electronique": "linear-gradient(135deg, #4a1a6b 0%, #8b3fa0 50%, #c060d0 100%)",
-  "funk-jazz": "linear-gradient(135deg, #c06014 0%, #e8961a 50%, #f5c842 100%)",
-  "hip-hop-urban": "linear-gradient(135deg, #2d1b4e 0%, #e8641a 50%, #2d1b4e 100%)",
-  "lo-fi": "linear-gradient(135deg, #2d4a3e 0%, #5a8a72 50%, #8bc4a8 100%)",
-  "pop-rock": "linear-gradient(135deg, #c44569 0%, #e84393 50%, #fd79a8 100%)",
-  "world": "linear-gradient(135deg, #0a6b4f 0%, #2ecc71 50%, #55e6a5 100%)",
-};
-
-const FALLBACK_GRADIENTS = [
-  "linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)",
-  "linear-gradient(135deg, #2d3436 0%, #636e72 50%, #b2bec3 100%)",
-  "linear-gradient(135deg, #6c3483 0%, #9b59b6 50%, #c39bd3 100%)",
-  "linear-gradient(135deg, #1e3c72 0%, #2a5298 50%, #3a7bd5 100%)",
-  "linear-gradient(135deg, #b24592 0%, #f15f79 50%, #f7b733 100%)",
-  "linear-gradient(135deg, #134e5e 0%, #71b280 50%, #134e5e 100%)",
+// 6 distinct gradients — one per card position, always varied
+const CARD_GRADIENTS = [
+  "linear-gradient(135deg, #0f4c75 0%, #3282b8 60%, #bbe1fa 100%)",
+  "linear-gradient(135deg, #6b0f1a 0%, #b91d3a 50%, #d4a24e 100%)",
+  "linear-gradient(135deg, #4a1a6b 0%, #8b3fa0 60%, #c060d0 100%)",
+  "linear-gradient(135deg, #c06014 0%, #e8961a 50%, #f5c842 100%)",
+  "linear-gradient(135deg, #0a6b4f 0%, #2ecc71 60%, #55e6a5 100%)",
+  "linear-gradient(135deg, #c44569 0%, #e84393 50%, #fd79a8 100%)",
 ];
-
-function getTrackGradient(track: TrackWithDetails, index: number): string {
-  const styleTag = track.categories.find((c) => c.type === "STYLE");
-  if (styleTag && GENRE_GRADIENTS[styleTag.slug]) {
-    return GENRE_GRADIENTS[styleTag.slug];
-  }
-  return FALLBACK_GRADIENTS[index % FALLBACK_GRADIENTS.length];
-}
 
 function shuffleArray<T>(arr: T[]): T[] {
   const shuffled = [...arr];
@@ -149,7 +131,7 @@ export default function HomeTrackList({ tracks, locale }: Props) {
                     <div style={{
                       width: "100%",
                       height: "100%",
-                      background: getTrackGradient(t, i),
+                      background: CARD_GRADIENTS[i % CARD_GRADIENTS.length],
                       display: "flex",
                       flexDirection: "column",
                       alignItems: "center",
