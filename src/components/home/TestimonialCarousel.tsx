@@ -16,6 +16,7 @@ const PHOTOS = [
   "/testimonial-lucas.jpg",
   "/testimonial-camille.jpg",
   "/testimonial-comptoir.jpg",
+  "/testimonial-sophie.jpg",
 ];
 
 export default function TestimonialCarousel({ testimonials }: Props) {
@@ -64,8 +65,8 @@ export default function TestimonialCarousel({ testimonials }: Props) {
         {/* Photo + name */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "0.75rem" }}>
           <div style={{
-            width: 56,
-            height: 56,
+            width: 80,
+            height: 80,
             borderRadius: "50%",
             overflow: "hidden",
             flexShrink: 0,
@@ -74,8 +75,8 @@ export default function TestimonialCarousel({ testimonials }: Props) {
             <img
               src={PHOTOS[current % PHOTOS.length]}
               alt={item.name}
-              width={56}
-              height={56}
+              width={80}
+              height={80}
               style={{ objectFit: "cover", display: "block", width: "100%", height: "100%" }}
             />
           </div>

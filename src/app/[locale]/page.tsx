@@ -62,6 +62,7 @@ export default async function HomePage({ params }: Props) {
     { name: t("testimonial1_name"), role: t("testimonial1_role"), text: t("testimonial1_text") },
     { name: t("testimonial2_name"), role: t("testimonial2_role"), text: t("testimonial2_text") },
     { name: t("testimonial3_name"), role: t("testimonial3_role"), text: t("testimonial3_text") },
+    { name: t("testimonial4_name"), role: t("testimonial4_role"), text: t("testimonial4_text") },
   ];
 
   return (
