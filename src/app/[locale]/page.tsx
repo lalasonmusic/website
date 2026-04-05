@@ -268,7 +268,7 @@ export default async function HomePage({ params }: Props) {
       </section>
 
       {/* ── TESTIMONIALS ── */}
-      <section style={{ padding: "5rem 1.5rem", background: "linear-gradient(180deg, #0f2533 0%, #1b3a4b 100%)" }}>
+      <section style={{ padding: "5rem 1.5rem", backgroundColor: "#f8f7f5" }}>
         <div style={{ maxWidth: "1100px", margin: "0 auto" }}>
           <h2
             style={{
@@ -276,7 +276,7 @@ export default async function HomePage({ params }: Props) {
               fontSize: "clamp(1.5rem, 2.5vw, 2rem)",
               textAlign: "center",
               marginBottom: "2.5rem",
-              color: "white",
+              color: "#1b3a4b",
             }}
           >
             {t("testimonials_title")}

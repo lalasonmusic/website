@@ -32,7 +32,6 @@ export default function TestimonialCarousel({ testimonials }: Props) {
     }, 300);
   }, [isTransitioning]);
 
-  // Auto-advance every 6s
   useEffect(() => {
     const timer = setInterval(() => {
       goTo((current + 1) % testimonials.length);
@@ -45,50 +44,72 @@ export default function TestimonialCarousel({ testimonials }: Props) {
   const item = testimonials[current];
 
   return (
-    <div style={{ maxWidth: 640, margin: "0 auto", textAlign: "center" }}>
-      {/* Quote */}
+    <div style={{ maxWidth: 600, margin: "0 auto", textAlign: "center" }}>
       <div style={{
         opacity: isTransitioning ? 0 : 1,
         transform: isTransitioning ? "translateY(8px)" : "translateY(0)",
         transition: "opacity 0.3s ease, transform 0.3s ease",
       }}>
-        <p style={{
-          fontSize: "1.125rem",
-          lineHeight: 1.8,
-          color: "rgba(255,255,255,0.85)",
-          fontStyle: "italic",
-          margin: "0 0 2rem",
-        }}>
-          &ldquo;{item.text}&rdquo;
-        </p>
-
-        {/* Photo + name */}
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "0.75rem" }}>
+        {/* Photo */}
+        <div style={{ display: "flex", justifyContent: "center", marginBottom: "1.5rem" }}>
           <div style={{
-            width: 80,
-            height: 80,
+            width: 88,
+            height: 88,
             borderRadius: "50%",
             overflow: "hidden",
-            flexShrink: 0,
-            border: "2px solid rgba(245, 166, 35, 0.4)",
+            border: "3px solid var(--color-accent)",
+            boxShadow: "0 4px 20px rgba(245, 166, 35, 0.15)",
           }}>
             <img
               src={PHOTOS[current % PHOTOS.length]}
               alt={item.name}
-              width={80}
-              height={80}
+              width={88}
+              height={88}
               style={{ objectFit: "cover", display: "block", width: "100%", height: "100%" }}
             />
           </div>
-          <div style={{ textAlign: "left" }}>
-            <p style={{ fontWeight: 600, fontSize: "0.9375rem", color: "white", margin: 0 }}>
-              {item.name}
-            </p>
-            <p style={{ fontSize: "0.8125rem", color: "rgba(255,255,255,0.5)", margin: 0 }}>
-              {item.role}
-            </p>
-          </div>
         </div>
+
+        {/* Large quote mark */}
+        <div style={{
+          fontSize: "3rem",
+          lineHeight: 1,
+          color: "var(--color-accent)",
+          opacity: 0.3,
+          marginBottom: "-0.5rem",
+          fontFamily: "Georgia, serif",
+        }}>
+          &ldquo;
+        </div>
+
+        {/* Quote text */}
+        <p style={{
+          fontSize: "1.0625rem",
+          lineHeight: 1.8,
+          color: "#4b5563",
+          fontStyle: "italic",
+          margin: "0 0 1.5rem",
+          fontFamily: "var(--font-poppins, Poppins, sans-serif)",
+        }}>
+          {item.text}
+        </p>
+
+        {/* Name + role */}
+        <p style={{
+          fontWeight: 700,
+          fontSize: "0.9375rem",
+          color: "#1b3a4b",
+          margin: 0,
+        }}>
+          {item.name}
+        </p>
+        <p style={{
+          fontSize: "0.8125rem",
+          color: "#9ca3af",
+          margin: "0.25rem 0 0",
+        }}>
+          {item.role}
+        </p>
       </div>
 
       {/* Dots */}
@@ -102,7 +123,7 @@ export default function TestimonialCarousel({ testimonials }: Props) {
               height: 8,
               borderRadius: 4,
               border: "none",
-              backgroundColor: i === current ? "var(--color-accent)" : "rgba(255,255,255,0.2)",
+              backgroundColor: i === current ? "var(--color-accent)" : "rgba(27, 58, 75, 0.15)",
               cursor: "pointer",
               padding: 0,
               transition: "all 0.3s ease",
