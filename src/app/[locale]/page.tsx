@@ -6,6 +6,7 @@ import { artistService } from "@/lib/services/artistService";
 import HomeTrackList from "@/components/catalogue/HomeTrackList";
 import FloatingPlayer from "@/components/player/FloatingPlayer";
 import { AudioLines, FileCheck2, Headphones } from "lucide-react";
+import TestimonialCarousel from "@/components/home/TestimonialCarousel";
 
 type Props = {
   params: Promise<{ locale: string }>;
@@ -266,56 +267,21 @@ export default async function HomePage({ params }: Props) {
       </section>
 
       {/* ── TESTIMONIALS ── */}
-      <section style={{ padding: "5rem 1.5rem", backgroundColor: "var(--color-bg-secondary)" }}>
+      <section style={{ padding: "5rem 1.5rem", background: "linear-gradient(180deg, #0f2533 0%, #1b3a4b 100%)" }}>
         <div style={{ maxWidth: "1100px", margin: "0 auto" }}>
           <h2
             style={{
               fontWeight: 800,
-              fontSize: "clamp(1.75rem, 3vw, 2.5rem)",
+              fontSize: "clamp(1.5rem, 2.5vw, 2rem)",
               textAlign: "center",
-              marginBottom: "3rem",
+              marginBottom: "2.5rem",
+              color: "white",
             }}
           >
             {t("testimonials_title")}
           </h2>
 
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
-              gap: "1.5rem",
-            }}
-          >
-            {testimonials.map((item) => (
-              <div
-                key={item.name}
-                style={{
-                  padding: "2rem",
-                  backgroundColor: "var(--color-bg-card)",
-                  borderRadius: "var(--radius-lg)",
-                  border: "1px solid var(--color-border)",
-                }}
-              >
-                <p
-                  style={{
-                    fontSize: "0.9375rem",
-                    lineHeight: 1.7,
-                    color: "var(--color-text-secondary)",
-                    marginBottom: "1.25rem",
-                    fontStyle: "italic",
-                  }}
-                >
-                  &ldquo;{item.text}&rdquo;
-                </p>
-                <p style={{ fontWeight: 600, fontSize: "0.9375rem", marginBottom: "0.125rem" }}>
-                  {item.name}
-                </p>
-                <p style={{ fontSize: "0.8125rem", color: "var(--color-text-muted)" }}>
-                  {item.role}
-                </p>
-              </div>
-            ))}
-          </div>
+          <TestimonialCarousel testimonials={testimonials} />
         </div>
       </section>
 
