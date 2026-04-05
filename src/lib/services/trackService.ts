@@ -102,7 +102,7 @@ export const trackService = {
     }
 
     const [rows, countRows] = await Promise.all([
-      baseQuery.orderBy(desc(tracks.createdAt)).limit(limit).offset(offset),
+      baseQuery.orderBy(search || activeFilters.length > 0 ? desc(tracks.createdAt) : sql`RANDOM()`).limit(limit).offset(offset),
       db
         .select({ count: sql<number>`count(*)` })
         .from(tracks)
