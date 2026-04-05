@@ -16,6 +16,17 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   });
 }
 
+const ARTIST_PHOTOS: Record<string, string> = {
+  "boris-massot": "/artists/boris-massot.jpg",
+  "marco-ariani": "/artists/marco-ariani.jpg",
+  "jaxsyn": "/artists/jaxsyn.jpg",
+  "quynzelle": "/artists/quynzelle.jpg",
+  "nyvvik": "/artists/nyvvik.jpg",
+  "vdgl": "/artists/vdgl.jpg",
+  "cyril-girard": "/artists/cyril-girard.jpg",
+  "konqeson": "/artists/konqeson.jpg",
+};
+
 export default async function NosArtistesPage({ params }: Props) {
   const { locale } = await params;
   const t = await getTranslations("artists");
@@ -84,9 +95,9 @@ export default async function NosArtistesPage({ params }: Props) {
                     border: "3px solid rgba(245, 166, 35, 0.3)",
                     transition: "border-color 0.2s, transform 0.2s",
                   }}>
-                    {artist.photoUrl ? (
+                    {(artist.photoUrl || ARTIST_PHOTOS[artist.slug]) ? (
                       <img
-                        src={artist.photoUrl}
+                        src={artist.photoUrl || ARTIST_PHOTOS[artist.slug]}
                         alt={artist.name}
                         width={140}
                         height={140}
