@@ -44,7 +44,7 @@ export default function HomeTrackList({ tracks, locale }: Props) {
   const [shuffleKey, setShuffleKey] = useState(0);
 
   const displayTracks = useMemo(() => {
-    return shuffleArray(tracks).slice(0, 8);
+    return shuffleArray(tracks).slice(0, 6);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tracks, shuffleKey]);
 
@@ -62,134 +62,187 @@ export default function HomeTrackList({ tracks, locale }: Props) {
     }
   }
 
-  const tags = (t: TrackWithDetails) => t.categories.slice(0, 2);
-
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "0.25rem" }}>
-      {displayTracks.map((t, i) => {
-        const isCurrent = currentTrack?.id === t.id;
-        const isActive = isCurrent && (isPlaying || progress > 0);
-        const progressPercent = isCurrent && duration > 0 ? (progress / duration) * 100 : 0;
-        const isEven = i % 2 === 0;
-        const trackTags = tags(t);
+    <div>
+      {/* 3x2 visual card grid */}
+      <div style={{
+        display: "grid",
+        gridTemplateColumns: "repeat(3, 1fr)",
+        gap: "1.25rem",
+      }}>
+        {displayTracks.map((t, i) => {
+          const isCurrent = currentTrack?.id === t.id;
+          const isActive = isCurrent && (isPlaying || progress > 0);
+          const progressPercent = isCurrent && duration > 0 ? (progress / duration) * 100 : 0;
+          const mainTag = t.categories[0];
 
-        return (
-          <div
-            key={t.id}
-            onClick={() => handlePlay(t, i)}
-            onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "rgba(0,0,0,0.04)"; }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = isCurrent ? "rgba(245,166,35,0.06)" : isEven ? "rgba(0,0,0,0.02)" : "transparent";
-            }}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "0.75rem",
-              padding: "0.5rem 0.75rem",
-              borderRadius: 8,
-              cursor: "pointer",
-              transition: "background-color 0.15s",
-              backgroundColor: isCurrent ? "rgba(245,166,35,0.06)" : isEven ? "rgba(0,0,0,0.02)" : "transparent",
-              position: "relative",
-              overflow: "hidden",
-            }}
-          >
-            {/* Cover */}
-            <div style={{ position: "relative", width: 44, height: 44, borderRadius: 6, overflow: "hidden", flexShrink: 0 }}>
-              {t.coverUrl ? (
-                <img src={t.coverUrl} alt="" width={44} height={44} style={{ objectFit: "cover", display: "block" }} />
-              ) : (
+          return (
+            <div
+              key={t.id}
+              onClick={() => handlePlay(t, i)}
+              style={{ cursor: "pointer" }}
+            >
+              {/* Cover area */}
+              <div
+                onMouseEnter={(e) => {
+                  const img = e.currentTarget.querySelector("div") as HTMLDivElement;
+                  if (img) img.style.transform = "scale(1.05)";
+                  const overlay = e.currentTarget.querySelector("[data-overlay]") as HTMLDivElement;
+                  if (overlay) overlay.style.opacity = "1";
+                }}
+                onMouseLeave={(e) => {
+                  const img = e.currentTarget.querySelector("div") as HTMLDivElement;
+                  if (img) img.style.transform = "scale(1)";
+                  const overlay = e.currentTarget.querySelector("[data-overlay]") as HTMLDivElement;
+                  if (overlay && !isCurrent) overlay.style.opacity = "0";
+                }}
+                style={{
+                  position: "relative",
+                  width: "100%",
+                  aspectRatio: "1",
+                  borderRadius: 12,
+                  overflow: "hidden",
+                  backgroundColor: "#1b3a4b",
+                }}
+              >
+                {/* Cover image or gradient */}
                 <div style={{
                   width: "100%",
                   height: "100%",
-                  background: "linear-gradient(135deg, #1b3a4b 0%, #2d5f7a 100%)",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
+                  transition: "transform 0.3s ease",
                 }}>
-                  <span style={{ fontSize: "0.875rem", color: "rgba(255,255,255,0.5)" }}>♪</span>
+                  {t.coverUrl ? (
+                    <img
+                      src={t.coverUrl}
+                      alt=""
+                      style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+                    />
+                  ) : (
+                    <div style={{
+                      width: "100%",
+                      height: "100%",
+                      background: `linear-gradient(135deg, #1b3a4b 0%, #2d5f7a 50%, #1b3a4b 100%)`,
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: "0.5rem",
+                    }}>
+                      <span style={{ fontSize: "2.5rem", opacity: 0.3 }}>♪</span>
+                      {mainTag && (
+                        <span style={{
+                          fontSize: "0.6875rem",
+                          color: "rgba(255,255,255,0.4)",
+                          fontWeight: 500,
+                        }}>
+                          {locale === "fr" ? mainTag.labelFr : mainTag.labelEn}
+                        </span>
+                      )}
+                    </div>
+                  )}
                 </div>
-              )}
-              <button
-                onClick={(e) => { e.stopPropagation(); handlePlay(t, i); }}
-                onMouseEnter={(e) => { e.currentTarget.style.opacity = "1"; }}
-                onMouseLeave={(e) => { if (!isCurrent) e.currentTarget.style.opacity = "0"; }}
-                style={{
-                  position: "absolute",
-                  inset: 0,
-                  borderRadius: 6,
-                  border: "none",
-                  backgroundColor: isCurrent ? "rgba(245,166,35,0.85)" : "rgba(27,58,75,0.7)",
-                  cursor: "pointer",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  opacity: isCurrent ? 1 : 0,
-                  transition: "opacity 0.2s",
-                }}
-                aria-label={isCurrent && isPlaying ? "Pause" : "Play"}
-              >
-                <span style={{ color: "white", fontSize: "0.75rem", marginLeft: isCurrent && isPlaying ? 0 : 2 }}>
-                  {isCurrent && isPlaying ? "⏸" : "▶"}
-                </span>
-              </button>
-            </div>
 
-            {/* Info */}
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <p style={{
-                fontWeight: 600,
-                fontSize: "0.875rem",
-                color: isCurrent ? "var(--color-accent)" : "#1b3a4b",
-                whiteSpace: "nowrap",
-                overflow: "hidden",
-                textOverflow: "ellipsis",
-                margin: 0,
-              }}>
-                {t.title}
-              </p>
-              <div style={{ display: "flex", alignItems: "center", gap: "0.375rem", marginTop: "0.0625rem" }}>
-                <span style={{ fontSize: "0.75rem", color: "#9ca3af" }}>{t.artistName}</span>
-                {trackTags.length > 0 && (
-                  <>
-                    <span style={{ color: "#d1d5db", fontSize: "0.5rem" }}>•</span>
-                    {trackTags.map((tag) => (
-                      <span key={tag.slug} style={{ fontSize: "0.625rem", color: "#b0b0b0" }}>
-                        {locale === "fr" ? tag.labelFr : tag.labelEn}
-                      </span>
-                    ))}
-                  </>
+                {/* Play overlay */}
+                <div
+                  data-overlay=""
+                  style={{
+                    position: "absolute",
+                    inset: 0,
+                    backgroundColor: "rgba(0,0,0,0.4)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    opacity: isCurrent ? 1 : 0,
+                    transition: "opacity 0.25s ease",
+                  }}
+                >
+                  <div style={{
+                    width: 52,
+                    height: 52,
+                    borderRadius: "50%",
+                    backgroundColor: isCurrent ? "var(--color-accent)" : "rgba(255,255,255,0.95)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    boxShadow: "0 4px 16px rgba(0,0,0,0.3)",
+                  }}>
+                    <span style={{
+                      fontSize: "1.125rem",
+                      color: isCurrent ? "var(--color-accent-text)" : "#1b3a4b",
+                      marginLeft: isCurrent && isPlaying ? 0 : 3,
+                    }}>
+                      {isCurrent && isPlaying ? "⏸" : "▶"}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Progress bar at bottom */}
+                {isActive && (
+                  <div style={{
+                    position: "absolute",
+                    bottom: 0,
+                    left: 0,
+                    right: 0,
+                    height: 3,
+                    backgroundColor: "rgba(0,0,0,0.3)",
+                  }}>
+                    <div style={{
+                      height: "100%",
+                      width: `${progressPercent}%`,
+                      backgroundColor: "var(--color-accent)",
+                      transition: "width 0.3s linear",
+                    }} />
+                  </div>
                 )}
+
+                {/* Duration badge */}
+                <span style={{
+                  position: "absolute",
+                  top: 8,
+                  right: 8,
+                  fontSize: "0.625rem",
+                  fontWeight: 600,
+                  color: "white",
+                  backgroundColor: "rgba(0,0,0,0.5)",
+                  padding: "0.125rem 0.375rem",
+                  borderRadius: 4,
+                  fontVariantNumeric: "tabular-nums",
+                }}>
+                  {formatDuration(t.durationSeconds)}
+                </span>
               </div>
 
-              {/* Progress bar */}
-              {isActive && (
-                <div style={{ marginTop: "0.25rem", height: 2, backgroundColor: "rgba(0,0,0,0.06)", borderRadius: 1, overflow: "hidden" }}>
-                  <div style={{
-                    height: "100%",
-                    width: `${progressPercent}%`,
-                    backgroundColor: "var(--color-accent)",
-                    transition: "width 0.3s linear",
-                  }} />
-                </div>
-              )}
+              {/* Title + Artist below cover */}
+              <div style={{ padding: "0.5rem 0.25rem 0" }}>
+                <p style={{
+                  fontWeight: 600,
+                  fontSize: "0.875rem",
+                  color: isCurrent ? "var(--color-accent)" : "#1b3a4b",
+                  margin: 0,
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                }}>
+                  {t.title}
+                </p>
+                <p style={{
+                  fontSize: "0.75rem",
+                  color: "#9ca3af",
+                  margin: "0.125rem 0 0",
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                }}>
+                  {t.artistName}
+                </p>
+              </div>
             </div>
+          );
+        })}
+      </div>
 
-            {/* Duration */}
-            <span style={{
-              fontSize: "0.75rem",
-              color: "#9ca3af",
-              flexShrink: 0,
-              fontVariantNumeric: "tabular-nums",
-            }}>
-              {formatDuration(t.durationSeconds)}
-            </span>
-          </div>
-        );
-      })}
-
-      {/* Shuffle — clean inline link style */}
-      <div style={{ textAlign: "center", marginTop: "1rem" }}>
+      {/* Shuffle */}
+      <div style={{ textAlign: "center", marginTop: "1.5rem" }}>
         <button
           onClick={() => setShuffleKey((k) => k + 1)}
           onMouseEnter={(e) => { e.currentTarget.style.color = "var(--color-accent)"; }}
@@ -215,6 +268,66 @@ export default function HomeTrackList({ tracks, locale }: Props) {
           </svg>
           {locale === "fr" ? "Découvrir d'autres morceaux" : "Discover more tracks"}
         </button>
+      </div>
+
+      {/* Conversion CTA */}
+      <div style={{
+        textAlign: "center",
+        marginTop: "2rem",
+        padding: "1.5rem",
+        backgroundColor: "rgba(27, 58, 75, 0.04)",
+        borderRadius: 12,
+      }}>
+        <p style={{
+          fontSize: "1.0625rem",
+          fontWeight: 600,
+          color: "#1b3a4b",
+          margin: "0 0 0.25rem",
+        }}>
+          {locale === "fr"
+            ? "Vous aimez ce que vous entendez ?"
+            : "Like what you hear?"}
+        </p>
+        <p style={{
+          fontSize: "0.875rem",
+          color: "#6b7280",
+          margin: "0 0 1rem",
+        }}>
+          {locale === "fr"
+            ? "Accédez à tout le catalogue en illimité, téléchargements inclus."
+            : "Get unlimited access to the full catalogue, downloads included."}
+        </p>
+        <a
+          href={`/${locale}/abonnements`}
+          style={{
+            display: "inline-block",
+            padding: "0.625rem 1.75rem",
+            backgroundColor: "var(--color-accent)",
+            color: "var(--color-accent-text)",
+            fontWeight: 600,
+            fontSize: "0.9375rem",
+            borderRadius: "9999px",
+            textDecoration: "none",
+            marginRight: "0.75rem",
+          }}
+        >
+          {locale === "fr" ? "Voir les offres" : "See plans"}
+        </a>
+        <a
+          href={`/${locale}/catalogue`}
+          style={{
+            display: "inline-block",
+            padding: "0.625rem 1.75rem",
+            color: "#1b3a4b",
+            fontWeight: 500,
+            fontSize: "0.9375rem",
+            borderRadius: "9999px",
+            textDecoration: "none",
+            border: "1px solid #d1d5db",
+          }}
+        >
+          {locale === "fr" ? "Explorer le catalogue" : "Browse catalogue"}
+        </a>
       </div>
     </div>
   );

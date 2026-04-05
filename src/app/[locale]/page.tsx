@@ -161,24 +161,6 @@ export default async function HomePage({ params }: Props) {
             </h2>
 
             <HomeTrackList tracks={popularTracks} locale={locale} />
-
-            <div style={{ textAlign: "center", marginTop: "2.5rem" }}>
-              <a
-                href={`/${locale}/catalogue`}
-                style={{
-                  padding: "0.75rem 2rem",
-                  backgroundColor: "transparent",
-                  color: "var(--color-accent)",
-                  fontWeight: 600,
-                  fontSize: "0.9375rem",
-                  borderRadius: "var(--radius-full)",
-                  border: "1px solid var(--color-accent)",
-                  textDecoration: "none",
-                }}
-              >
-                {t("popular_cta")} →
-              </a>
-            </div>
           </div>
         </section>
       )}
