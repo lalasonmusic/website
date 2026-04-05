@@ -5,7 +5,7 @@ import { trackService } from "@/lib/services/trackService";
 import { artistService } from "@/lib/services/artistService";
 import HomeTrackList from "@/components/catalogue/HomeTrackList";
 import FloatingPlayer from "@/components/player/FloatingPlayer";
-import { Music, ShieldCheck, Zap } from "lucide-react";
+import { AudioLines, FileCheck2, Headphones } from "lucide-react";
 
 type Props = {
   params: Promise<{ locale: string }>;
@@ -206,13 +206,13 @@ export default async function HomePage({ params }: Props) {
           >
             {[
               { title: t("feature1_title"), desc: t("feature1_desc"), anim: "feature-icon-sway", icon: (
-                <Music size={26} strokeWidth={1.5} color="var(--color-accent)" />
+                <AudioLines size={26} strokeWidth={1.5} color="var(--color-accent)" />
               )},
               { title: t("feature2_title"), desc: t("feature2_desc"), anim: "feature-icon-float", icon: (
-                <ShieldCheck size={26} strokeWidth={1.5} color="var(--color-accent)" />
+                <FileCheck2 size={26} strokeWidth={1.5} color="var(--color-accent)" />
               )},
               { title: t("feature3_title"), desc: t("feature3_desc"), anim: "feature-icon-pulse", icon: (
-                <Zap size={26} strokeWidth={1.5} color="var(--color-accent)" />
+                <Headphones size={26} strokeWidth={1.5} color="var(--color-accent)" />
               )},
             ].map((f, i) => (
               <div
