@@ -146,14 +146,15 @@ export default async function HomePage({ params }: Props) {
 
       {/* ── POPULAR TRACKS ── */}
       {popularTracks.length > 0 && (
-        <section style={{ padding: "5rem 1.5rem", backgroundColor: "var(--color-bg-primary)" }}>
-          <div style={{ maxWidth: "1100px", margin: "0 auto" }}>
+        <section style={{ padding: "5rem 1.5rem", background: "linear-gradient(to bottom, #e8edf0 0%, #f8f7f5 80px, #f8f7f5 100%)" }}>
+          <div style={{ maxWidth: "900px", margin: "0 auto" }}>
             <h2
               style={{
                 fontWeight: 800,
                 fontSize: "clamp(1.75rem, 3vw, 2.5rem)",
                 textAlign: "center",
                 marginBottom: "2.5rem",
+                color: "#1b3a4b",
               }}
             >
               {t("popular_title")}

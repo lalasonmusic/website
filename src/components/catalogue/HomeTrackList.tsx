@@ -62,56 +62,42 @@ export default function HomeTrackList({ tracks, locale }: Props) {
     }
   }
 
+  const tags = (t: TrackWithDetails) => t.categories.slice(0, 2);
+
   return (
-    <div
-      style={{
-        display: "grid",
-        gridTemplateColumns: "repeat(3, 1fr)",
-        gap: "0.5rem",
-      }}
-    >
+    <div style={{ display: "flex", flexDirection: "column", gap: "0.25rem" }}>
       {displayTracks.map((t, i) => {
         const isCurrent = currentTrack?.id === t.id;
         const isActive = isCurrent && (isPlaying || progress > 0);
         const progressPercent = isCurrent && duration > 0 ? (progress / duration) * 100 : 0;
+        const isEven = i % 2 === 0;
+        const trackTags = tags(t);
 
         return (
-          <button
+          <div
             key={t.id}
             onClick={() => handlePlay(t, i)}
-            onMouseEnter={(e) => {
-              if (!isCurrent) e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.08)";
-            }}
+            onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "rgba(0,0,0,0.04)"; }}
             onMouseLeave={(e) => {
-              if (!isCurrent) e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.03)";
+              e.currentTarget.style.backgroundColor = isCurrent ? "rgba(245,166,35,0.06)" : isEven ? "rgba(0,0,0,0.02)" : "transparent";
             }}
             style={{
               display: "flex",
               alignItems: "center",
-              gap: "0.625rem",
+              gap: "0.75rem",
               padding: "0.5rem 0.75rem",
-              backgroundColor: isCurrent ? "rgba(245,166,35,0.1)" : "rgba(255,255,255,0.03)",
-              borderRadius: 10,
-              border: "none",
+              borderRadius: 8,
               cursor: "pointer",
-              textAlign: "left",
-              width: "100%",
               transition: "background-color 0.15s",
+              backgroundColor: isCurrent ? "rgba(245,166,35,0.06)" : isEven ? "rgba(0,0,0,0.02)" : "transparent",
               position: "relative",
               overflow: "hidden",
             }}
           >
-            {/* Cover with play overlay */}
-            <div style={{
-              position: "relative",
-              width: 40,
-              height: 40,
-              borderRadius: 6,
-              overflow: "hidden",
-              flexShrink: 0,
-            }}>
+            {/* Cover */}
+            <div style={{ position: "relative", width: 44, height: 44, borderRadius: 6, overflow: "hidden", flexShrink: 0 }}>
               {t.coverUrl ? (
-                <img src={t.coverUrl} alt="" width={40} height={40} style={{ objectFit: "cover", display: "block" }} />
+                <img src={t.coverUrl} alt="" width={44} height={44} style={{ objectFit: "cover", display: "block" }} />
               ) : (
                 <div style={{
                   width: "100%",
@@ -121,112 +107,115 @@ export default function HomeTrackList({ tracks, locale }: Props) {
                   alignItems: "center",
                   justifyContent: "center",
                 }}>
-                  <span style={{ fontSize: "0.875rem", color: "rgba(255,255,255,0.4)" }}>♪</span>
+                  <span style={{ fontSize: "0.875rem", color: "rgba(255,255,255,0.5)" }}>♪</span>
                 </div>
               )}
-              <div style={{
-                position: "absolute",
-                inset: 0,
-                backgroundColor: isCurrent ? "rgba(245,166,35,0.8)" : "rgba(0,0,0,0.35)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                opacity: isCurrent ? 1 : 0,
-                transition: "opacity 0.2s",
-              }}
-              className="play-overlay"
+              <button
+                onClick={(e) => { e.stopPropagation(); handlePlay(t, i); }}
+                onMouseEnter={(e) => { e.currentTarget.style.opacity = "1"; }}
+                onMouseLeave={(e) => { if (!isCurrent) e.currentTarget.style.opacity = "0"; }}
+                style={{
+                  position: "absolute",
+                  inset: 0,
+                  borderRadius: 6,
+                  border: "none",
+                  backgroundColor: isCurrent ? "rgba(245,166,35,0.85)" : "rgba(27,58,75,0.7)",
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  opacity: isCurrent ? 1 : 0,
+                  transition: "opacity 0.2s",
+                }}
+                aria-label={isCurrent && isPlaying ? "Pause" : "Play"}
               >
-                <span style={{ color: "white", fontSize: "0.75rem", marginLeft: isCurrent && isPlaying ? 0 : 1 }}>
+                <span style={{ color: "white", fontSize: "0.75rem", marginLeft: isCurrent && isPlaying ? 0 : 2 }}>
                   {isCurrent && isPlaying ? "⏸" : "▶"}
                 </span>
-              </div>
+              </button>
             </div>
 
             {/* Info */}
-            <div style={{ flex: 1, overflow: "hidden", minWidth: 0 }}>
+            <div style={{ flex: 1, minWidth: 0 }}>
               <p style={{
                 fontWeight: 600,
-                fontSize: "0.8125rem",
+                fontSize: "0.875rem",
+                color: isCurrent ? "var(--color-accent)" : "#1b3a4b",
                 whiteSpace: "nowrap",
                 overflow: "hidden",
                 textOverflow: "ellipsis",
-                color: isCurrent ? "var(--color-accent)" : "white",
                 margin: 0,
               }}>
                 {t.title}
               </p>
-              <p style={{
-                fontSize: "0.6875rem",
-                color: "rgba(255,255,255,0.45)",
-                margin: 0,
-                whiteSpace: "nowrap",
-                overflow: "hidden",
-                textOverflow: "ellipsis",
-              }}>
-                {t.artistName}
-              </p>
+              <div style={{ display: "flex", alignItems: "center", gap: "0.375rem", marginTop: "0.0625rem" }}>
+                <span style={{ fontSize: "0.75rem", color: "#9ca3af" }}>{t.artistName}</span>
+                {trackTags.length > 0 && (
+                  <>
+                    <span style={{ color: "#d1d5db", fontSize: "0.5rem" }}>•</span>
+                    {trackTags.map((tag) => (
+                      <span key={tag.slug} style={{ fontSize: "0.625rem", color: "#b0b0b0" }}>
+                        {locale === "fr" ? tag.labelFr : tag.labelEn}
+                      </span>
+                    ))}
+                  </>
+                )}
+              </div>
+
+              {/* Progress bar */}
+              {isActive && (
+                <div style={{ marginTop: "0.25rem", height: 2, backgroundColor: "rgba(0,0,0,0.06)", borderRadius: 1, overflow: "hidden" }}>
+                  <div style={{
+                    height: "100%",
+                    width: `${progressPercent}%`,
+                    backgroundColor: "var(--color-accent)",
+                    transition: "width 0.3s linear",
+                  }} />
+                </div>
+              )}
             </div>
 
             {/* Duration */}
             <span style={{
-              fontSize: "0.6875rem",
-              color: "rgba(255,255,255,0.35)",
+              fontSize: "0.75rem",
+              color: "#9ca3af",
               flexShrink: 0,
               fontVariantNumeric: "tabular-nums",
             }}>
               {formatDuration(t.durationSeconds)}
             </span>
-
-            {/* Progress bar at bottom of card */}
-            {isActive && (
-              <div style={{
-                position: "absolute",
-                bottom: 0,
-                left: 0,
-                right: 0,
-                height: 2,
-                backgroundColor: "rgba(255,255,255,0.05)",
-              }}>
-                <div style={{
-                  height: "100%",
-                  width: `${progressPercent}%`,
-                  backgroundColor: "var(--color-accent)",
-                  transition: "width 0.3s linear",
-                }} />
-              </div>
-            )}
-          </button>
+          </div>
         );
       })}
 
-      {/* 9th slot — Shuffle button */}
-      <button
-        onClick={() => setShuffleKey((k) => k + 1)}
-        onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "rgba(245,166,35,0.15)"; }}
-        onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.03)"; }}
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          gap: "0.5rem",
-          padding: "0.5rem 0.75rem",
-          backgroundColor: "rgba(255,255,255,0.03)",
-          borderRadius: 10,
-          border: "1px dashed rgba(245,166,35,0.3)",
-          cursor: "pointer",
-          width: "100%",
-          transition: "background-color 0.2s",
-        }}
-      >
-        <span style={{ fontSize: "1.125rem" }}>🔀</span>
-        <span style={{
-          fontSize: "0.8125rem",
-          color: "var(--color-accent)",
-          fontWeight: 500,
-        }}>
+      {/* Shuffle — clean inline link style */}
+      <div style={{ textAlign: "center", marginTop: "1rem" }}>
+        <button
+          onClick={() => setShuffleKey((k) => k + 1)}
+          onMouseEnter={(e) => { e.currentTarget.style.color = "var(--color-accent)"; }}
+          onMouseLeave={(e) => { e.currentTarget.style.color = "#6b7280"; }}
+          style={{
+            background: "none",
+            border: "none",
+            cursor: "pointer",
+            fontSize: "0.8125rem",
+            color: "#6b7280",
+            fontWeight: 500,
+            display: "inline-flex",
+            alignItems: "center",
+            gap: "0.375rem",
+            padding: "0.5rem 1rem",
+            transition: "color 0.15s",
+          }}
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="16 3 21 3 21 8" /><line x1="4" y1="20" x2="21" y2="3" />
+            <polyline points="21 16 21 21 16 21" /><line x1="15" y1="15" x2="21" y2="21" />
+            <line x1="4" y1="4" x2="9" y2="9" />
+          </svg>
           {locale === "fr" ? "Découvrir d'autres morceaux" : "Discover more tracks"}
-        </span>
-      </button>
+        </button>
+      </div>
     </div>
   );
 }
