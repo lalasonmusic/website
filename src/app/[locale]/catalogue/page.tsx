@@ -104,6 +104,18 @@ export default async function CataloguePage({ params, searchParams }: Props) {
     type: c.type as "STYLE" | "THEME" | "MOOD",
   }));
 
+  const STYLE_OVERLAYS: Record<string, string> = {
+    "chill-out": "rgba(15, 76, 117, 0.85)",
+    "cinematique": "rgba(107, 15, 26, 0.82)",
+    "electronique": "rgba(74, 26, 107, 0.82)",
+    "funk-jazz": "rgba(168, 84, 18, 0.82)",
+    "hip-hop-urban": "rgba(45, 27, 78, 0.82)",
+    "lo-fi": "rgba(30, 70, 50, 0.85)",
+    "pop-rock": "rgba(160, 40, 80, 0.82)",
+    "world": "rgba(10, 80, 55, 0.85)",
+  };
+  const heroOverlay = (style && STYLE_OVERLAYS[style]) || "rgba(27, 58, 75, 0.82)";
+
   return (
     <div style={{ minHeight: "100vh" }}>
       {/* Hero banner — title + search + filters */}
@@ -120,7 +132,8 @@ export default async function CataloguePage({ params, searchParams }: Props) {
           style={{
             position: "absolute",
             inset: 0,
-            backgroundColor: "rgba(27, 58, 75, 0.82)",
+            backgroundColor: heroOverlay,
+            transition: "background-color 0.4s ease",
           }}
         />
         <div style={{ position: "relative", maxWidth: "900px", margin: "0 auto" }}>
