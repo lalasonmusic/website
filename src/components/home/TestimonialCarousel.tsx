@@ -12,17 +12,11 @@ type Props = {
   testimonials: Testimonial[];
 };
 
-const AVATAR_COLORS = [
-  "linear-gradient(135deg, #f5a623 0%, #e8961a 100%)",
-  "linear-gradient(135deg, #3282b8 0%, #0f4c75 100%)",
-  "linear-gradient(135deg, #8b3fa0 0%, #4a1a6b 100%)",
+const PHOTOS = [
+  "/testimonial-lucas.jpg",
+  "/testimonial-camille.jpg",
+  "/testimonial-comptoir.jpg",
 ];
-
-function getInitials(name: string): string {
-  const parts = name.split(" ").filter(Boolean);
-  if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
-  return name.slice(0, 2).toUpperCase();
-}
 
 export default function TestimonialCarousel({ testimonials }: Props) {
   const [current, setCurrent] = useState(0);
@@ -67,26 +61,23 @@ export default function TestimonialCarousel({ testimonials }: Props) {
           &ldquo;{item.text}&rdquo;
         </p>
 
-        {/* Avatar + name */}
+        {/* Photo + name */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "0.75rem" }}>
           <div style={{
-            width: 48,
-            height: 48,
+            width: 56,
+            height: 56,
             borderRadius: "50%",
-            background: AVATAR_COLORS[current % AVATAR_COLORS.length],
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
+            overflow: "hidden",
             flexShrink: 0,
+            border: "2px solid rgba(245, 166, 35, 0.4)",
           }}>
-            <span style={{
-              color: "white",
-              fontWeight: 700,
-              fontSize: "0.875rem",
-              letterSpacing: "0.02em",
-            }}>
-              {getInitials(item.name)}
-            </span>
+            <img
+              src={PHOTOS[current % PHOTOS.length]}
+              alt={item.name}
+              width={56}
+              height={56}
+              style={{ objectFit: "cover", display: "block", width: "100%", height: "100%" }}
+            />
           </div>
           <div style={{ textAlign: "left" }}>
             <p style={{ fontWeight: 600, fontSize: "0.9375rem", color: "white", margin: 0 }}>
