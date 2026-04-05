@@ -177,48 +177,74 @@ export default async function HomePage({ params }: Props) {
       {/* ── FEATURES ── */}
       <section
         style={{
-          padding: "5rem 1.5rem",
-          backgroundColor: "var(--color-bg-primary)",
+          padding: "4.5rem 1.5rem",
+          backgroundColor: "#1b3a4b",
         }}
       >
-        <div style={{ maxWidth: "1100px", margin: "0 auto" }}>
+        <div style={{ maxWidth: "960px", margin: "0 auto" }}>
           <h2
             style={{
               fontWeight: 800,
-              fontSize: "clamp(1.75rem, 3vw, 2.5rem)",
+              fontSize: "clamp(1.5rem, 2.5vw, 2rem)",
               textAlign: "center",
               marginBottom: "3rem",
+              color: "white",
             }}
           >
-            {t("features_title")}
+            {t("features_title").replace("Lalason", "").trim()}{" "}
+            <span style={{ color: "var(--color-accent)" }}>Lalason</span>
+            {t("features_title").includes("?") ? " ?" : ""}
           </h2>
 
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
-              gap: "2rem",
+              gridTemplateColumns: "repeat(3, 1fr)",
+              gap: "0",
             }}
           >
             {[
-              { title: t("feature1_title"), desc: t("feature1_desc"), icon: "🎵" },
-              { title: t("feature2_title"), desc: t("feature2_desc"), icon: "📄" },
-              { title: t("feature3_title"), desc: t("feature3_desc"), icon: "🚀" },
-            ].map((f) => (
+              { title: t("feature1_title"), desc: t("feature1_desc"), icon: (
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--color-accent)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>
+                </svg>
+              )},
+              { title: t("feature2_title"), desc: t("feature2_desc"), icon: (
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--color-accent)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>
+                </svg>
+              )},
+              { title: t("feature3_title"), desc: t("feature3_desc"), icon: (
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--color-accent)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+                </svg>
+              )},
+            ].map((f, i) => (
               <div
                 key={f.title}
                 style={{
-                  padding: "2rem",
-                  backgroundColor: "var(--color-bg-card)",
-                  borderRadius: "var(--radius-lg)",
-                  border: "1px solid var(--color-border)",
+                  padding: "1.5rem 2rem",
+                  textAlign: "center",
+                  borderLeft: i > 0 ? "1px solid rgba(255,255,255,0.1)" : "none",
                 }}
               >
-                <div style={{ fontSize: "2rem", marginBottom: "1rem" }}>{f.icon}</div>
-                <h3 style={{ fontWeight: 700, fontSize: "1.125rem", marginBottom: "0.5rem" }}>
+                <div style={{ marginBottom: "1rem", display: "flex", justifyContent: "center" }}>
+                  {f.icon}
+                </div>
+                <h3 style={{
+                  fontWeight: 700,
+                  fontSize: "1rem",
+                  marginBottom: "0.5rem",
+                  color: "white",
+                }}>
                   {f.title}
                 </h3>
-                <p style={{ color: "var(--color-text-secondary)", fontSize: "0.9375rem", lineHeight: 1.6 }}>
+                <p style={{
+                  color: "rgba(255,255,255,0.6)",
+                  fontSize: "0.875rem",
+                  lineHeight: 1.7,
+                  margin: 0,
+                }}>
                   {f.desc}
                 </p>
               </div>
