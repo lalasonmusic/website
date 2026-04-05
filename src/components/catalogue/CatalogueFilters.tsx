@@ -197,6 +197,54 @@ export default function CatalogueFilters({ categories, filterLabels, locale, dar
           </select>
         )}
       </div>
+
+      {/* Active filters label */}
+      {(currentStyle || currentTheme || currentMood) && (() => {
+        const activeLabels: string[] = [];
+        if (currentStyle) {
+          const s = styles.find((c) => c.slug === currentStyle);
+          if (s) activeLabels.push(locale === "fr" ? s.labelFr : s.labelEn);
+        }
+        if (currentTheme) {
+          const t = themes.find((c) => c.slug === currentTheme);
+          if (t) activeLabels.push(locale === "fr" ? t.labelFr : t.labelEn);
+        }
+        if (currentMood) {
+          const m = moods.find((c) => c.slug === currentMood);
+          if (m) activeLabels.push(locale === "fr" ? m.labelFr : m.labelEn);
+        }
+        if (activeLabels.length === 0) return null;
+        return (
+          <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+            <span style={{
+              fontSize: "0.75rem",
+              color: darkMode ? "rgba(255,255,255,0.5)" : "#9ca3af",
+            }}>
+              {activeLabels.join(" · ")}
+            </span>
+            <button
+              onClick={() => {
+                const params = new URLSearchParams(searchParams.toString());
+                params.delete("style");
+                params.delete("theme");
+                params.delete("mood");
+                params.delete("page");
+                router.push(`${pathname}?${params.toString()}`);
+              }}
+              style={{
+                background: "none",
+                border: "none",
+                cursor: "pointer",
+                fontSize: "0.6875rem",
+                color: darkMode ? "rgba(255,255,255,0.4)" : "#b0b0b0",
+                padding: "0.125rem 0.25rem",
+              }}
+            >
+              ✕
+            </button>
+          </div>
+        );
+      })()}
     </div>
   );
 }
