@@ -18,13 +18,29 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 const ARTIST_PHOTOS: Record<string, string> = {
   "boris-massot": "/artists/boris-massot.jpg",
+  "boris-massot-music": "/artists/boris-massot.jpg",
   "marco-ariani": "/artists/marco-ariani.jpg",
+  "marco": "/artists/marco-ariani.jpg",
   "jaxsyn": "/artists/jaxsyn.jpg",
   "quynzelle": "/artists/quynzelle.jpg",
+  "quinzelle": "/artists/quynzelle.jpg",
   "nyvvik": "/artists/nyvvik.jpg",
+  "nivvik": "/artists/nyvvik.jpg",
+  "nivvyk": "/artists/nyvvik.jpg",
+  "nivyk": "/artists/nyvvik.jpg",
   "vdgl": "/artists/vdgl.jpg",
   "cyril-girard": "/artists/cyril-girard.jpg",
   "konqeson": "/artists/konqeson.jpg",
+  "konqueson": "/artists/konqeson.jpg",
+  "allan": "/artists/allan.jpg",
+  "avalanche-pulse": "/artists/avalanche-pulse.jpg",
+  "corine-besnard": "/artists/corine-besnard.jpg",
+  "djobeer": "/artists/djobeer.jpg",
+  "groovyd": "/artists/groovyd.jpg",
+  "kaelixx": "/artists/kaelixx.jpg",
+  "midnight-blaze": "/artists/midnight-blaze.jpg",
+  "vendredi": "/artists/vendredi.jpg",
+  "wobbletronix": "/artists/wobbletronix.jpg",
 };
 
 export default async function NosArtistesPage({ params }: Props) {
