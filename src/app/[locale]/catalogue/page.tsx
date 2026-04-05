@@ -8,6 +8,7 @@ import { eq, and } from "drizzle-orm";
 import { Suspense } from "react";
 import CatalogueFilters from "@/components/catalogue/CatalogueFilters";
 import TrackCard from "@/components/catalogue/TrackCard";
+import SubscriptionPopup from "@/components/catalogue/SubscriptionPopup";
 import type { TrackCategory } from "@/types/track";
 import { buildMetadata } from "@/lib/seo";
 
@@ -257,6 +258,9 @@ export default async function CataloguePage({ params, searchParams }: Props) {
           )}
         </div>
       </div>
+
+      {/* Subscription popup — appears after 10s for non-subscribers */}
+      {!isSubscribed && <SubscriptionPopup locale={locale} />}
     </div>
   );
 }
