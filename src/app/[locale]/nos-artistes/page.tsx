@@ -22,75 +22,108 @@ export default async function NosArtistesPage({ params }: Props) {
   const allArtists = await artistService.getAll();
 
   return (
-    <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "3rem 1.5rem" }}>
-      <h1 style={{ fontWeight: 800, fontSize: "clamp(2rem, 4vw, 3rem)", marginBottom: "0.75rem" }}>
-        {t("pageTitle")}
-      </h1>
-      <p
-        style={{
-          color: "var(--color-text-secondary)",
-          fontSize: "1.0625rem",
-          marginBottom: "3rem",
-          maxWidth: "560px",
-        }}
-      >
-        {t("pageDescription")}
-      </p>
+    <div>
+      {/* Hero */}
+      <section style={{
+        padding: "4rem 1.5rem 3rem",
+        background: "linear-gradient(180deg, #0f2533 0%, #1b3a4b 100%)",
+        textAlign: "center",
+      }}>
+        <h1 style={{
+          fontWeight: 800,
+          fontSize: "clamp(2rem, 4vw, 2.75rem)",
+          color: "white",
+          marginBottom: "0.75rem",
+        }}>
+          {t("pageTitle")}
+        </h1>
+        <p style={{
+          color: "rgba(255,255,255,0.6)",
+          fontSize: "1rem",
+          maxWidth: "520px",
+          margin: "0 auto",
+          lineHeight: 1.6,
+        }}>
+          {t("pageDescription")}
+        </p>
+      </section>
 
-      {allArtists.length === 0 ? (
-        <p style={{ color: "var(--color-text-muted)" }}>{t("noArtists")}</p>
-      ) : (
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))",
-            gap: "2rem",
-          }}
-        >
-          {allArtists.map((artist) => (
-            <a
-              key={artist.id}
-              href={`/${locale}/nos-artistes/${artist.slug}`}
-              style={{ textDecoration: "none", color: "inherit" }}
-            >
-              <div
-                style={{
-                  backgroundColor: "var(--color-bg-card)",
-                  borderRadius: "var(--radius-lg)",
-                  border: "1px solid var(--color-border)",
-                  overflow: "hidden",
-                  transition: "border-color 0.2s",
-                }}
-              >
-                {artist.photoUrl ? (
-                  <img
-                    src={artist.photoUrl}
-                    alt={artist.name}
-                    style={{ width: "100%", aspectRatio: "1", objectFit: "cover" }}
-                  />
-                ) : (
-                  <div
-                    style={{
-                      width: "100%",
-                      aspectRatio: "1",
-                      backgroundColor: "var(--color-bg-secondary)",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      fontSize: "3rem",
-                    }}
-                  >
-                    🎵
+      {/* Artists grid */}
+      <section style={{
+        padding: "3rem 1.5rem 4rem",
+        background: "linear-gradient(180deg, #1b3a4b 0%, #0f2533 100%)",
+      }}>
+        <div style={{ maxWidth: "1100px", margin: "0 auto" }}>
+          {allArtists.length === 0 ? (
+            <p style={{ color: "rgba(255,255,255,0.5)", textAlign: "center" }}>{t("noArtists")}</p>
+          ) : (
+            <div style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))",
+              gap: "2rem",
+              justifyItems: "center",
+            }}>
+              {allArtists.map((artist) => (
+                <a
+                  key={artist.id}
+                  href={`/${locale}/nos-artistes/${artist.slug}`}
+                  style={{
+                    textDecoration: "none",
+                    color: "inherit",
+                    textAlign: "center",
+                    width: "100%",
+                  }}
+                >
+                  {/* Photo circle */}
+                  <div style={{
+                    width: 140,
+                    height: 140,
+                    borderRadius: "50%",
+                    overflow: "hidden",
+                    margin: "0 auto 0.75rem",
+                    border: "3px solid rgba(245, 166, 35, 0.3)",
+                    transition: "border-color 0.2s, transform 0.2s",
+                  }}>
+                    {artist.photoUrl ? (
+                      <img
+                        src={artist.photoUrl}
+                        alt={artist.name}
+                        width={140}
+                        height={140}
+                        style={{ objectFit: "cover", display: "block", width: "100%", height: "100%" }}
+                      />
+                    ) : (
+                      <div style={{
+                        width: "100%",
+                        height: "100%",
+                        background: "linear-gradient(135deg, #1b3a4b 0%, #2d5f7a 50%, #1b3a4b 100%)",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                      }}>
+                        <span style={{
+                          fontSize: "2.5rem",
+                          color: "rgba(255,255,255,0.2)",
+                        }}>♪</span>
+                      </div>
+                    )}
                   </div>
-                )}
-                <div style={{ padding: "1rem" }}>
-                  <p style={{ fontWeight: 700, fontSize: "1rem" }}>{artist.name}</p>
-                </div>
-              </div>
-            </a>
-          ))}
+
+                  {/* Name */}
+                  <p style={{
+                    fontWeight: 600,
+                    fontSize: "0.9375rem",
+                    color: "white",
+                    margin: 0,
+                  }}>
+                    {artist.name}
+                  </p>
+                </a>
+              ))}
+            </div>
+          )}
         </div>
-      )}
+      </section>
     </div>
   );
 }
