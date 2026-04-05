@@ -24,8 +24,10 @@ export default async function Header({ locale }: Props) {
       position: "sticky",
       top: 0,
       zIndex: 50,
-      backgroundColor: "var(--color-bg-secondary)",
-      borderBottom: "1px solid var(--color-border)",
+      backgroundColor: "rgba(15, 37, 51, 0.85)",
+      backdropFilter: "blur(20px)",
+      WebkitBackdropFilter: "blur(20px)",
+      borderBottom: "1px solid rgba(255, 255, 255, 0.08)",
       height: "60px",
     }}>
       <div style={{
