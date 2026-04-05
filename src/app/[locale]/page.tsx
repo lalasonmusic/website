@@ -174,68 +174,6 @@ export default async function HomePage({ params }: Props) {
         </section>
       )}
 
-      {/* ── CATEGORIES ── */}
-      {allCategories.length > 0 && (
-        <section style={{ padding: "5rem 1.5rem", backgroundColor: "var(--color-bg-secondary)" }}>
-          <div style={{ maxWidth: "1100px", margin: "0 auto" }}>
-            <h2
-              style={{
-                fontWeight: 800,
-                fontSize: "clamp(1.75rem, 3vw, 2.5rem)",
-                textAlign: "center",
-                marginBottom: "3rem",
-              }}
-            >
-              {t("categories_title")}
-            </h2>
-
-            {[
-              { label: t("categories_style"), param: "style", items: styles },
-              { label: t("categories_theme"), param: "theme", items: themes },
-              { label: t("categories_mood"), param: "mood", items: moods },
-            ]
-              .filter((group) => group.items.length > 0)
-              .map((group) => (
-                <div key={group.param} style={{ marginBottom: "2rem" }}>
-                  <h3
-                    style={{
-                      fontWeight: 600,
-                      fontSize: "1rem",
-                      color: "var(--color-text-muted)",
-                      textTransform: "uppercase",
-                      letterSpacing: "0.05em",
-                      marginBottom: "0.75rem",
-                    }}
-                  >
-                    {group.label}
-                  </h3>
-                  <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem" }}>
-                    {group.items.map((cat) => (
-                      <a
-                        key={cat.id}
-                        href={`/${locale}/catalogue?${group.param}=${cat.slug}`}
-                        style={{
-                          padding: "0.5rem 1.25rem",
-                          backgroundColor: "var(--color-bg-card)",
-                          borderRadius: "var(--radius-full)",
-                          border: "1px solid var(--color-border)",
-                          color: "var(--color-text-primary)",
-                          fontSize: "0.875rem",
-                          fontWeight: 500,
-                          textDecoration: "none",
-                          transition: "border-color 0.15s",
-                        }}
-                      >
-                        {locale === "en" ? cat.labelEn : cat.labelFr}
-                      </a>
-                    ))}
-                  </div>
-                </div>
-              ))}
-          </div>
-        </section>
-      )}
-
       {/* ── FEATURES ── */}
       <section
         style={{
