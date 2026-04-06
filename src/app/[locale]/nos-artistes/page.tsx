@@ -78,8 +78,9 @@ export default async function NosArtistesPage({ params }: Props) {
             <p style={{ color: "rgba(255,255,255,0.5)", textAlign: "center" }}>{t("noArtists")}</p>
           ) : (
             <div style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fill, minmax(150px, 1fr))",
+              display: "flex",
+              flexWrap: "wrap",
+              justifyContent: "center",
               gap: "2rem",
             }}>
               {allArtists.map((artist) => (
@@ -90,7 +91,7 @@ export default async function NosArtistesPage({ params }: Props) {
                     textDecoration: "none",
                     color: "inherit",
                     textAlign: "center",
-                    width: "100%",
+                    width: 150,
                   }}
                 >
                   {/* Photo circle */}
