@@ -8,6 +8,7 @@ import FloatingPlayer from "@/components/player/FloatingPlayer";
 import { AudioLines, FileCheck2, Headphones } from "lucide-react";
 import TestimonialCarousel from "@/components/home/TestimonialCarousel";
 import { blogService } from "@/lib/services/blogService";
+import FaqAccordion from "@/components/home/FaqAccordion";
 
 type Props = {
   params: Promise<{ locale: string }>;
@@ -508,6 +509,65 @@ export default async function HomePage({ params }: Props) {
           </div>
         </section>
       )}
+
+      {/* ── FAQ ── */}
+      <section style={{ padding: "5rem 1.5rem", backgroundColor: "#f8f7f5" }}>
+        <div style={{ maxWidth: "720px", margin: "0 auto" }}>
+          <h2 style={{
+            fontWeight: 800,
+            fontSize: "clamp(1.5rem, 2.5vw, 2rem)",
+            textAlign: "center",
+            marginBottom: "0.5rem",
+            color: "#1b3a4b",
+          }}>
+            FAQ
+          </h2>
+          <p style={{
+            textAlign: "center",
+            color: "#9ca3af",
+            fontSize: "0.9375rem",
+            marginBottom: "2.5rem",
+          }}>
+            {locale === "fr" ? "sur les musiques libres de droit" : "about royalty-free music"}
+          </p>
+
+          <FaqAccordion items={locale === "fr" ? [
+            {
+              question: "Comment se passe la licence de l'abonnement ?",
+              answer: "Nos abonnements vous permettent d'accéder à l'ensemble de notre bibliothèque de musique avec des téléchargements illimités. Pour chaque titre que vous téléchargez pendant la durée de votre abonnement, vous pouvez obtenir un certificat de licence qui vous autorise à utiliser le titre pour vous-même et vos clients.",
+            },
+            {
+              question: "Comment puis-je m'assurer que ma chaîne YouTube est en liste blanche pour éviter les revendications de droits d'auteur ?",
+              answer: "YouTube utilise un logiciel de reconnaissance pour détecter si de la musique protégée par des droits d'auteur est utilisée dans votre vidéo. Afin d'éviter des revendications de contenu, vous devez ajouter votre identifiant de chaîne YouTube à votre espace membre. Lalason est alors en mesure de reconnaître votre chaîne et de s'assurer que toutes les revendications liées à la musique Lalason sont automatiquement traitées.",
+            },
+            {
+              question: "Puis-je utiliser votre musique pour Facebook/Instagram/YouTube/etc. ?",
+              answer: "Oui, vous pouvez utiliser notre musique dans vos vidéos sur les réseaux sociaux. Cependant, vous ne pouvez pas enregistrer ces vidéos auprès du service Facebook/Instagram Rights Manager ou de tout autre service similaire de médias sociaux.",
+            },
+            {
+              question: "Puis-je monétiser ma vidéo avec la musique de Lalason ? Combien de temps ?",
+              answer: "Oui, vous pouvez monétiser vos vidéos. Si vous vous abonnez, tous les projets que vous créez et publiez sur les réseaux sont couverts tant que votre abonnement est actif.",
+            },
+          ] : [
+            {
+              question: "How does the subscription license work?",
+              answer: "Our subscriptions give you access to our entire music library with unlimited downloads. For each track you download during your subscription, you can obtain a license certificate that authorizes you to use the track for yourself and your clients.",
+            },
+            {
+              question: "How can I make sure my YouTube channel is whitelisted to avoid copyright claims?",
+              answer: "YouTube uses recognition software to detect if copyrighted music is used in your video. To avoid content claims, you need to add your YouTube channel ID to your member area. Lalason can then recognize your channel and ensure that all claims related to Lalason music are automatically handled.",
+            },
+            {
+              question: "Can I use your music for Facebook/Instagram/YouTube/etc.?",
+              answer: "Yes, you can use our music in your social media videos. However, you cannot register these videos with the Facebook/Instagram Rights Manager service or any similar social media service.",
+            },
+            {
+              question: "Can I monetize my video with Lalason music? For how long?",
+              answer: "Yes, you can monetize your videos. If you subscribe, all the projects you create and publish on social media are covered as long as your subscription is active.",
+            },
+          ]} />
+        </div>
+      </section>
 
       {/* ── CTA FINAL ── */}
       <section
