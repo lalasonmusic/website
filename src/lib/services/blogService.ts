@@ -12,7 +12,7 @@ const VALID_CATEGORIES: BlogCategory[] = [
   "artistes-coulisses",
 ];
 
-const PAGE_SIZE = 10;
+const PAGE_SIZE = 9;
 
 function toValidCategory(raw: string | undefined): BlogCategory | undefined {
   if (raw && (VALID_CATEGORIES as string[]).includes(raw)) return raw as BlogCategory;
@@ -45,6 +45,17 @@ export const blogService = {
 
     const [{ total }] = await db.select({ total: count() }).from(blogPosts).where(where);
 
+    // Ensure last page always has at least 3 items (merge with previous if needed)
+    let totalPages = Math.ceil(total / PAGE_SIZE);
+    const remainder = total % PAGE_SIZE;
+    if (remainder > 0 && remainder < 3 && totalPages > 1) {
+      totalPages -= 1;
+    }
+
+    // On the last page, fetch all remaining items
+    const isLastPage = page >= totalPages;
+    const limit = isLastPage ? total - (page - 1) * PAGE_SIZE : PAGE_SIZE;
+
     const posts = await db
       .select({
         id: blogPosts.id,
@@ -61,12 +72,12 @@ export const blogService = {
       .from(blogPosts)
       .where(where)
       .orderBy(desc(blogPosts.publishedAt))
-      .limit(PAGE_SIZE)
+      .limit(limit)
       .offset((page - 1) * PAGE_SIZE);
 
     const localized = posts.map((p) => localizePost(p, locale));
 
-    return { posts: localized, total, totalPages: Math.ceil(total / PAGE_SIZE), page };
+    return { posts: localized, total, totalPages, page };
   },
 
   async getBySlug(slug: string, locale = "fr") {
