@@ -92,14 +92,20 @@ export default async function MembrePage({ params }: Props) {
     activeSub?.planType === "creators_monthly" || activeSub?.planType === "creators_annual";
   const isBoutiquePlan = activeSub?.planType === "boutique_annual";
 
-  // Fetch tracks for boutique player
+  // Fetch tracks for boutique player + track count for stats
   let boutiqueTracks: Awaited<ReturnType<typeof trackService.getPublished>>["tracks"] = [];
-  if (isBoutiquePlan) {
-    try {
-      const result = await trackService.getPublished({ page: 1, limit: 100 });
-      boutiqueTracks = result.tracks;
-    } catch {}
-  }
+  let totalTracks = 0;
+  try {
+    const result = await trackService.getPublished({ page: 1, limit: isBoutiquePlan ? 100 : 1 });
+    totalTracks = result.total;
+    if (isBoutiquePlan) boutiqueTracks = result.tracks;
+  } catch {}
+
+  // Days left until renewal
+  const daysLeft = activeSub
+    ? Math.max(0, Math.ceil((activeSub.currentPeriodEnd.getTime() - Date.now()) / (1000 * 60 * 60 * 24)))
+    : 0;
+  const isMonthly = activeSub?.planType === "creators_monthly";
 
   // Features for upsell cards
   const creatorsFeatures = [
@@ -276,8 +282,135 @@ export default async function MembrePage({ params }: Props) {
         <section className="px-4 md:px-6 py-10">
           <div className="max-w-[900px] mx-auto space-y-6">
 
-            {/* Top row: Subscription + License */}
+            {/* ── Stats bar ── */}
+            <div className="grid grid-cols-3 gap-4">
+              {[
+                { value: String(downloadCount), label: t("statDownloads"), icon: "M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" },
+                { value: String(daysLeft), label: t("statDaysLeft"), icon: "M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" },
+                { value: `${totalTracks}+`, label: t("statTracks"), icon: "M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" },
+              ].map((stat) => (
+                <div
+                  key={stat.label}
+                  className="rounded-2xl p-5 border border-white/[0.08] text-center"
+                  style={{ background: "rgba(255,255,255,0.03)" }}
+                >
+                  <svg className="w-5 h-5 text-[var(--color-accent)] mx-auto mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d={stat.icon} />
+                  </svg>
+                  <p className="text-2xl font-extrabold text-white mb-0.5">{stat.value}</p>
+                  <p className="text-xs text-white/40">{stat.label}</p>
+                </div>
+              ))}
+            </div>
+
+            {/* ── CTA Catalogue ── */}
+            <a
+              href={`/${locale}/catalogue`}
+              className="flex items-center justify-center gap-3 w-full py-4 rounded-2xl text-base font-bold no-underline transition-all duration-300 hover:scale-[1.01]"
+              style={{
+                background: "linear-gradient(135deg, var(--color-accent) 0%, #e8961a 100%)",
+                color: "var(--color-accent-text)",
+                boxShadow: "0 4px 24px rgba(245,166,35,0.2)",
+              }}
+            >
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+              {t("dashboardCta")}
+            </a>
+
+            {/* ── Upgrade banner (monthly only) ── */}
+            {isMonthly && (
+              <div
+                className="rounded-2xl p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
+                style={{
+                  background: "linear-gradient(135deg, rgba(245,166,35,0.08) 0%, rgba(245,166,35,0.03) 100%)",
+                  border: "1px solid rgba(245,166,35,0.2)",
+                }}
+              >
+                <div className="flex items-center gap-3">
+                  <div
+                    className="w-10 h-10 rounded-full flex items-center justify-center shrink-0"
+                    style={{ background: "rgba(245,166,35,0.15)" }}
+                  >
+                    <svg className="w-5 h-5 text-[var(--color-accent)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                    </svg>
+                  </div>
+                  <div>
+                    <p className="text-sm font-bold text-white">{t("upgradeTitle")}</p>
+                    <p className="text-xs text-white/50">
+                      {t("upgradeDesc", { price: p("creators.annual_price"), monthlyTotal: "191,88 €" })}
+                    </p>
+                  </div>
+                </div>
+                <a
+                  href={`/${locale}/abonnements`}
+                  className="px-5 py-2.5 rounded-xl text-sm font-semibold no-underline transition-all duration-300 hover:scale-[1.02] shrink-0"
+                  style={{
+                    background: "var(--color-accent)",
+                    color: "var(--color-accent-text)",
+                  }}
+                >
+                  {t("upgradeCta")}
+                </a>
+              </div>
+            )}
+
+            {/* ── License + Subscription (2-column) ── */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+              {/* ── License card ── */}
+              {licenseNumber && (
+                <div
+                  className="rounded-2xl p-6 border border-white/[0.08]"
+                  style={{ background: "rgba(255,255,255,0.03)" }}
+                >
+                  <div className="flex items-center gap-2 mb-5">
+                    <svg className="w-5 h-5 text-[var(--color-accent)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                    </svg>
+                    <h2 className="text-base font-bold text-white">{t("licenseTitle")}</h2>
+                  </div>
+
+                  <div
+                    className="flex items-center gap-3 px-4 py-3 rounded-xl mb-4"
+                    style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.08)" }}
+                  >
+                    <svg className="w-4 h-4 text-[var(--color-accent)] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14" />
+                    </svg>
+                    <span className="font-mono text-white/80 text-sm tracking-wider font-semibold">
+                      {licenseNumber}
+                    </span>
+                  </div>
+
+                  <p className="text-sm text-white/40 leading-relaxed mb-5">
+                    {t("licenseDesc")}
+                  </p>
+
+                  <div className="mb-5">
+                    <LicenceInfoForm
+                      initialFirstName={user.user_metadata?.licence_first_name ?? ""}
+                      initialLastName={user.user_metadata?.licence_last_name ?? ""}
+                      initialAddress={user.user_metadata?.licence_address ?? ""}
+                      labels={{
+                        firstName: t("licenseFirstName"),
+                        lastName: t("licenseLastName"),
+                        address: t("licenseAddress"),
+                        save: t("licenseSave"),
+                        saved: t("licenseSaved"),
+                        hint: t("licenseFormHint"),
+                      }}
+                    />
+                  </div>
+
+                  <LicenceDownloadButton
+                    label={t("licenseDownload")}
+                    locale={locale}
+                  />
+                </div>
+              )}
 
               {/* ── Subscription card ── */}
               <div
@@ -341,83 +474,6 @@ export default async function MembrePage({ params }: Props) {
                   />
                 </div>
               </div>
-
-              {/* ── License card ── */}
-              {licenseNumber && (
-                <div
-                  className="rounded-2xl p-6 border border-white/[0.08]"
-                  style={{ background: "rgba(255,255,255,0.03)" }}
-                >
-                  <div className="flex items-center gap-2 mb-5">
-                    <svg className="w-5 h-5 text-[var(--color-accent)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                    </svg>
-                    <h2 className="text-base font-bold text-white">{t("licenseTitle")}</h2>
-                  </div>
-
-                  {/* License number display */}
-                  <div
-                    className="flex items-center gap-3 px-4 py-3 rounded-xl mb-4"
-                    style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.08)" }}
-                  >
-                    <svg className="w-4 h-4 text-[var(--color-accent)] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14" />
-                    </svg>
-                    <span className="font-mono text-white/80 text-sm tracking-wider font-semibold">
-                      {licenseNumber}
-                    </span>
-                  </div>
-
-                  <p className="text-sm text-white/40 leading-relaxed mb-5">
-                    {t("licenseDesc")}
-                  </p>
-
-                  {/* Name / Address form */}
-                  <div className="mb-5">
-                    <LicenceInfoForm
-                      initialFirstName={user.user_metadata?.licence_first_name ?? ""}
-                      initialLastName={user.user_metadata?.licence_last_name ?? ""}
-                      initialAddress={user.user_metadata?.licence_address ?? ""}
-                      labels={{
-                        firstName: t("licenseFirstName"),
-                        lastName: t("licenseLastName"),
-                        address: t("licenseAddress"),
-                        save: t("licenseSave"),
-                        saved: t("licenseSaved"),
-                        hint: t("licenseFormHint"),
-                      }}
-                    />
-                  </div>
-
-                  <LicenceDownloadButton
-                    label={t("licenseDownload")}
-                    locale={locale}
-                  />
-                </div>
-              )}
-            </div>
-
-            {/* ── Invoices ── */}
-            <div
-              className="rounded-2xl p-6 border border-white/[0.08]"
-              style={{ background: "rgba(255,255,255,0.03)" }}
-            >
-              <div className="flex items-center gap-2 mb-5">
-                <svg className="w-5 h-5 text-white/50" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z" />
-                </svg>
-                <h2 className="text-base font-bold text-white">{t("invoicesTitle")}</h2>
-              </div>
-              <InvoiceList
-                locale={locale}
-                labels={{
-                  empty: t("invoicesEmpty"),
-                  download: t("invoiceDownload"),
-                  paid: t("invoicePaid"),
-                  open: t("invoiceOpen"),
-                  uncollectible: t("invoiceUncollectible"),
-                }}
-              />
             </div>
 
             {/* ── YouTube Whitelist ── */}
@@ -445,6 +501,29 @@ export default async function MembrePage({ params }: Props) {
               </div>
             )}
 
+            {/* ── Invoices ── */}
+            <div
+              className="rounded-2xl p-6 border border-white/[0.08]"
+              style={{ background: "rgba(255,255,255,0.03)" }}
+            >
+              <div className="flex items-center gap-2 mb-5">
+                <svg className="w-5 h-5 text-white/50" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z" />
+                </svg>
+                <h2 className="text-base font-bold text-white">{t("invoicesTitle")}</h2>
+              </div>
+              <InvoiceList
+                locale={locale}
+                labels={{
+                  empty: t("invoicesEmpty"),
+                  download: t("invoiceDownload"),
+                  paid: t("invoicePaid"),
+                  open: t("invoiceOpen"),
+                  uncollectible: t("invoiceUncollectible"),
+                }}
+              />
+            </div>
+
             {/* ── Downloads ── */}
             {isCreatorsPlan && (
               <div
@@ -462,27 +541,10 @@ export default async function MembrePage({ params }: Props) {
                 </div>
 
                 {recentDownloads.length === 0 ? (
-                  <div className="text-center py-8">
-                    <svg className="w-10 h-10 text-white/15 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
-                    </svg>
-                    <p className="text-sm text-white/40 mb-5 max-w-sm mx-auto">
+                  <div className="text-center py-6">
+                    <p className="text-sm text-white/40 mb-4 max-w-sm mx-auto">
                       {t("downloadsEmpty")}
                     </p>
-                    <a
-                      href={`/${locale}/catalogue`}
-                      className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold no-underline transition-all duration-300 hover:scale-[1.02]"
-                      style={{
-                        background: "linear-gradient(135deg, var(--color-accent) 0%, #e8961a 100%)",
-                        color: "var(--color-accent-text)",
-                        boxShadow: "0 4px 20px rgba(245,166,35,0.2)",
-                      }}
-                    >
-                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                      </svg>
-                      {t("exploreCatalogue")}
-                    </a>
                   </div>
                 ) : (
                   <div className="space-y-2">
@@ -539,6 +601,19 @@ export default async function MembrePage({ params }: Props) {
                 </div>
               </div>
             )}
+
+            {/* ── Support ── */}
+            <div className="text-center pt-2 pb-4">
+              <p className="text-sm text-white/25">
+                {t("supportText")}{" "}
+                <a
+                  href={`/${locale}/contact`}
+                  className="text-white/40 hover:text-white/60 transition-colors underline underline-offset-2"
+                >
+                  {t("supportLink")}
+                </a>
+              </p>
+            </div>
 
           </div>
         </section>

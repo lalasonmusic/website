@@ -197,7 +197,16 @@
     "cancelConfirm": "Confirmer la résiliation",
     "cancelBack": "Annuler",
     "cancelSuccess": "Votre abonnement sera résilié le {date}. Vous conservez l'accès jusqu'à cette date.",
-    "cancelError": "Une erreur est survenue. Réessayez plus tard."
+    "cancelError": "Une erreur est survenue. Réessayez plus tard.",
+    "upgradeTitle": "Économisez 38%",
+    "upgradeDesc": "Passez à l'abonnement annuel à {price} au lieu de {monthlyTotal} par an.",
+    "upgradeCta": "Passer à l'annuel",
+    "statDownloads": "Téléchargements",
+    "statDaysLeft": "Jours restants",
+    "statTracks": "Morceaux disponibles",
+    "dashboardCta": "Explorer le catalogue",
+    "supportText": "Besoin d'aide ?",
+    "supportLink": "Contactez-nous"
   },
   "blog": {
     "title": "Blog",

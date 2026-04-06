@@ -197,7 +197,16 @@
     "cancelConfirm": "Confirm cancellation",
     "cancelBack": "Go back",
     "cancelSuccess": "Your subscription will end on {date}. You'll keep access until then.",
-    "cancelError": "Something went wrong. Please try again later."
+    "cancelError": "Something went wrong. Please try again later.",
+    "upgradeTitle": "Save 38%",
+    "upgradeDesc": "Switch to annual at {price} instead of {monthlyTotal} per year.",
+    "upgradeCta": "Switch to annual",
+    "statDownloads": "Downloads",
+    "statDaysLeft": "Days left",
+    "statTracks": "Available tracks",
+    "dashboardCta": "Browse the catalogue",
+    "supportText": "Need help?",
+    "supportLink": "Contact us"
   },
   "blog": {
     "title": "Blog",
