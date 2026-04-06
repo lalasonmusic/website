@@ -569,43 +569,6 @@ export default async function HomePage({ params }: Props) {
         </div>
       </section>
 
-      {/* ── CTA FINAL ── */}
-      <section
-        style={{
-          padding: "5rem 1.5rem",
-          textAlign: "center",
-          background: `radial-gradient(ellipse at 50% 100%, rgba(245,166,35,0.1) 0%, transparent 60%), var(--color-bg-primary)`,
-        }}
-      >
-        <h2
-          style={{
-            fontWeight: 800,
-            fontSize: "clamp(1.75rem, 3vw, 2.5rem)",
-            marginBottom: "1rem",
-          }}
-        >
-          {t("cta_title")}
-        </h2>
-        <p style={{ color: "var(--color-text-secondary)", fontSize: "1.125rem", marginBottom: "2rem" }}>
-          {t("cta_subtitle")}
-        </p>
-        <a
-          href={`/${locale}/abonnements`}
-          style={{
-            display: "inline-block",
-            padding: "0.875rem 2.5rem",
-            backgroundColor: "var(--color-accent)",
-            color: "var(--color-accent-text)",
-            fontWeight: 600,
-            fontSize: "1rem",
-            borderRadius: "var(--radius-full)",
-            textDecoration: "none",
-          }}
-        >
-          {t("cta_button")}
-        </a>
-      </section>
-
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
