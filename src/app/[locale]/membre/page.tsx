@@ -6,6 +6,8 @@ import { subscriptions, downloads, tracks, artists, youtubeChannels } from "@/db
 import { eq, and, desc, count } from "drizzle-orm";
 import ManageSubscriptionButton from "@/components/membre/ManageSubscriptionButton";
 import YoutubeChannelForm from "@/components/membre/YoutubeChannelForm";
+import { trackService } from "@/lib/services/trackService";
+import TrackCard from "@/components/catalogue/TrackCard";
 
 type Props = {
   params: Promise<{ locale: string }>;
@@ -73,6 +75,16 @@ export default async function MembrePage({ params }: Props) {
   const dateLocale = locale === "fr" ? "fr-FR" : "en-GB";
   const isCreatorsPlan =
     activeSub?.planType === "creators_monthly" || activeSub?.planType === "creators_annual";
+  const isBoutiquePlan = activeSub?.planType === "boutique_annual";
+
+  // Fetch tracks for boutique player
+  let boutiqueTracks: Awaited<ReturnType<typeof trackService.getPublished>>["tracks"] = [];
+  if (isBoutiquePlan) {
+    try {
+      const result = await trackService.getPublished({ page: 1, limit: 100 });
+      boutiqueTracks = result.tracks;
+    } catch {}
+  }
 
   return (
     <div style={{ maxWidth: "800px", margin: "0 auto", padding: "3rem 1.5rem" }}>
@@ -286,78 +298,113 @@ export default async function MembrePage({ params }: Props) {
         </section>
       )}
 
-      {/* Downloads */}
-      <section>
-        <h2 style={{ fontWeight: 700, fontSize: "1.25rem", marginBottom: "1.25rem" }}>
-          {t("downloads")}
-          {downloadCount > 0 && (
-            <span
-              style={{
-                marginLeft: "0.5rem",
-                fontSize: "0.875rem",
-                fontWeight: 400,
-                color: "var(--color-text-muted)",
-              }}
-            >
-              ({downloadCount})
-            </span>
-          )}
-        </h2>
-        {recentDownloads.length === 0 ? (
-          <p style={{ color: "var(--color-text-muted)", fontSize: "0.9375rem" }}>
-            {t("noDownloads")}
-          </p>
-        ) : (
-          <div style={{ display: "flex", flexDirection: "column", gap: "0.625rem" }}>
-            {recentDownloads.map((dl) => (
-              <div
-                key={dl.id}
+      {/* Downloads — Creators plans only */}
+      {isCreatorsPlan && (
+        <section>
+          <h2 style={{ fontWeight: 700, fontSize: "1.25rem", marginBottom: "1.25rem" }}>
+            {t("downloads")}
+            {downloadCount > 0 && (
+              <span
                 style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  padding: "1rem 1.25rem",
-                  backgroundColor: "var(--color-bg-card)",
-                  borderRadius: "var(--radius-md)",
-                  border: "1px solid var(--color-border)",
-                  gap: "1rem",
+                  marginLeft: "0.5rem",
+                  fontSize: "0.875rem",
+                  fontWeight: 400,
+                  color: "var(--color-text-muted)",
                 }}
               >
-                <div style={{ minWidth: 0 }}>
-                  <p
-                    style={{
-                      fontWeight: 600,
-                      fontSize: "0.9375rem",
-                      marginBottom: "0.125rem",
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                      whiteSpace: "nowrap",
-                    }}
-                  >
-                    {dl.trackTitle}
-                  </p>
-                  <p style={{ fontSize: "0.8125rem", color: "var(--color-text-muted)" }}>
-                    {dl.artistName}
-                  </p>
-                </div>
-                <p
+                ({downloadCount})
+              </span>
+            )}
+          </h2>
+          {recentDownloads.length === 0 ? (
+            <p style={{ color: "var(--color-text-muted)", fontSize: "0.9375rem" }}>
+              {t("noDownloads")}
+            </p>
+          ) : (
+            <div style={{ display: "flex", flexDirection: "column", gap: "0.625rem" }}>
+              {recentDownloads.map((dl) => (
+                <div
+                  key={dl.id}
                   style={{
-                    fontSize: "0.75rem",
-                    color: "var(--color-text-muted)",
-                    whiteSpace: "nowrap",
-                    flexShrink: 0,
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    padding: "1rem 1.25rem",
+                    backgroundColor: "var(--color-bg-card)",
+                    borderRadius: "var(--radius-md)",
+                    border: "1px solid var(--color-border)",
+                    gap: "1rem",
                   }}
                 >
-                  {dl.downloadedAt.toLocaleDateString(dateLocale, {
-                    day: "numeric",
-                    month: "short",
-                  })}
-                </p>
-              </div>
+                  <div style={{ minWidth: 0 }}>
+                    <p
+                      style={{
+                        fontWeight: 600,
+                        fontSize: "0.9375rem",
+                        marginBottom: "0.125rem",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {dl.trackTitle}
+                    </p>
+                    <p style={{ fontSize: "0.8125rem", color: "var(--color-text-muted)" }}>
+                      {dl.artistName}
+                    </p>
+                  </div>
+                  <p
+                    style={{
+                      fontSize: "0.75rem",
+                      color: "var(--color-text-muted)",
+                      whiteSpace: "nowrap",
+                      flexShrink: 0,
+                    }}
+                  >
+                    {dl.downloadedAt.toLocaleDateString(dateLocale, {
+                      day: "numeric",
+                      month: "short",
+                    })}
+                  </p>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+      )}
+
+      {/* Boutique Player — continuous jukebox for in-store music */}
+      {isBoutiquePlan && boutiqueTracks.length > 0 && (
+        <section>
+          <h2 style={{ fontWeight: 700, fontSize: "1.25rem", marginBottom: "0.5rem" }}>
+            {locale === "fr" ? "Votre player en boutique" : "Your in-store player"}
+          </h2>
+          <p style={{ color: "var(--color-text-muted)", fontSize: "0.875rem", marginBottom: "1.5rem" }}>
+            {locale === "fr"
+              ? "Lancez la lecture — les morceaux s'enchaînent automatiquement."
+              : "Start playing — tracks play continuously one after another."}
+          </p>
+          <div style={{
+            backgroundColor: "var(--color-bg-card)",
+            borderRadius: "var(--radius-lg)",
+            border: "1px solid var(--color-border)",
+            padding: "0.5rem 0",
+            maxHeight: "500px",
+            overflowY: "auto",
+          }}>
+            {boutiqueTracks.map((track, index) => (
+              <TrackCard
+                key={track.id}
+                track={track}
+                queue={boutiqueTracks}
+                queueIndex={index}
+                locale={locale}
+                isSubscribed={true}
+              />
             ))}
           </div>
-        )}
-      </section>
+        </section>
+      )}
     </div>
   );
 }
