@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import { artistService } from "@/lib/services/artistService";
 import { buildMetadata } from "@/lib/seo";
+import { getArtistPhoto } from "@/lib/artistPhotos";
 
 type Props = { params: Promise<{ locale: string }> };
 
@@ -15,26 +16,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     pagePath: "/nos-artistes",
   });
 }
-
-const ARTIST_PHOTOS: Record<string, string> = {
-  "allan": "/artists/allan.jpg",
-  "avalanche-pulse": "/artists/avalanche-pulse.jpg",
-  "boris-massot": "/artists/boris-massot.jpg",
-  "corine-besnard": "/artists/corine-besnard.jpg",
-  "cyril-girard": "/artists/cyril-girard.jpg",
-  "djobeer": "/artists/djobeer.jpg",
-  "groovyd": "/artists/groovyd.jpg",
-  "jaxsyn": "/artists/jaxsyn.jpg",
-  "kaelixx": "/artists/kaelixx.jpg",
-  "konqeson": "/artists/konqeson.jpg",
-  "marco": "/artists/marco-ariani.jpg",
-  "midnight-blaze": "/artists/midnight-blaze.jpg",
-  "nyvvik": "/artists/nyvvik.jpg",
-  "quynzelle": "/artists/quynzelle.jpg",
-  "vdgl": "/artists/vdgl.jpg",
-  "vendredi": "/artists/vendredi.jpg",
-  "wobbletronix": "/artists/wobbletronix.jpg",
-};
 
 export default async function NosArtistesPage({ params }: Props) {
   const { locale } = await params;
@@ -104,9 +85,9 @@ export default async function NosArtistesPage({ params }: Props) {
                     border: "3px solid rgba(245, 166, 35, 0.3)",
                     transition: "border-color 0.2s, transform 0.2s",
                   }}>
-                    {(artist.photoUrl || ARTIST_PHOTOS[artist.slug]) ? (
+                    {getArtistPhoto(artist.slug, artist.photoUrl) ? (
                       <img
-                        src={artist.photoUrl || ARTIST_PHOTOS[artist.slug]}
+                        src={getArtistPhoto(artist.slug, artist.photoUrl)!}
                         alt={artist.name}
                         width={140}
                         height={140}
