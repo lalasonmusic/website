@@ -283,11 +283,10 @@ export default async function MembrePage({ params }: Props) {
           <div className="max-w-[900px] mx-auto space-y-6">
 
             {/* ── Stats bar ── */}
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-2 gap-4">
               {[
                 { value: String(downloadCount), label: t("statDownloads"), icon: "M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" },
                 { value: String(daysLeft), label: t("statDaysLeft"), icon: "M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" },
-                { value: `${totalTracks}+`, label: t("statTracks"), icon: "M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" },
               ].map((stat) => (
                 <div
                   key={stat.label}
