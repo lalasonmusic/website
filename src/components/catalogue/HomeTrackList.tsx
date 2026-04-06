@@ -138,12 +138,12 @@ export default function HomeTrackList({ tracks, locale }: Props) {
                       justifyContent: "center",
                       gap: "0.5rem",
                     }}>
-                      <span style={{ fontSize: "2.5rem", opacity: 0.3 }}>♪</span>
+                      <span style={{ fontSize: "2.5rem", color: "rgba(255,255,255,0.7)" }}>♪</span>
                       {mainTag && (
                         <span style={{
-                          fontSize: "0.6875rem",
-                          color: "rgba(255,255,255,0.4)",
-                          fontWeight: 500,
+                          fontSize: "0.75rem",
+                          color: "rgba(255,255,255,0.85)",
+                          fontWeight: 600,
                         }}>
                           {locale === "fr" ? mainTag.labelFr : mainTag.labelEn}
                         </span>
