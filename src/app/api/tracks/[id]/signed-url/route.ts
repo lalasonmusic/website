@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { supabaseAdmin } from "@/lib/supabase/admin";
 import { db } from "@/db";
 import { tracks, subscriptions, downloads } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
@@ -47,14 +48,14 @@ export async function GET(
     ? track.fileFullPath.replace(/\.mp3$/i, ".wav")
     : track.fileFullPath;
 
-  const { data, error } = await supabase.storage
+  const { data, error } = await supabaseAdmin.storage
     .from("audio-full")
     .createSignedUrl(filePath, SIGNED_URL_EXPIRY);
 
   if (error || !data?.signedUrl) {
     // If WAV not found, fall back to MP3
     if (format === "wav") {
-      const fallback = await supabase.storage
+      const fallback = await supabaseAdmin.storage
         .from("audio-full")
         .createSignedUrl(track.fileFullPath, SIGNED_URL_EXPIRY);
 
