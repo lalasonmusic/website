@@ -164,7 +164,14 @@
     "upsellOrMonthly": "or {price} / month",
     "trustNoCommitment": "No commitment",
     "trustLifetimeLicense": "Clear, simple licence",
-    "trustNewReleases": "New releases included"
+    "trustNewReleases": "New releases included",
+    "subscribedSince": "Subscribed since",
+    "licenseTitle": "My licence",
+    "licenseDesc": "Share this number with platforms to resolve any Content ID claims on your videos.",
+    "licenseDownload": "Download licence certificate (PDF)",
+    "exploreCatalogue": "Browse the catalogue",
+    "youtubeChannelDesc": "Add your Channel ID to prevent Content ID claims on YouTube.",
+    "downloadsEmpty": "You haven't downloaded anything yet. Explore the catalogue and find your first track!"
   },
   "blog": {
     "title": "Blog",

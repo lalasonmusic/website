@@ -164,7 +164,14 @@
     "upsellOrMonthly": "ou {price} / mois",
     "trustNoCommitment": "Sans engagement",
     "trustLifetimeLicense": "Licence claire et simple",
-    "trustNewReleases": "Nouvelles sorties incluses"
+    "trustNewReleases": "Nouvelles sorties incluses",
+    "subscribedSince": "Abonné depuis le",
+    "licenseTitle": "Ma licence",
+    "licenseDesc": "Communiquez ce numéro aux plateformes pour débloquer vos vidéos en cas de réclamation Content ID.",
+    "licenseDownload": "Télécharger le certificat PDF",
+    "exploreCatalogue": "Explorer le catalogue",
+    "youtubeChannelDesc": "Ajoutez votre Channel ID pour éviter les réclamations Content ID sur YouTube.",
+    "downloadsEmpty": "Vous n'avez encore rien téléchargé. Explorez le catalogue et trouvez votre premier morceau !"
   },
   "blog": {
     "title": "Blog",

@@ -6,12 +6,20 @@ import { subscriptions, downloads, tracks, artists, youtubeChannels } from "@/db
 import { eq, and, desc, count } from "drizzle-orm";
 import ManageSubscriptionButton from "@/components/membre/ManageSubscriptionButton";
 import YoutubeChannelForm from "@/components/membre/YoutubeChannelForm";
+import LicenceDownloadButton from "@/components/membre/LicenceDownloadButton";
 import { trackService } from "@/lib/services/trackService";
 import TrackCard from "@/components/catalogue/TrackCard";
 
 type Props = {
   params: Promise<{ locale: string }>;
 };
+
+function generateLicenseNumber(subscriptionId: string, createdAt: Date): string {
+  const year = createdAt.getFullYear();
+  const month = String(createdAt.getMonth() + 1).padStart(2, "0");
+  const shortId = subscriptionId.substring(0, 8).toUpperCase();
+  return `LIC-${year}${month}-${shortId}`;
+}
 
 export default async function MembrePage({ params }: Props) {
   const { locale } = await params;
@@ -28,9 +36,11 @@ export default async function MembrePage({ params }: Props) {
   // Active subscription
   const [activeSub] = await db
     .select({
+      id: subscriptions.id,
       planType: subscriptions.planType,
       currentPeriodEnd: subscriptions.currentPeriodEnd,
       status: subscriptions.status,
+      createdAt: subscriptions.createdAt,
     })
     .from(subscriptions)
     .where(and(eq(subscriptions.userId, user.id), eq(subscriptions.status, "active")))
@@ -74,6 +84,7 @@ export default async function MembrePage({ params }: Props) {
   };
 
   const dateLocale = locale === "fr" ? "fr-FR" : "en-GB";
+  const dateOpts: Intl.DateTimeFormatOptions = { day: "numeric", month: "long", year: "numeric" };
   const isCreatorsPlan =
     activeSub?.planType === "creators_monthly" || activeSub?.planType === "creators_annual";
   const isBoutiquePlan = activeSub?.planType === "boutique_annual";
@@ -103,6 +114,8 @@ export default async function MembrePage({ params }: Props) {
   ];
 
   const initials = user.email ? user.email.substring(0, 2).toUpperCase() : "?";
+  const displayName = user.user_metadata?.full_name || user.user_metadata?.name || null;
+  const licenseNumber = activeSub ? generateLicenseNumber(activeSub.id, activeSub.createdAt) : null;
 
   return (
     <div>
@@ -111,7 +124,7 @@ export default async function MembrePage({ params }: Props) {
         padding: "3rem 1.5rem 2.5rem",
         background: "linear-gradient(180deg, #0f2533 0%, #1b3a4b 100%)",
       }}>
-        <div style={{ maxWidth: "800px", margin: "0 auto", display: "flex", alignItems: "center", gap: "1.25rem" }}>
+        <div style={{ maxWidth: "900px", margin: "0 auto", display: "flex", alignItems: "center", gap: "1.25rem" }}>
           {/* Avatar */}
           <div style={{
             width: 64,
@@ -128,6 +141,9 @@ export default async function MembrePage({ params }: Props) {
             </span>
           </div>
           <div>
+            {displayName && (
+              <p className="text-white/70 text-sm mb-0.5">{displayName}</p>
+            )}
             <h1 style={{ fontWeight: 800, fontSize: "1.75rem", color: "white", margin: "0 0 0.25rem" }}>
               {t("title")}
             </h1>
@@ -137,14 +153,11 @@ export default async function MembrePage({ params }: Props) {
           </div>
           {activeSub && (
             <div style={{ marginLeft: "auto" }}>
-              <span style={{
-                fontSize: "0.75rem",
-                fontWeight: 600,
-                padding: "0.3rem 0.75rem",
-                borderRadius: "9999px",
-                backgroundColor: activeSub.status === "active" ? "rgba(34,197,94,0.15)" : "rgba(239,68,68,0.15)",
-                color: activeSub.status === "active" ? "#22c55e" : "#ef4444",
-              }}>
+              <span className="text-xs font-semibold px-3 py-1.5 rounded-full"
+                style={{
+                  backgroundColor: activeSub.status === "active" ? "rgba(34,197,94,0.15)" : "rgba(239,68,68,0.15)",
+                  color: activeSub.status === "active" ? "#22c55e" : "#ef4444",
+                }}>
                 {activeSub.status === "active" ? t("statusActive") : t("statusPastDue")}
               </span>
             </div>
@@ -184,68 +197,31 @@ export default async function MembrePage({ params }: Props) {
             {/* Pricing cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
 
-              {/* ── Créateurs (popular) ── */}
+              {/* Créateurs (popular) */}
               <div className="relative group">
-                {/* Gradient border */}
-                <div
-                  className="absolute -inset-px rounded-2xl"
-                  style={{ background: "linear-gradient(180deg, rgba(245,166,35,0.6) 0%, rgba(245,166,35,0.15) 100%)" }}
-                />
-                {/* Soft glow */}
-                <div
-                  className="absolute -inset-px rounded-2xl blur-xl transition-opacity duration-500 opacity-[0.15] group-hover:opacity-[0.3]"
-                  style={{ background: "rgba(245,166,35,0.6)" }}
-                />
+                <div className="absolute -inset-px rounded-2xl" style={{ background: "linear-gradient(180deg, rgba(245,166,35,0.6) 0%, rgba(245,166,35,0.15) 100%)" }} />
+                <div className="absolute -inset-px rounded-2xl blur-xl transition-opacity duration-500 opacity-[0.15] group-hover:opacity-[0.3]" style={{ background: "rgba(245,166,35,0.6)" }} />
 
                 <div className="relative rounded-2xl p-7 h-full flex flex-col" style={{ background: "var(--color-bg-secondary)" }}>
-                  {/* Badge */}
-                  <div
-                    className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold mb-5 self-start"
-                    style={{ background: "rgba(245,166,35,0.12)", color: "var(--color-accent)" }}
-                  >
-                    <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
-                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                    </svg>
+                  <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold mb-5 self-start" style={{ background: "rgba(245,166,35,0.12)", color: "var(--color-accent)" }}>
+                    <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg>
                     {p("mostPopular")}
                   </div>
-
                   <h3 className="text-2xl font-extrabold text-white mb-1.5">{p("creators.name")}</h3>
                   <p className="text-sm text-white/50 mb-6 leading-relaxed">{p("creators.description")}</p>
-
-                  {/* Price */}
                   <div className="mb-1">
                     <span className="text-4xl font-extrabold text-white tracking-tight">{p("creators.annual_price")}</span>
                     <span className="text-white/40 text-sm ml-1.5">{p("perYear")}</span>
                   </div>
-                  <p className="text-sm text-white/30 mb-6">
-                    {t("upsellOrMonthly", { price: p("creators.monthly_price") })}
-                  </p>
-
-                  {/* CTA */}
-                  <a
-                    href={`/${locale}/abonnements`}
-                    className="block w-full py-3.5 rounded-xl font-semibold text-base text-center transition-all duration-300
-                      text-[var(--color-accent-text)] no-underline
-                      hover:scale-[1.02] active:scale-[0.98] mb-7"
-                    style={{
-                      background: "linear-gradient(135deg, var(--color-accent) 0%, #e8961a 100%)",
-                      boxShadow: "0 4px 24px rgba(245,166,35,0.25)",
-                    }}
-                  >
+                  <p className="text-sm text-white/30 mb-6">{t("upsellOrMonthly", { price: p("creators.monthly_price") })}</p>
+                  <a href={`/${locale}/abonnements`} className="block w-full py-3.5 rounded-xl font-semibold text-base text-center transition-all duration-300 text-[var(--color-accent-text)] no-underline hover:scale-[1.02] active:scale-[0.98] mb-7" style={{ background: "linear-gradient(135deg, var(--color-accent) 0%, #e8961a 100%)", boxShadow: "0 4px 24px rgba(245,166,35,0.25)" }}>
                     {t("upsellCta")}
                   </a>
-
-                  {/* Divider */}
                   <div className="h-px bg-white/10 mb-5" />
-
-                  {/* Features */}
                   <ul className="space-y-3 mt-auto">
                     {creatorsFeatures.map((f) => (
                       <li key={f} className="flex items-start gap-3 text-[0.875rem] text-white/65">
-                        <svg className="w-5 h-5 shrink-0 mt-0.5" viewBox="0 0 20 20" fill="none">
-                          <circle cx="10" cy="10" r="10" fill="var(--color-accent)" fillOpacity={0.12} />
-                          <path d="M6.5 10.5L9 13L13.5 7.5" stroke="var(--color-accent)" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" />
-                        </svg>
+                        <svg className="w-5 h-5 shrink-0 mt-0.5" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="10" fill="var(--color-accent)" fillOpacity={0.12} /><path d="M6.5 10.5L9 13L13.5 7.5" stroke="var(--color-accent)" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" /></svg>
                         <span>{f}</span>
                       </li>
                     ))}
@@ -253,50 +229,25 @@ export default async function MembrePage({ params }: Props) {
                 </div>
               </div>
 
-              {/* ── Boutique ── */}
-              <div
-                className="rounded-2xl p-7 h-full flex flex-col border border-white/[0.08] transition-all duration-500 hover:border-white/[0.15]"
-                style={{ background: "rgba(255,255,255,0.03)" }}
-              >
-                {/* Badge */}
-                <div
-                  className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold border border-white/10 mb-5 self-start"
-                  style={{ background: "rgba(255,255,255,0.05)", color: "rgba(255,255,255,0.4)" }}
-                >
+              {/* Boutique */}
+              <div className="rounded-2xl p-7 h-full flex flex-col border border-white/[0.08] transition-all duration-500 hover:border-white/[0.15]" style={{ background: "rgba(255,255,255,0.03)" }}>
+                <div className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold border border-white/10 mb-5 self-start" style={{ background: "rgba(255,255,255,0.05)", color: "rgba(255,255,255,0.4)" }}>
                   {p("onlyAnnual")}
                 </div>
-
                 <h3 className="text-2xl font-extrabold text-white mb-1.5">{p("boutique.name")}</h3>
                 <p className="text-sm text-white/50 mb-6 leading-relaxed">{p("boutique.description")}</p>
-
-                {/* Price */}
                 <div className="mb-7">
                   <span className="text-4xl font-extrabold text-white tracking-tight">{p("boutique.annual_price")}</span>
                   <span className="text-white/40 text-sm ml-1.5">{p("perYear")}</span>
                 </div>
-
-                {/* CTA */}
-                <a
-                  href={`/${locale}/abonnements`}
-                  className="block w-full py-3.5 rounded-xl font-semibold text-base text-center transition-all duration-300
-                    text-white no-underline border border-white/[0.12]
-                    hover:border-white/[0.2] hover:scale-[1.02] active:scale-[0.98] mb-7"
-                  style={{ background: "rgba(255,255,255,0.06)" }}
-                >
+                <a href={`/${locale}/abonnements`} className="block w-full py-3.5 rounded-xl font-semibold text-base text-center transition-all duration-300 text-white no-underline border border-white/[0.12] hover:border-white/[0.2] hover:scale-[1.02] active:scale-[0.98] mb-7" style={{ background: "rgba(255,255,255,0.06)" }}>
                   {t("upsellCta")}
                 </a>
-
-                {/* Divider */}
                 <div className="h-px bg-white/10 mb-5" />
-
-                {/* Features */}
                 <ul className="space-y-3 mt-auto">
                   {boutiqueFeatures.map((f) => (
                     <li key={f} className="flex items-start gap-3 text-[0.875rem] text-white/65">
-                      <svg className="w-5 h-5 shrink-0 mt-0.5" viewBox="0 0 20 20" fill="none">
-                        <circle cx="10" cy="10" r="10" fill="var(--color-accent)" fillOpacity={0.12} />
-                        <path d="M6.5 10.5L9 13L13.5 7.5" stroke="var(--color-accent)" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" />
-                      </svg>
+                      <svg className="w-5 h-5 shrink-0 mt-0.5" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="10" fill="var(--color-accent)" fillOpacity={0.12} /><path d="M6.5 10.5L9 13L13.5 7.5" stroke="var(--color-accent)" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" /></svg>
                       <span>{f}</span>
                     </li>
                   ))}
@@ -308,9 +259,7 @@ export default async function MembrePage({ params }: Props) {
             <div className="flex flex-wrap justify-center gap-x-8 gap-y-3">
               {[t("trustNoCommitment"), t("trustLifetimeLicense"), t("trustNewReleases")].map((label) => (
                 <span key={label} className="flex items-center gap-2 text-sm text-white/35">
-                  <svg className="w-4 h-4 text-green-400/70" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                  </svg>
+                  <svg className="w-4 h-4 text-green-400/70" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
                   {label}
                 </span>
               ))}
@@ -319,125 +268,174 @@ export default async function MembrePage({ params }: Props) {
         </section>
       )}
 
-      {/* ── Subscriber content ── */}
+      {/* ── Subscriber dashboard ── */}
       {activeSub && (
-        <section style={{
-          background: "linear-gradient(to bottom, #e8edf0 0%, #f8f7f5 80px, #f8f7f5 100%)",
-          padding: "2.5rem 1.5rem 4rem",
-        }}>
-          <div style={{ maxWidth: "800px", margin: "0 auto" }}>
+        <section className="px-4 md:px-6 py-10">
+          <div className="max-w-[900px] mx-auto space-y-6">
 
-            {/* Subscription status */}
-            <div style={{
-              padding: "1.5rem",
-              backgroundColor: "white",
-              borderRadius: 14,
-              border: "1px solid #e5e7eb",
-              marginBottom: "2rem",
-              display: "flex",
-              flexWrap: "wrap",
-              gap: "1rem",
-              alignItems: "center",
-              justifyContent: "space-between",
-            }}>
-              <div>
-                <span style={{ fontWeight: 700, fontSize: "1rem", color: "#1b3a4b" }}>
+            {/* Top row: Subscription + License */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+              {/* ── Subscription card ── */}
+              <div
+                className="rounded-2xl p-6 border border-white/[0.08]"
+                style={{ background: "rgba(255,255,255,0.03)" }}
+              >
+                <div className="flex items-center justify-between mb-5">
+                  <h2 className="text-base font-bold text-white">{t("plan")}</h2>
+                  <span
+                    className="text-xs font-semibold px-2.5 py-1 rounded-full"
+                    style={{ background: "rgba(34,197,94,0.15)", color: "#22c55e" }}
+                  >
+                    {t("statusActive")}
+                  </span>
+                </div>
+
+                <p className="text-xl font-extrabold text-white mb-4">
                   {planLabels[activeSub.planType]}
-                </span>
-                <p style={{ fontSize: "0.8125rem", color: "#9ca3af", margin: "0.25rem 0 0" }}>
-                  {t("renewalDate")}{" "}
-                  {activeSub.currentPeriodEnd.toLocaleDateString(dateLocale, {
-                    day: "numeric",
-                    month: "long",
-                    year: "numeric",
-                  })}
                 </p>
-              </div>
-              <ManageSubscriptionButton label={t("manageSubscription")} />
-            </div>
 
-            {/* YouTube Whitelist (Creators plans only) */}
-            {isCreatorsPlan && (
-              <div style={{ marginBottom: "2rem" }}>
-                <h2 style={{ fontWeight: 700, fontSize: "1.125rem", color: "#1b3a4b", marginBottom: "1rem" }}>
-                  {t("youtubeChannel")}
-                </h2>
-                <div style={{
-                  padding: "1.5rem",
-                  backgroundColor: "white",
-                  borderRadius: 14,
-                  border: "1px solid #e5e7eb",
-                }}>
-                  <YoutubeChannelForm
-                    existingChannelId={latestChannel?.channelId}
-                    labels={{
-                      channelId: t("youtubeChannelId"),
-                      save: t("youtubeChannelSave"),
-                      saved: t("youtubeChannelSaved"),
-                      placeholder: t("youtubeChannelPlaceholder"),
-                    }}
+                <div className="space-y-2 mb-6">
+                  <div className="flex items-center gap-2 text-sm">
+                    <svg className="w-4 h-4 text-white/30 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    <span className="text-white/40">{t("subscribedSince")}</span>
+                    <span className="text-white/70 font-medium">
+                      {activeSub.createdAt.toLocaleDateString(dateLocale, dateOpts)}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm">
+                    <svg className="w-4 h-4 text-white/30 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                    <span className="text-white/40">{t("renewalDate")}</span>
+                    <span className="text-white/70 font-medium">
+                      {activeSub.currentPeriodEnd.toLocaleDateString(dateLocale, dateOpts)}
+                    </span>
+                  </div>
+                </div>
+
+                <ManageSubscriptionButton label={t("manageSubscription")} />
+              </div>
+
+              {/* ── License card ── */}
+              {licenseNumber && (
+                <div
+                  className="rounded-2xl p-6 border border-white/[0.08]"
+                  style={{ background: "rgba(255,255,255,0.03)" }}
+                >
+                  <div className="flex items-center gap-2 mb-5">
+                    <svg className="w-5 h-5 text-[var(--color-accent)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                    </svg>
+                    <h2 className="text-base font-bold text-white">{t("licenseTitle")}</h2>
+                  </div>
+
+                  {/* License number display */}
+                  <div
+                    className="flex items-center gap-3 px-4 py-3 rounded-xl mb-4"
+                    style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.08)" }}
+                  >
+                    <svg className="w-4 h-4 text-[var(--color-accent)] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14" />
+                    </svg>
+                    <span className="font-mono text-white/80 text-sm tracking-wider font-semibold">
+                      {licenseNumber}
+                    </span>
+                  </div>
+
+                  <p className="text-sm text-white/40 leading-relaxed mb-5">
+                    {t("licenseDesc")}
+                  </p>
+
+                  <LicenceDownloadButton
+                    label={t("licenseDownload")}
+                    locale={locale}
                   />
                 </div>
+              )}
+            </div>
+
+            {/* ── YouTube Whitelist ── */}
+            {isCreatorsPlan && (
+              <div
+                className="rounded-2xl p-6 border border-white/[0.08]"
+                style={{ background: "rgba(255,255,255,0.03)" }}
+              >
+                <div className="flex items-center gap-2 mb-2">
+                  <svg className="w-5 h-5 text-red-500" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M23.498 6.186a3.016 3.016 0 00-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 00.502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 002.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 002.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
+                  </svg>
+                  <h2 className="text-base font-bold text-white">{t("youtubeChannel")}</h2>
+                </div>
+                <p className="text-sm text-white/40 mb-4">{t("youtubeChannelDesc")}</p>
+                <YoutubeChannelForm
+                  existingChannelId={latestChannel?.channelId}
+                  labels={{
+                    channelId: t("youtubeChannelId"),
+                    save: t("youtubeChannelSave"),
+                    saved: t("youtubeChannelSaved"),
+                    placeholder: t("youtubeChannelPlaceholder"),
+                  }}
+                />
               </div>
             )}
 
-            {/* Downloads — Creators plans only */}
+            {/* ── Downloads ── */}
             {isCreatorsPlan && (
-              <section>
-                <h2 style={{ fontWeight: 700, fontSize: "1.25rem", marginBottom: "1.25rem" }}>
-                  {t("downloads")}
+              <div
+                className="rounded-2xl p-6 border border-white/[0.08]"
+                style={{ background: "rgba(255,255,255,0.03)" }}
+              >
+                <div className="flex items-center gap-2 mb-5">
+                  <svg className="w-5 h-5 text-white/50" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                  </svg>
+                  <h2 className="text-base font-bold text-white">{t("downloads")}</h2>
                   {downloadCount > 0 && (
-                    <span style={{
-                      marginLeft: "0.5rem",
-                      fontSize: "0.875rem",
-                      fontWeight: 400,
-                      color: "var(--color-text-muted)",
-                    }}>
-                      ({downloadCount})
-                    </span>
+                    <span className="text-sm text-white/30 font-normal">({downloadCount})</span>
                   )}
-                </h2>
+                </div>
+
                 {recentDownloads.length === 0 ? (
-                  <p style={{ color: "var(--color-text-muted)", fontSize: "0.9375rem" }}>
-                    {t("noDownloads")}
-                  </p>
+                  <div className="text-center py-8">
+                    <svg className="w-10 h-10 text-white/15 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
+                    </svg>
+                    <p className="text-sm text-white/40 mb-5 max-w-sm mx-auto">
+                      {t("downloadsEmpty")}
+                    </p>
+                    <a
+                      href={`/${locale}/catalogue`}
+                      className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold no-underline transition-all duration-300 hover:scale-[1.02]"
+                      style={{
+                        background: "linear-gradient(135deg, var(--color-accent) 0%, #e8961a 100%)",
+                        color: "var(--color-accent-text)",
+                        boxShadow: "0 4px 20px rgba(245,166,35,0.2)",
+                      }}
+                    >
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                      </svg>
+                      {t("exploreCatalogue")}
+                    </a>
+                  </div>
                 ) : (
-                  <div style={{ display: "flex", flexDirection: "column", gap: "0.625rem" }}>
+                  <div className="space-y-2">
                     {recentDownloads.map((dl) => (
                       <div
                         key={dl.id}
-                        style={{
-                          display: "flex",
-                          justifyContent: "space-between",
-                          alignItems: "center",
-                          padding: "1rem 1.25rem",
-                          backgroundColor: "var(--color-bg-card)",
-                          borderRadius: "var(--radius-md)",
-                          border: "1px solid var(--color-border)",
-                          gap: "1rem",
-                        }}
+                        className="flex items-center justify-between px-4 py-3 rounded-xl transition-colors duration-200"
+                        style={{ background: "rgba(255,255,255,0.04)" }}
                       >
-                        <div style={{ minWidth: 0 }}>
-                          <p style={{
-                            fontWeight: 600,
-                            fontSize: "0.9375rem",
-                            marginBottom: "0.125rem",
-                            overflow: "hidden",
-                            textOverflow: "ellipsis",
-                            whiteSpace: "nowrap",
-                          }}>
+                        <div className="min-w-0">
+                          <p className="text-sm font-semibold text-white/80 truncate">
                             {dl.trackTitle}
                           </p>
-                          <p style={{ fontSize: "0.8125rem", color: "var(--color-text-muted)" }}>
-                            {dl.artistName}
-                          </p>
+                          <p className="text-xs text-white/40">{dl.artistName}</p>
                         </div>
-                        <p style={{
-                          fontSize: "0.75rem",
-                          color: "var(--color-text-muted)",
-                          whiteSpace: "nowrap",
-                          flexShrink: 0,
-                        }}>
+                        <p className="text-xs text-white/30 shrink-0 ml-4">
                           {dl.downloadedAt.toLocaleDateString(dateLocale, {
                             day: "numeric",
                             month: "short",
@@ -447,28 +445,24 @@ export default async function MembrePage({ params }: Props) {
                     ))}
                   </div>
                 )}
-              </section>
+              </div>
             )}
 
-            {/* Boutique Player — continuous jukebox for in-store music */}
+            {/* ── Boutique Player ── */}
             {isBoutiquePlan && boutiqueTracks.length > 0 && (
-              <section>
-                <h2 style={{ fontWeight: 700, fontSize: "1.25rem", marginBottom: "0.5rem" }}>
+              <div
+                className="rounded-2xl p-6 border border-white/[0.08]"
+                style={{ background: "rgba(255,255,255,0.03)" }}
+              >
+                <h2 className="text-base font-bold text-white mb-1">
                   {locale === "fr" ? "Votre player en boutique" : "Your in-store player"}
                 </h2>
-                <p style={{ color: "var(--color-text-muted)", fontSize: "0.875rem", marginBottom: "1.5rem" }}>
+                <p className="text-sm text-white/40 mb-4">
                   {locale === "fr"
                     ? "Lancez la lecture — les morceaux s'enchaînent automatiquement."
                     : "Start playing — tracks play continuously one after another."}
                 </p>
-                <div style={{
-                  backgroundColor: "var(--color-bg-card)",
-                  borderRadius: "var(--radius-lg)",
-                  border: "1px solid var(--color-border)",
-                  padding: "0.5rem 0",
-                  maxHeight: "500px",
-                  overflowY: "auto",
-                }}>
+                <div className="rounded-xl overflow-hidden border border-white/[0.06]" style={{ maxHeight: "500px", overflowY: "auto" }}>
                   {boutiqueTracks.map((track, index) => (
                     <TrackCard
                       key={track.id}
@@ -480,8 +474,9 @@ export default async function MembrePage({ params }: Props) {
                     />
                   ))}
                 </div>
-              </section>
+              </div>
             )}
+
           </div>
         </section>
       )}
