@@ -13,7 +13,7 @@ type Props = {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale, slug } = await params;
-  const post = await blogService.getBySlug(slug);
+  const post = await blogService.getBySlug(slug, locale);
   if (!post) return {};
   return buildMetadata({
     title: post.metaTitle ?? post.title,
@@ -29,10 +29,10 @@ export default async function BlogArticlePage({ params }: Props) {
   const { locale, slug } = await params;
   const t = await getTranslations("blog");
 
-  const post = await blogService.getBySlug(slug);
+  const post = await blogService.getBySlug(slug, locale);
   if (!post) notFound();
 
-  const related = await blogService.getRelated(post.category, post.slug, 3);
+  const related = await blogService.getRelated(post.category, post.slug, locale, 3);
 
   const categoryLabel = t(`categories.${post.category}` as Parameters<typeof t>[0]);
   const dateStr = post.publishedAt

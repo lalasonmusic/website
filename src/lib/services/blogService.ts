@@ -19,8 +19,23 @@ function toValidCategory(raw: string | undefined): BlogCategory | undefined {
   return undefined;
 }
 
+/** Resolve localized fields based on locale */
+function localizePost<T extends { title: string; titleEn?: string | null; metaDescription?: string | null; metaDescriptionEn?: string | null }>(
+  post: T,
+  locale: string,
+): T {
+  if (locale === "en") {
+    return {
+      ...post,
+      title: post.titleEn || post.title,
+      metaDescription: post.metaDescriptionEn || post.metaDescription,
+    };
+  }
+  return post;
+}
+
 export const blogService = {
-  async getAll({ category, page = 1 }: { category?: string; page?: number } = {}) {
+  async getAll({ category, page = 1, locale = "fr" }: { category?: string; page?: number; locale?: string } = {}) {
     const validCategory = toValidCategory(category);
 
     const wherePublished = eq(blogPosts.isPublished, true);
@@ -35,10 +50,12 @@ export const blogService = {
         id: blogPosts.id,
         slug: blogPosts.slug,
         title: blogPosts.title,
+        titleEn: blogPosts.titleEn,
         category: blogPosts.category,
         author: blogPosts.author,
         coverUrl: blogPosts.coverUrl,
         metaDescription: blogPosts.metaDescription,
+        metaDescriptionEn: blogPosts.metaDescriptionEn,
         publishedAt: blogPosts.publishedAt,
       })
       .from(blogPosts)
@@ -47,28 +64,43 @@ export const blogService = {
       .limit(PAGE_SIZE)
       .offset((page - 1) * PAGE_SIZE);
 
-    return { posts, total, totalPages: Math.ceil(total / PAGE_SIZE), page };
+    const localized = posts.map((p) => localizePost(p, locale));
+
+    return { posts: localized, total, totalPages: Math.ceil(total / PAGE_SIZE), page };
   },
 
-  async getBySlug(slug: string) {
+  async getBySlug(slug: string, locale = "fr") {
     const [post] = await db
       .select()
       .from(blogPosts)
       .where(and(eq(blogPosts.slug, slug), eq(blogPosts.isPublished, true)))
       .limit(1);
-    return post ?? null;
+    if (!post) return null;
+
+    if (locale === "en") {
+      return {
+        ...post,
+        title: post.titleEn || post.title,
+        contentHtml: post.contentHtmlEn || post.contentHtml,
+        metaTitle: post.metaTitleEn || post.metaTitle,
+        metaDescription: post.metaDescriptionEn || post.metaDescription,
+      };
+    }
+    return post;
   },
 
-  async getRelated(category: BlogCategory, excludeSlug: string, limit = 3) {
-    return db
+  async getRelated(category: BlogCategory, excludeSlug: string, locale = "fr", limit = 3) {
+    const posts = await db
       .select({
         id: blogPosts.id,
         slug: blogPosts.slug,
         title: blogPosts.title,
+        titleEn: blogPosts.titleEn,
         category: blogPosts.category,
         author: blogPosts.author,
         coverUrl: blogPosts.coverUrl,
         metaDescription: blogPosts.metaDescription,
+        metaDescriptionEn: blogPosts.metaDescriptionEn,
         publishedAt: blogPosts.publishedAt,
       })
       .from(blogPosts)
@@ -81,5 +113,7 @@ export const blogService = {
       )
       .orderBy(desc(blogPosts.publishedAt))
       .limit(limit);
+
+    return posts.map((p) => localizePost(p, locale));
   },
 };

@@ -38,7 +38,7 @@ export default async function BlogPage({ params, searchParams }: Props) {
   const page = Math.max(1, parseInt(pageParam ?? "1", 10) || 1);
 
   const t = await getTranslations("blog");
-  const { posts, totalPages } = await blogService.getAll({ category, page });
+  const { posts, totalPages } = await blogService.getAll({ category, page, locale });
 
   const categoryLabel = (cat: BlogCategory) =>
     t(`categories.${cat}` as Parameters<typeof t>[0]);

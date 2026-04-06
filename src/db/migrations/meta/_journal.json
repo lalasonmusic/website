@@ -8,6 +8,13 @@
       "when": 1774805083013,
       "tag": "0000_strong_ricochet",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1775462551736,
+      "tag": "0001_dizzy_wildside",
+      "breakpoints": true
     }
   ]
 }
