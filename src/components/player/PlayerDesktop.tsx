@@ -288,19 +288,22 @@ export default function PlayerDesktop() {
         <DownloadMenu trackId={currentTrack.id} trackTitle={currentTrack.title} artistName={currentTrack.artistName} />
       )}
 
-      {/* Browse catalogue link */}
+      {/* CTA link — adapts based on subscription */}
       <Link
-        href={`/${locale}/catalogue`}
+        href={isSubscribed ? `/${locale}/catalogue` : `/${locale}/abonnements`}
         style={{
           fontSize: "0.6875rem",
           color: "var(--color-accent)",
           textDecoration: "none",
-          fontWeight: 500,
+          fontWeight: 600,
           whiteSpace: "nowrap",
           flexShrink: 0,
         }}
       >
-        {locale === "fr" ? "Catalogue →" : "Browse →"}
+        {isSubscribed
+          ? (locale === "fr" ? "Catalogue →" : "Browse →")
+          : (locale === "fr" ? "Nos offres →" : "Our plans →")
+        }
       </Link>
 
       {/* Volume */}
