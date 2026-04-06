@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useTranslations } from "next-intl";
+import { createClient } from "@/lib/supabase/client";
 import LanguageSwitcher from "./LanguageSwitcher";
 
 type Props = {
@@ -85,6 +86,29 @@ export default function MobileMenu({ locale, isLoggedIn }: Props) {
           >
             {isLoggedIn ? t("member") : t("login")}
           </a>
+
+          {isLoggedIn && (
+            <button
+              onClick={async () => {
+                const supabase = createClient();
+                await supabase.auth.signOut();
+                window.location.href = `/${locale}`;
+              }}
+              style={{
+                fontSize: "1rem",
+                fontWeight: 500,
+                color: "#ef4444",
+                background: "none",
+                border: "none",
+                cursor: "pointer",
+                padding: 0,
+                textAlign: "left",
+                fontFamily: "inherit",
+              }}
+            >
+              {t("logout")}
+            </button>
+          )}
 
           <LanguageSwitcher />
         </div>

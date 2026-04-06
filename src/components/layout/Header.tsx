@@ -1,6 +1,7 @@
 import { getTranslations } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
 import LanguageSwitcher from "./LanguageSwitcher";
+import UserMenu from "./UserMenu";
 import MobileMenu from "./MobileMenu";
 
 type Props = {
@@ -79,21 +80,29 @@ export default async function Header({ locale }: Props) {
         {/* Right side: lang switcher + auth button */}
         <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }} className="desktop-nav">
           <LanguageSwitcher />
-          <a
-            href={user ? `/${locale}/membre` : `/${locale}/connexion`}
-            style={{
-              padding: "0.5rem 1.25rem",
-              backgroundColor: "var(--color-accent)",
-              color: "var(--color-accent-text)",
-              fontWeight: 600,
-              fontSize: "0.875rem",
-              borderRadius: "var(--radius-full)",
-              textDecoration: "none",
-              whiteSpace: "nowrap",
-            }}
-          >
-            {user ? t("member") : t("login")}
-          </a>
+          {user ? (
+            <UserMenu
+              locale={locale}
+              memberLabel={t("member")}
+              logoutLabel={t("logout")}
+            />
+          ) : (
+            <a
+              href={`/${locale}/connexion`}
+              style={{
+                padding: "0.5rem 1.25rem",
+                backgroundColor: "var(--color-accent)",
+                color: "var(--color-accent-text)",
+                fontWeight: 600,
+                fontSize: "0.875rem",
+                borderRadius: "var(--radius-full)",
+                textDecoration: "none",
+                whiteSpace: "nowrap",
+              }}
+            >
+              {t("login")}
+            </a>
+          )}
         </div>
 
         {/* Mobile burger */}
