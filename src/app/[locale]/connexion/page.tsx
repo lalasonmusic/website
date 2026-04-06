@@ -42,6 +42,13 @@ export default function ConnexionPage() {
     });
   }
 
+  async function handleFacebook() {
+    await supabase.auth.signInWithOAuth({
+      provider: "facebook",
+      options: { redirectTo: `${window.location.origin}/auth/callback` },
+    });
+  }
+
   return (
     <div
       style={{
@@ -144,22 +151,40 @@ export default function ConnexionPage() {
           {t("orContinueWith")}
         </div>
 
-        <button
-          onClick={handleGoogle}
-          style={{
-            width: "100%",
-            padding: "0.75rem",
-            backgroundColor: "transparent",
-            color: "var(--color-text-primary)",
-            fontWeight: 500,
-            borderRadius: "var(--radius-full)",
-            border: "1px solid var(--color-border)",
-            cursor: "pointer",
-            fontSize: "1rem",
-          }}
-        >
-          {t("loginWithGoogle")}
-        </button>
+        <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+          <button
+            onClick={handleGoogle}
+            style={{
+              width: "100%",
+              padding: "0.75rem",
+              backgroundColor: "transparent",
+              color: "var(--color-text-primary)",
+              fontWeight: 500,
+              borderRadius: "var(--radius-full)",
+              border: "1px solid var(--color-border)",
+              cursor: "pointer",
+              fontSize: "1rem",
+            }}
+          >
+            {t("loginWithGoogle")}
+          </button>
+          <button
+            onClick={handleFacebook}
+            style={{
+              width: "100%",
+              padding: "0.75rem",
+              backgroundColor: "#1877F2",
+              color: "white",
+              fontWeight: 500,
+              borderRadius: "var(--radius-full)",
+              border: "none",
+              cursor: "pointer",
+              fontSize: "1rem",
+            }}
+          >
+            {t("loginWithFacebook")}
+          </button>
+        </div>
 
         <p style={{ marginTop: "1.5rem", textAlign: "center", fontSize: "0.875rem", color: "var(--color-text-secondary)" }}>
           {t("noAccount")}{" "}

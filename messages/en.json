@@ -20,6 +20,7 @@
     "resetButton": "Send reset link",
     "orContinueWith": "Or continue with",
     "loginWithGoogle": "Continue with Google",
+    "loginWithFacebook": "Continue with Facebook",
     "noAccount": "Don't have an account?",
     "alreadyAccount": "Already have an account?",
     "backToLogin": "Back to login",
