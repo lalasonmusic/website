@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { useLocale } from "next-intl";
-import { usePathname } from "next/navigation";
 import { usePlayerStore } from "@/store/playerStore";
 
 function formatTime(seconds: number) {
@@ -28,9 +27,7 @@ export default function PlayerDesktop() {
     setVolume,
   } = usePlayerStore();
 
-  const pathname = usePathname();
-
-  if (!currentTrack || pathname.includes("/catalogue")) return null;
+  if (!currentTrack) return null;
 
   const progressPercent = duration > 0 ? (progress / duration) * 100 : 0;
 
