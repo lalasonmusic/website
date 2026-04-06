@@ -31,6 +31,8 @@ export default function BlogCard({ post, locale, categoryLabel, byLabel, readMor
         overflow: "hidden",
         display: "flex",
         flexDirection: "column",
+        width: "calc((100% - 3rem) / 3)",
+        minWidth: "280px",
       }}
     >
       {post.coverUrl && (

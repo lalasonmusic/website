@@ -112,8 +112,9 @@ export default async function BlogPage({ params, searchParams }: Props) {
       ) : (
         <div
           style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(3, 1fr)",
+            display: "flex",
+            flexWrap: "wrap",
+            justifyContent: "center",
             gap: "1.5rem",
             marginBottom: "3rem",
           }}
