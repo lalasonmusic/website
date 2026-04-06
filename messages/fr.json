@@ -177,7 +177,13 @@
     "licenseDownload": "Télécharger le certificat PDF",
     "exploreCatalogue": "Explorer le catalogue",
     "youtubeChannelDesc": "Ajoutez votre Channel ID pour éviter les réclamations Content ID sur YouTube.",
-    "downloadsEmpty": "Vous n'avez encore rien téléchargé. Explorez le catalogue et trouvez votre premier morceau !"
+    "downloadsEmpty": "Vous n'avez encore rien téléchargé. Explorez le catalogue et trouvez votre premier morceau !",
+    "invoicesTitle": "Mes factures",
+    "invoicesEmpty": "Aucune facture pour l'instant.",
+    "invoiceDownload": "PDF",
+    "invoicePaid": "Payée",
+    "invoiceOpen": "En attente",
+    "invoiceUncollectible": "Impayée"
   },
   "blog": {
     "title": "Blog",

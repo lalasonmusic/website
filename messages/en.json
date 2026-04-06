@@ -177,7 +177,13 @@
     "licenseDownload": "Download licence certificate (PDF)",
     "exploreCatalogue": "Browse the catalogue",
     "youtubeChannelDesc": "Add your Channel ID to prevent Content ID claims on YouTube.",
-    "downloadsEmpty": "You haven't downloaded anything yet. Explore the catalogue and find your first track!"
+    "downloadsEmpty": "You haven't downloaded anything yet. Explore the catalogue and find your first track!",
+    "invoicesTitle": "My invoices",
+    "invoicesEmpty": "No invoices yet.",
+    "invoiceDownload": "PDF",
+    "invoicePaid": "Paid",
+    "invoiceOpen": "Pending",
+    "invoiceUncollectible": "Unpaid"
   },
   "blog": {
     "title": "Blog",

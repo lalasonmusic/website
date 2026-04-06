@@ -8,6 +8,7 @@ import ManageSubscriptionButton from "@/components/membre/ManageSubscriptionButt
 import YoutubeChannelForm from "@/components/membre/YoutubeChannelForm";
 import LicenceDownloadButton from "@/components/membre/LicenceDownloadButton";
 import LicenceInfoForm from "@/components/membre/LicenceInfoForm";
+import InvoiceList from "@/components/membre/InvoiceList";
 import { trackService } from "@/lib/services/trackService";
 import TrackCard from "@/components/catalogue/TrackCard";
 
@@ -373,6 +374,29 @@ export default async function MembrePage({ params }: Props) {
                   />
                 </div>
               )}
+            </div>
+
+            {/* ── Invoices ── */}
+            <div
+              className="rounded-2xl p-6 border border-white/[0.08]"
+              style={{ background: "rgba(255,255,255,0.03)" }}
+            >
+              <div className="flex items-center gap-2 mb-5">
+                <svg className="w-5 h-5 text-white/50" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z" />
+                </svg>
+                <h2 className="text-base font-bold text-white">{t("invoicesTitle")}</h2>
+              </div>
+              <InvoiceList
+                locale={locale}
+                labels={{
+                  empty: t("invoicesEmpty"),
+                  download: t("invoiceDownload"),
+                  paid: t("invoicePaid"),
+                  open: t("invoiceOpen"),
+                  uncollectible: t("invoiceUncollectible"),
+                }}
+              />
             </div>
 
             {/* ── YouTube Whitelist ── */}
