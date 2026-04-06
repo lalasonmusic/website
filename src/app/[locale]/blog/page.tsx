@@ -52,8 +52,9 @@ export default async function BlogPage({ params, searchParams }: Props) {
   }
 
   return (
+    <div style={{ background: "linear-gradient(180deg, #0f2533 0%, #1b3a4b 100%)", minHeight: "100vh" }}>
     <div style={{ maxWidth: "1100px", margin: "0 auto", padding: "3rem 1.5rem" }}>
-      <h1 style={{ fontWeight: 800, fontSize: "2.25rem", marginBottom: "2.5rem" }}>
+      <h1 style={{ fontWeight: 800, fontSize: "2.25rem", marginBottom: "2.5rem", color: "white" }}>
         {t("title")}
       </h1>
 
@@ -75,9 +76,9 @@ export default async function BlogPage({ params, searchParams }: Props) {
             fontWeight: 600,
             textDecoration: "none",
             border: "1px solid",
-            borderColor: !category ? "var(--color-accent)" : "var(--color-border)",
+            borderColor: !category ? "var(--color-accent)" : "rgba(255,255,255,0.2)",
             backgroundColor: !category ? "var(--color-accent)" : "transparent",
-            color: !category ? "var(--color-accent-text)" : "var(--color-text-secondary)",
+            color: !category ? "var(--color-accent-text)" : "rgba(255,255,255,0.7)",
           }}
         >
           {t("allCategories")}
@@ -93,9 +94,9 @@ export default async function BlogPage({ params, searchParams }: Props) {
               fontWeight: 600,
               textDecoration: "none",
               border: "1px solid",
-              borderColor: category === cat ? "var(--color-accent)" : "var(--color-border)",
+              borderColor: category === cat ? "var(--color-accent)" : "rgba(255,255,255,0.2)",
               backgroundColor: category === cat ? "var(--color-accent)" : "transparent",
-              color: category === cat ? "var(--color-accent-text)" : "var(--color-text-secondary)",
+              color: category === cat ? "var(--color-accent-text)" : "rgba(255,255,255,0.7)",
             }}
           >
             {categoryLabel(cat)}
@@ -105,14 +106,14 @@ export default async function BlogPage({ params, searchParams }: Props) {
 
       {/* Posts grid */}
       {posts.length === 0 ? (
-        <p style={{ color: "var(--color-text-muted)", fontSize: "0.9375rem" }}>
+        <p style={{ color: "rgba(255,255,255,0.5)", fontSize: "0.9375rem" }}>
           {t("noArticles")}
         </p>
       ) : (
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))",
+            gridTemplateColumns: "repeat(3, 1fr)",
             gap: "1.5rem",
             marginBottom: "3rem",
           }}
@@ -145,18 +146,18 @@ export default async function BlogPage({ params, searchParams }: Props) {
               href={buildHref({ category, page: page - 1 })}
               style={{
                 padding: "0.5rem 1.25rem",
-                border: "1px solid var(--color-border)",
+                border: "1px solid rgba(255,255,255,0.2)",
                 borderRadius: "var(--radius-full)",
                 fontSize: "0.875rem",
                 fontWeight: 600,
-                color: "var(--color-text-primary)",
+                color: "white",
                 textDecoration: "none",
               }}
             >
               ← {t("previousPage")}
             </a>
           )}
-          <span style={{ fontSize: "0.875rem", color: "var(--color-text-muted)" }}>
+          <span style={{ fontSize: "0.875rem", color: "rgba(255,255,255,0.5)" }}>
             {t("pageOf", { page, total: totalPages })}
           </span>
           {page < totalPages && (
@@ -164,11 +165,11 @@ export default async function BlogPage({ params, searchParams }: Props) {
               href={buildHref({ category, page: page + 1 })}
               style={{
                 padding: "0.5rem 1.25rem",
-                border: "1px solid var(--color-border)",
+                border: "1px solid rgba(255,255,255,0.2)",
                 borderRadius: "var(--radius-full)",
                 fontSize: "0.875rem",
                 fontWeight: 600,
-                color: "var(--color-text-primary)",
+                color: "white",
                 textDecoration: "none",
               }}
             >
@@ -177,6 +178,7 @@ export default async function BlogPage({ params, searchParams }: Props) {
           )}
         </div>
       )}
+    </div>
     </div>
   );
 }
