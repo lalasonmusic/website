@@ -22,6 +22,7 @@ export default async function Footer({ locale }: Props) {
     { href: `/${locale}/abonnements`, label: isFr ? "Abonnements" : "Pricing" },
     { href: `/${locale}/politique-de-confidentialite`, label: t("privacy") },
     { href: `/${locale}/mentions-legales`, label: t("legal") },
+    { href: `/${locale}/comparateur`, label: isFr ? "Comparateur" : "Comparison" },
   ];
 
   return (
