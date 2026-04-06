@@ -7,6 +7,7 @@ import HomeTrackList from "@/components/catalogue/HomeTrackList";
 import FloatingPlayer from "@/components/player/FloatingPlayer";
 import { AudioLines, FileCheck2, Headphones } from "lucide-react";
 import TestimonialCarousel from "@/components/home/TestimonialCarousel";
+import { blogService } from "@/lib/services/blogService";
 
 type Props = {
   params: Promise<{ locale: string }>;
@@ -43,15 +44,17 @@ export default async function HomePage({ params }: Props) {
   let allCategories: Awaited<ReturnType<typeof trackService.getAllCategories>> = [];
   let allArtists: Awaited<ReturnType<typeof artistService.getAll>> = [];
 
-  const [tracksResult, cats, artists] = await Promise.all([
+  const [tracksResult, cats, artists, blogResult] = await Promise.all([
     withRetry(() => trackService.getPublished({ page: 1, limit: 8 })),
     withRetry(() => trackService.getAllCategories()),
     withRetry(() => artistService.getAll()),
+    withRetry(() => blogService.getAll({ page: 1, locale })),
   ]);
 
   if (tracksResult) popularTracks = tracksResult.tracks;
   if (cats) allCategories = cats;
   if (artists) allArtists = artists;
+  const latestPosts = blogResult?.posts.slice(0, 3) ?? [];
 
   const testimonials = [
     { name: t("testimonial1_name"), role: t("testimonial1_role"), text: t("testimonial1_text") },
@@ -406,6 +409,105 @@ export default async function HomePage({ params }: Props) {
           </a>
         </div>
       </section>
+
+      {/* ── LATEST BLOG POSTS ── */}
+      {latestPosts.length > 0 && (
+        <section style={{
+          padding: "5rem 1.5rem",
+          background: "linear-gradient(180deg, #0f2533 0%, #1b3a4b 100%)",
+        }}>
+          <div style={{ maxWidth: "960px", margin: "0 auto" }}>
+            <h2 style={{
+              fontWeight: 800,
+              fontSize: "clamp(1.5rem, 2.5vw, 2rem)",
+              textAlign: "center",
+              marginBottom: "2.5rem",
+              color: "white",
+            }}>
+              {locale === "fr" ? "Nos dernières actus" : "Latest news"}
+            </h2>
+
+            <div style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(3, 1fr)",
+              gap: "1.5rem",
+              marginBottom: "2.5rem",
+            }}>
+              {latestPosts.map((post) => (
+                <a
+                  key={post.id}
+                  href={`/${locale}/blog/${post.slug}`}
+                  style={{
+                    textDecoration: "none",
+                    borderRadius: 12,
+                    overflow: "hidden",
+                    backgroundColor: "rgba(255,255,255,0.05)",
+                    border: "1px solid rgba(255,255,255,0.08)",
+                    transition: "border-color 0.2s",
+                  }}
+                >
+                  {post.coverUrl && (
+                    <div style={{ aspectRatio: "16/9", overflow: "hidden" }}>
+                      <img
+                        src={post.coverUrl}
+                        alt=""
+                        style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+                      />
+                    </div>
+                  )}
+                  <div style={{ padding: "1rem 1.25rem" }}>
+                    <p style={{
+                      fontWeight: 600,
+                      fontSize: "0.9375rem",
+                      color: "white",
+                      margin: "0 0 0.375rem",
+                      lineHeight: 1.4,
+                      display: "-webkit-box",
+                      WebkitLineClamp: 2,
+                      WebkitBoxOrient: "vertical",
+                      overflow: "hidden",
+                    }}>
+                      {post.title}
+                    </p>
+                    {post.metaDescription && (
+                      <p style={{
+                        fontSize: "0.8125rem",
+                        color: "rgba(255,255,255,0.5)",
+                        margin: 0,
+                        lineHeight: 1.5,
+                        display: "-webkit-box",
+                        WebkitLineClamp: 2,
+                        WebkitBoxOrient: "vertical",
+                        overflow: "hidden",
+                      }}>
+                        {post.metaDescription}
+                      </p>
+                    )}
+                  </div>
+                </a>
+              ))}
+            </div>
+
+            <div style={{ textAlign: "center" }}>
+              <a
+                href={`/${locale}/blog`}
+                style={{
+                  display: "inline-block",
+                  padding: "0.75rem 2rem",
+                  color: "var(--color-accent)",
+                  fontWeight: 600,
+                  fontSize: "0.9375rem",
+                  borderRadius: "9999px",
+                  border: "1px solid var(--color-accent)",
+                  textDecoration: "none",
+                }}
+              >
+                {locale === "fr" ? "En découvrir plus" : "Discover more"} →
+              </a>
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* ── CTA FINAL ── */}
       <section
