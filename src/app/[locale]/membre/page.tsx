@@ -7,6 +7,7 @@ import { eq, and, desc, count } from "drizzle-orm";
 import ManageSubscriptionButton from "@/components/membre/ManageSubscriptionButton";
 import YoutubeChannelForm from "@/components/membre/YoutubeChannelForm";
 import LicenceDownloadButton from "@/components/membre/LicenceDownloadButton";
+import LicenceInfoForm from "@/components/membre/LicenceInfoForm";
 import { trackService } from "@/lib/services/trackService";
 import TrackCard from "@/components/catalogue/TrackCard";
 
@@ -348,6 +349,23 @@ export default async function MembrePage({ params }: Props) {
                   <p className="text-sm text-white/40 leading-relaxed mb-5">
                     {t("licenseDesc")}
                   </p>
+
+                  {/* Name / Address form */}
+                  <div className="mb-5">
+                    <LicenceInfoForm
+                      initialFirstName={user.user_metadata?.licence_first_name ?? ""}
+                      initialLastName={user.user_metadata?.licence_last_name ?? ""}
+                      initialAddress={user.user_metadata?.licence_address ?? ""}
+                      labels={{
+                        firstName: t("licenseFirstName"),
+                        lastName: t("licenseLastName"),
+                        address: t("licenseAddress"),
+                        save: t("licenseSave"),
+                        saved: t("licenseSaved"),
+                        hint: t("licenseFormHint"),
+                      }}
+                    />
+                  </div>
 
                   <LicenceDownloadButton
                     label={t("licenseDownload")}

@@ -123,9 +123,17 @@ export async function GET(request: NextRequest) {
   page.drawText(licenseNumber, { x: left + 130, y: y + 10, font: bold, size: 14, color: dark });
   y -= 50;
 
+  // Holder name from user metadata
+  const licenceFirstName = (user.user_metadata?.licence_first_name as string) ?? "";
+  const licenceLastName = (user.user_metadata?.licence_last_name as string) ?? "";
+  const licenceAddress = (user.user_metadata?.licence_address as string) ?? "";
+  const holderName = [licenceFirstName, licenceLastName].filter(Boolean).join(" ") || (user.email ?? "—");
+
   // Info section
   const infoItems = [
-    [locale === "fr" ? "Titulaire" : "Holder", user.email ?? "—"],
+    [locale === "fr" ? "Titulaire" : "Holder", holderName],
+    ...(licenceAddress ? [[locale === "fr" ? "Adresse" : "Address", licenceAddress]] : []),
+    [locale === "fr" ? "Email" : "Email", user.email ?? "—"],
     [locale === "fr" ? "Formule" : "Plan", planLabel],
     [locale === "fr" ? "Valide du" : "Valid from", startDate],
     [locale === "fr" ? "Au" : "Until", endDate],
@@ -197,8 +205,8 @@ export async function GET(request: NextRequest) {
   page.drawRectangle({ x: 0, y: 0, width: 595, height: 35, color: dark });
   const footerText =
     locale === "fr"
-      ? `Document généré le ${new Date().toLocaleDateString(dateLocale, dateOpts)} — Lalason SAS`
-      : `Document generated on ${new Date().toLocaleDateString(dateLocale, dateOpts)} — Lalason SAS`;
+      ? `Document généré le ${new Date().toLocaleDateString(dateLocale, dateOpts)} — Lalason`
+      : `Document generated on ${new Date().toLocaleDateString(dateLocale, dateOpts)} — Lalason`;
   page.drawText(footerText, { x: left, y: 12, font, size: 8, color: rgb(1, 1, 1) });
 
   const pdfBytes = await pdfDoc.save();
