@@ -16,6 +16,7 @@ const PREVIEW_LIMIT_SECONDS = 30;
 export default function PlayerProvider({ isSubscribed }: Props) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const signedUrlCache = useRef<Map<string, string>>(new Map());
+  const subscribedRef = useRef(isSubscribed);
 
   const {
     currentTrack,
@@ -30,6 +31,7 @@ export default function PlayerProvider({ isSubscribed }: Props) {
 
   // Sync isSubscribed from server
   useEffect(() => {
+    subscribedRef.current = isSubscribed;
     setIsSubscribed(isSubscribed);
   }, [isSubscribed, setIsSubscribed]);
 
@@ -45,7 +47,7 @@ export default function PlayerProvider({ isSubscribed }: Props) {
     const onTimeUpdate = () => {
       setProgress(audio.currentTime);
 
-      if (!isSubscribed && audio.currentTime >= PREVIEW_LIMIT_SECONDS) {
+      if (!subscribedRef.current && audio.currentTime >= PREVIEW_LIMIT_SECONDS) {
         audio.pause();
         setShowSubscribeCta(true);
         usePlayerStore.setState({ isPlaying: false });
@@ -66,7 +68,7 @@ export default function PlayerProvider({ isSubscribed }: Props) {
       audio.removeEventListener("loadedmetadata", onLoadedMetadata);
       audio.removeEventListener("ended", onEnded);
     };
-  }, [isSubscribed, setProgress, setDuration, setShowSubscribeCta, next]);
+  }, [setProgress, setDuration, setShowSubscribeCta, next]);
 
   // React to currentTrack changes → load new audio
   useEffect(() => {
@@ -77,20 +79,30 @@ export default function PlayerProvider({ isSubscribed }: Props) {
     async function loadAndPlay() {
       let url: string | null = null;
 
-      if (isSubscribed && currentTrack!.fullPath) {
+      // Always try full track via API if path exists
+      // The API checks subscription server-side — no reliance on stale props
+      if (currentTrack!.fullPath) {
         const cached = signedUrlCache.current.get(currentTrack!.id);
         if (cached) {
           url = cached;
         } else {
-          const res = await fetch(`/api/tracks/${currentTrack!.id}/signed-url`);
-          if (res.ok) {
-            const data = await res.json();
-            url = data.url;
-            signedUrlCache.current.set(currentTrack!.id, data.url);
-          }
+          try {
+            const res = await fetch(`/api/tracks/${currentTrack!.id}/signed-url`);
+            if (res.ok) {
+              const data = await res.json();
+              url = data.url;
+              signedUrlCache.current.set(currentTrack!.id, data.url);
+              // Sync subscription status if the server confirms access
+              if (!subscribedRef.current) {
+                subscribedRef.current = true;
+                setIsSubscribed(true);
+              }
+            }
+          } catch {}
         }
       }
 
+      // Fallback to preview
       if (!url) {
         url = currentTrack!.previewPath;
       }
@@ -106,7 +118,7 @@ export default function PlayerProvider({ isSubscribed }: Props) {
     }
 
     loadAndPlay();
-  }, [currentTrack?.id, isSubscribed]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [currentTrack?.id, setIsSubscribed]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // React to isPlaying changes
   useEffect(() => {

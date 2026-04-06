@@ -1,8 +1,120 @@
 "use client";
 
+import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { useLocale } from "next-intl";
 import { usePlayerStore } from "@/store/playerStore";
+import { track as trackEvent } from "@/lib/analytics";
+
+function DownloadMenu({ trackId, trackTitle, artistName }: { trackId: string; trackTitle: string; artistName: string }) {
+  const [loading, setLoading] = useState(false);
+  const [showMenu, setShowMenu] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setShowMenu(false);
+      }
+    }
+    if (showMenu) document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [showMenu]);
+
+  async function handleDownload(format: "mp3" | "wav") {
+    if (loading) return;
+    setLoading(true);
+    setShowMenu(false);
+    try {
+      const res = await fetch(`/api/tracks/${trackId}/signed-url?format=${format}`);
+      if (!res.ok) return;
+      const { url } = await res.json();
+      trackEvent("track_download", { trackId, trackTitle, artistName, format });
+      const fileRes = await fetch(url);
+      const blob = await fileRes.blob();
+      const blobUrl = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = blobUrl;
+      a.download = `${artistName} - ${trackTitle}.${format}`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(blobUrl);
+    } catch {} finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <div ref={menuRef} style={{ position: "relative", flexShrink: 0 }}>
+      <button
+        onClick={() => setShowMenu(!showMenu)}
+        style={{
+          background: "none",
+          border: "none",
+          cursor: loading ? "wait" : "pointer",
+          padding: 4,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          opacity: loading ? 0.4 : 0.6,
+          transition: "opacity 0.15s",
+          color: "white",
+        }}
+        onMouseEnter={(e) => { e.currentTarget.style.opacity = "1"; }}
+        onMouseLeave={(e) => { e.currentTarget.style.opacity = loading ? "0.4" : "0.6"; }}
+        aria-label="Download"
+      >
+        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+        </svg>
+      </button>
+      {showMenu && (
+        <div
+          style={{
+            position: "absolute",
+            bottom: "100%",
+            right: 0,
+            marginBottom: 6,
+            background: "var(--color-bg-secondary)",
+            border: "1px solid rgba(255,255,255,0.12)",
+            borderRadius: 10,
+            overflow: "hidden",
+            boxShadow: "0 8px 24px rgba(0,0,0,0.3)",
+            minWidth: 110,
+            zIndex: 110,
+          }}
+        >
+          {(["mp3", "wav"] as const).map((fmt) => (
+            <button
+              key={fmt}
+              onClick={() => handleDownload(fmt)}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 8,
+                width: "100%",
+                padding: "0.5rem 0.875rem",
+                background: "none",
+                border: "none",
+                borderBottom: fmt === "mp3" ? "1px solid rgba(255,255,255,0.06)" : "none",
+                color: "white",
+                fontSize: "0.75rem",
+                fontWeight: 600,
+                cursor: "pointer",
+                fontFamily: "inherit",
+              }}
+              onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.06)"; }}
+              onMouseLeave={(e) => { e.currentTarget.style.background = "none"; }}
+            >
+              {fmt.toUpperCase()}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
 function formatTime(seconds: number) {
   const m = Math.floor(seconds / 60);
@@ -170,6 +282,11 @@ export default function PlayerDesktop() {
           {duration > 0 ? formatTime(duration) : "--:--"}
         </span>
       </div>
+
+      {/* Download button — subscribers only */}
+      {isSubscribed && currentTrack.fullPath && (
+        <DownloadMenu trackId={currentTrack.id} trackTitle={currentTrack.title} artistName={currentTrack.artistName} />
+      )}
 
       {/* Browse catalogue link */}
       <Link
