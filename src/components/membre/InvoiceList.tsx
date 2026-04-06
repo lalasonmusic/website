@@ -106,9 +106,9 @@ export default function InvoiceList({ locale, labels }: Props) {
                 {statusLabel[inv.status ?? ""] ?? inv.status}
               </span>
 
-              {inv.pdfUrl && (
+              {inv.id && (
                 <a
-                  href={inv.pdfUrl}
+                  href={`/api/membre/invoices/${inv.id}/download?locale=${locale}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold no-underline transition-all duration-200 hover:scale-[1.03]"
