@@ -7,10 +7,11 @@ import { eq, and } from "drizzle-orm";
 const SIGNED_URL_EXPIRY = 3600; // 1h
 
 export async function GET(
-  _req: NextRequest,
+  req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
+  const format = req.nextUrl.searchParams.get("format") === "wav" ? "wav" : "mp3";
 
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -41,11 +42,29 @@ export async function GET(
     return NextResponse.json({ error: "Track not found" }, { status: 404 });
   }
 
+  // Derive WAV path from MP3 path (same filename, different extension)
+  const filePath = format === "wav"
+    ? track.fileFullPath.replace(/\.mp3$/i, ".wav")
+    : track.fileFullPath;
+
   const { data, error } = await supabase.storage
     .from("audio-full")
-    .createSignedUrl(track.fileFullPath, SIGNED_URL_EXPIRY);
+    .createSignedUrl(filePath, SIGNED_URL_EXPIRY);
 
   if (error || !data?.signedUrl) {
+    // If WAV not found, fall back to MP3
+    if (format === "wav") {
+      const fallback = await supabase.storage
+        .from("audio-full")
+        .createSignedUrl(track.fileFullPath, SIGNED_URL_EXPIRY);
+
+      if (fallback.data?.signedUrl) {
+        try {
+          await db.insert(downloads).values({ userId: user.id, trackId: id });
+        } catch {}
+        return NextResponse.json({ url: fallback.data.signedUrl, format: "mp3" });
+      }
+    }
     return NextResponse.json({ error: "Could not generate URL" }, { status: 500 });
   }
 
@@ -54,5 +73,5 @@ export async function GET(
     await db.insert(downloads).values({ userId: user.id, trackId: id });
   } catch {}
 
-  return NextResponse.json({ url: data.signedUrl });
+  return NextResponse.json({ url: data.signedUrl, format });
 }

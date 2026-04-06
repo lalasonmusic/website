@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { usePlayerStore } from "@/store/playerStore";
 import type { TrackWithDetails, PlayerTrack } from "@/types/track";
 import { track as trackEvent } from "@/lib/analytics";
@@ -34,53 +34,140 @@ function toPlayerTrack(t: TrackWithDetails): PlayerTrack {
   };
 }
 
-function DownloadButton({ trackId, trackTitle, artistName }: { trackId: string; trackTitle: string; artistName: string }) {
+function DownloadButton({ trackId, trackTitle, artistName, locale }: { trackId: string; trackTitle: string; artistName: string; locale: string }) {
   const [loading, setLoading] = useState(false);
+  const [showMenu, setShowMenu] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
 
-  async function handleDownload(e: React.MouseEvent) {
-    e.stopPropagation();
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setShowMenu(false);
+      }
+    }
+    if (showMenu) document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [showMenu]);
+
+  async function handleDownload(format: "mp3" | "wav") {
     if (loading) return;
     setLoading(true);
+    setShowMenu(false);
 
     try {
-      const res = await fetch(`/api/tracks/${trackId}/signed-url`);
+      const res = await fetch(`/api/tracks/${trackId}/signed-url?format=${format}`);
       if (!res.ok) return;
       const { url } = await res.json();
 
-      trackEvent("track_download", { trackId, trackTitle, artistName });
+      trackEvent("track_download", { trackId, trackTitle, artistName, format });
+
+      // Fetch as blob for reliable cross-origin download
+      const fileRes = await fetch(url);
+      const blob = await fileRes.blob();
+      const blobUrl = URL.createObjectURL(blob);
 
       const a = document.createElement("a");
-      a.href = url;
-      a.download = `${artistName} - ${trackTitle}.mp3`;
+      a.href = blobUrl;
+      a.download = `${artistName} - ${trackTitle}.${format}`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
+      URL.revokeObjectURL(blobUrl);
     } catch {} finally {
       setLoading(false);
     }
   }
 
   return (
-    <button
-      onClick={handleDownload}
-      style={{
-        background: "none",
-        border: "none",
-        cursor: loading ? "wait" : "pointer",
-        padding: 6,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        flexShrink: 0,
-        opacity: loading ? 0.5 : 0.6,
-        transition: "opacity 0.15s",
-      }}
-      onMouseEnter={(e) => { e.currentTarget.style.opacity = "1"; }}
-      onMouseLeave={(e) => { e.currentTarget.style.opacity = loading ? "0.5" : "0.6"; }}
-      aria-label="Download"
-    >
-      <Download size={16} color="#1b3a4b" strokeWidth={2} />
-    </button>
+    <div ref={menuRef} style={{ position: "relative", flexShrink: 0 }}>
+      <button
+        onClick={(e) => {
+          e.stopPropagation();
+          setShowMenu(!showMenu);
+        }}
+        style={{
+          background: "none",
+          border: "none",
+          cursor: loading ? "wait" : "pointer",
+          padding: 6,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          opacity: loading ? 0.5 : 0.6,
+          transition: "opacity 0.15s",
+        }}
+        onMouseEnter={(e) => { e.currentTarget.style.opacity = "1"; }}
+        onMouseLeave={(e) => { e.currentTarget.style.opacity = loading ? "0.5" : "0.6"; }}
+        aria-label="Download"
+      >
+        <Download size={16} color="#1b3a4b" strokeWidth={2} />
+      </button>
+
+      {showMenu && (
+        <div
+          onClick={(e) => e.stopPropagation()}
+          style={{
+            position: "absolute",
+            top: "100%",
+            right: 0,
+            zIndex: 20,
+            marginTop: 4,
+            background: "var(--color-bg-secondary)",
+            border: "1px solid rgba(255,255,255,0.12)",
+            borderRadius: 10,
+            overflow: "hidden",
+            boxShadow: "0 8px 24px rgba(0,0,0,0.3)",
+            minWidth: 120,
+          }}
+        >
+          <button
+            onClick={() => handleDownload("mp3")}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+              width: "100%",
+              padding: "0.625rem 1rem",
+              background: "none",
+              border: "none",
+              borderBottom: "1px solid rgba(255,255,255,0.06)",
+              color: "white",
+              fontSize: "0.8125rem",
+              fontWeight: 600,
+              cursor: "pointer",
+              fontFamily: "inherit",
+            }}
+            onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.06)"; }}
+            onMouseLeave={(e) => { e.currentTarget.style.background = "none"; }}
+          >
+            <Download size={14} />
+            MP3
+          </button>
+          <button
+            onClick={() => handleDownload("wav")}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+              width: "100%",
+              padding: "0.625rem 1rem",
+              background: "none",
+              border: "none",
+              color: "white",
+              fontSize: "0.8125rem",
+              fontWeight: 600,
+              cursor: "pointer",
+              fontFamily: "inherit",
+            }}
+            onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.06)"; }}
+            onMouseLeave={(e) => { e.currentTarget.style.background = "none"; }}
+          >
+            <Download size={14} />
+            WAV
+          </button>
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -294,7 +381,7 @@ export default function TrackCard({ track, queue, queueIndex, locale, isSubscrib
 
       {/* Download button — subscribers only */}
       {isSubscribed && track.fullPath && (
-        <DownloadButton trackId={track.id} trackTitle={track.title} artistName={track.artistName} />
+        <DownloadButton trackId={track.id} trackTitle={track.title} artistName={track.artistName} locale={locale} />
       )}
     </div>
   );
