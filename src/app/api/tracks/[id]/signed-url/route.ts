@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { db } from "@/db";
-import { tracks, subscriptions } from "@/db/schema";
+import { tracks, subscriptions, downloads } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
 
 const SIGNED_URL_EXPIRY = 3600; // 1h
@@ -48,6 +48,11 @@ export async function GET(
   if (error || !data?.signedUrl) {
     return NextResponse.json({ error: "Could not generate URL" }, { status: 500 });
   }
+
+  // Log download
+  try {
+    await db.insert(downloads).values({ userId: user.id, trackId: id });
+  } catch {}
 
   return NextResponse.json({ url: data.signedUrl });
 }

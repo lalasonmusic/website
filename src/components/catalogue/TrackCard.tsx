@@ -1,8 +1,10 @@
 "use client";
 
+import { useState } from "react";
 import { usePlayerStore } from "@/store/playerStore";
 import type { TrackWithDetails, PlayerTrack } from "@/types/track";
 import { track as trackEvent } from "@/lib/analytics";
+import { Download } from "lucide-react";
 
 type Props = {
   track: TrackWithDetails;
@@ -30,6 +32,56 @@ function toPlayerTrack(t: TrackWithDetails): PlayerTrack {
     previewPath: t.previewPath,
     fullPath: t.fullPath,
   };
+}
+
+function DownloadButton({ trackId, trackTitle, artistName }: { trackId: string; trackTitle: string; artistName: string }) {
+  const [loading, setLoading] = useState(false);
+
+  async function handleDownload(e: React.MouseEvent) {
+    e.stopPropagation();
+    if (loading) return;
+    setLoading(true);
+
+    try {
+      const res = await fetch(`/api/tracks/${trackId}/signed-url`);
+      if (!res.ok) return;
+      const { url } = await res.json();
+
+      trackEvent("track_download", { trackId, trackTitle, artistName });
+
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${artistName} - ${trackTitle}.mp3`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    } catch {} finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <button
+      onClick={handleDownload}
+      style={{
+        background: "none",
+        border: "none",
+        cursor: loading ? "wait" : "pointer",
+        padding: 6,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        flexShrink: 0,
+        opacity: loading ? 0.5 : 0.6,
+        transition: "opacity 0.15s",
+      }}
+      onMouseEnter={(e) => { e.currentTarget.style.opacity = "1"; }}
+      onMouseLeave={(e) => { e.currentTarget.style.opacity = loading ? "0.5" : "0.6"; }}
+      aria-label="Download"
+    >
+      <Download size={16} color="#1b3a4b" strokeWidth={2} />
+    </button>
+  );
 }
 
 export default function TrackCard({ track, queue, queueIndex, locale, isSubscribed }: Props) {
@@ -239,6 +291,11 @@ export default function TrackCard({ track, queue, queueIndex, locale, isSubscrib
       }}>
         {formatDuration(track.durationSeconds)}
       </span>
+
+      {/* Download button — subscribers only */}
+      {isSubscribed && track.fullPath && (
+        <DownloadButton trackId={track.id} trackTitle={track.title} artistName={track.artistName} />
+      )}
     </div>
   );
 }
