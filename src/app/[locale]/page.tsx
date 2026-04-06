@@ -606,7 +606,6 @@ export default async function HomePage({ params }: Props) {
             fontWeight: 700,
             fontSize: "clamp(1.25rem, 2.5vw, 1.75rem)",
             color: "white",
-            fontStyle: "italic",
             lineHeight: 1.5,
             marginBottom: "2rem",
           }}>
