@@ -90,6 +90,15 @@ export async function GET(request: NextRequest, context: RouteContext) {
   const licenceAddress = (user.user_metadata?.licence_address as string) ?? "";
   const customerName = [licenceFirstName, licenceLastName].filter(Boolean).join(" ") || (user.email ?? "—");
 
+  // Customer country from Stripe
+  const customerCountry = invoice.customer_address?.country ?? "";
+  const countryName = customerCountry
+    ? new Intl.DisplayNames([dateLocale], { type: "region" }).of(customerCountry) ?? customerCountry
+    : "";
+
+  // Tax rate (calculated from amounts, or from Stripe Tax when enabled)
+  const taxRate = subtotal > 0 && tax > 0 ? Math.round((tax / subtotal) * 10000) / 100 : 0;
+
   // Payment method
   const paymentMethod = "Stripe";
 
@@ -155,23 +164,30 @@ export async function GET(request: NextRequest, context: RouteContext) {
   const sellerTitle = locale === "fr" ? "Émetteur" : "From";
   page.drawText(sellerTitle, { x: colLeft, y, font: bold, size: 10, color: dark });
   y -= lineH;
-  page.drawText("Lalason", { x: colLeft, y, font, size: 10, color: gray });
+  page.drawText("Lalason", { x: colLeft, y, font: bold, size: 10, color: gray });
   y -= lineH;
-  page.drawText("contact@lalason.com", { x: colLeft, y, font, size: 10, color: gray });
+  page.drawText("IDE : CH-250.929.703", { x: colLeft, y, font, size: 9, color: gray });
+  y -= lineH;
+  page.drawText("contact@lalason.com", { x: colLeft, y, font, size: 9, color: gray });
 
   // Customer (same Y as seller start)
-  const custY = y + lineH * 2;
+  const custY = y + lineH * 3;
   const custTitle = locale === "fr" ? "Client" : "Bill to";
   page.drawText(custTitle, { x: colRight, y: custY, font: bold, size: 10, color: dark });
-  page.drawText(customerName, { x: colRight, y: custY - lineH, font, size: 10, color: gray });
+  let custLine = custY - lineH;
+  page.drawText(customerName, { x: colRight, y: custLine, font, size: 10, color: gray });
+  custLine -= lineH;
   if (licenceAddress) {
-    page.drawText(licenceAddress, { x: colRight, y: custY - lineH * 2, font, size: 10, color: gray });
-    page.drawText(user.email ?? "", { x: colRight, y: custY - lineH * 3, font, size: 10, color: gray });
-  } else {
-    page.drawText(user.email ?? "", { x: colRight, y: custY - lineH * 2, font, size: 10, color: gray });
+    page.drawText(licenceAddress, { x: colRight, y: custLine, font, size: 9, color: gray });
+    custLine -= lineH;
+  }
+  page.drawText(user.email ?? "", { x: colRight, y: custLine, font, size: 9, color: gray });
+  custLine -= lineH;
+  if (countryName) {
+    page.drawText(countryName, { x: colRight, y: custLine, font, size: 9, color: gray });
   }
 
-  y -= lineH * 2 + 20;
+  y -= lineH + 20;
 
   // ── Separator ──
   page.drawRectangle({ x: left, y, width: right - left, height: 0.5, color: lightGray });
@@ -216,7 +232,9 @@ export async function GET(request: NextRequest, context: RouteContext) {
   y -= lineH;
 
   // Tax
-  const taxLabel = locale === "fr" ? "TVA" : "Tax";
+  const taxLabel = taxRate > 0
+    ? (locale === "fr" ? `TVA (${taxRate}%)` : `Tax (${taxRate}%)`)
+    : (locale === "fr" ? "TVA" : "Tax");
   page.drawText(taxLabel, { x: totalsX, y, font, size: 10, color: gray });
   const taxText = formatAmount(tax, currency, locale);
   page.drawText(taxText, { x: totalsValX - font.widthOfTextAtSize(taxText, 10), y, font, size: 10, color: dark });
@@ -258,7 +276,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
 
   // ── Footer bar ──
   page.drawRectangle({ x: 0, y: 0, width: 595, height: 35, color: dark });
-  const footerText = `Lalason · contact@lalason.com · www.lalason.com`;
+  const footerText = `Lalason · IDE : CH-250.929.703 · contact@lalason.com · www.lalason.com`;
   page.drawText(footerText, { x: left, y: 12, font, size: 8, color: white });
 
   const pdfBytes = await pdfDoc.save();
