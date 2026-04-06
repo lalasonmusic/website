@@ -141,33 +141,119 @@ export default async function MembrePage({ params }: Props) {
               <ManageSubscriptionButton label={t("manageSubscription")} />
             </div>
           ) : (
-            <div
-              style={{
-                display: "flex",
-                flexWrap: "wrap",
-                gap: "1rem",
-                alignItems: "center",
-                justifyContent: "space-between",
-              }}
-            >
-              <p style={{ color: "var(--color-text-muted)", fontSize: "0.9375rem" }}>
+            <div>
+              <p style={{ color: "var(--color-text-muted)", fontSize: "0.9375rem", marginBottom: "1.5rem" }}>
                 {t("noSubscription")}
               </p>
-              <a
-                href={`/${locale}/abonnements`}
-                style={{
-                  padding: "0.75rem 1.5rem",
-                  backgroundColor: "var(--color-accent)",
-                  color: "var(--color-accent-text)",
-                  fontWeight: 600,
-                  fontSize: "0.9375rem",
-                  borderRadius: "var(--radius-full)",
-                  textDecoration: "none",
-                  whiteSpace: "nowrap",
-                }}
-              >
-                {t("subscribeCta")}
-              </a>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "1rem" }}>
+                {/* Creators Monthly */}
+                <div style={{
+                  padding: "1.25rem",
+                  borderRadius: 12,
+                  border: "1px solid var(--color-border)",
+                  backgroundColor: "var(--color-bg-primary)",
+                  textAlign: "center",
+                }}>
+                  <p style={{ fontSize: "0.75rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)", marginBottom: "0.5rem" }}>
+                    {locale === "fr" ? "Créateurs" : "Creators"}
+                  </p>
+                  <p style={{ margin: 0 }}>
+                    <span style={{ fontSize: "2rem", fontWeight: 800 }}>15,99€</span>
+                  </p>
+                  <p style={{ fontSize: "0.75rem", color: "var(--color-text-muted)", marginBottom: "1rem" }}>
+                    /{locale === "fr" ? "mois" : "month"}
+                  </p>
+                  <a href={`/${locale}/abonnements`} style={{
+                    display: "block",
+                    padding: "0.5rem",
+                    backgroundColor: "var(--color-accent)",
+                    color: "var(--color-accent-text)",
+                    fontWeight: 600,
+                    fontSize: "0.8125rem",
+                    borderRadius: "9999px",
+                    textDecoration: "none",
+                  }}>
+                    {locale === "fr" ? "Choisir" : "Select"}
+                  </a>
+                </div>
+
+                {/* Creators Annual */}
+                <div style={{
+                  padding: "1.25rem",
+                  borderRadius: 12,
+                  border: "2px solid var(--color-accent)",
+                  backgroundColor: "var(--color-bg-primary)",
+                  textAlign: "center",
+                  position: "relative",
+                }}>
+                  <span style={{
+                    position: "absolute",
+                    top: -10,
+                    right: 12,
+                    backgroundColor: "var(--color-accent)",
+                    color: "var(--color-accent-text)",
+                    fontSize: "0.5625rem",
+                    fontWeight: 700,
+                    padding: "0.125rem 0.5rem",
+                    borderRadius: 4,
+                    textTransform: "uppercase",
+                  }}>
+                    -48%
+                  </span>
+                  <p style={{ fontSize: "0.75rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)", marginBottom: "0.5rem" }}>
+                    {locale === "fr" ? "Créateurs" : "Creators"}
+                  </p>
+                  <p style={{ margin: 0 }}>
+                    <span style={{ fontSize: "2rem", fontWeight: 800 }}>99€</span>
+                  </p>
+                  <p style={{ fontSize: "0.75rem", color: "var(--color-text-muted)", marginBottom: "1rem" }}>
+                    /{locale === "fr" ? "an" : "year"}
+                  </p>
+                  <a href={`/${locale}/abonnements`} style={{
+                    display: "block",
+                    padding: "0.5rem",
+                    backgroundColor: "var(--color-accent)",
+                    color: "var(--color-accent-text)",
+                    fontWeight: 600,
+                    fontSize: "0.8125rem",
+                    borderRadius: "9999px",
+                    textDecoration: "none",
+                  }}>
+                    {locale === "fr" ? "Choisir" : "Select"}
+                  </a>
+                </div>
+
+                {/* Boutique Annual */}
+                <div style={{
+                  padding: "1.25rem",
+                  borderRadius: 12,
+                  border: "1px solid var(--color-border)",
+                  backgroundColor: "var(--color-bg-primary)",
+                  textAlign: "center",
+                }}>
+                  <p style={{ fontSize: "0.75rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)", marginBottom: "0.5rem" }}>
+                    {locale === "fr" ? "Musique en boutique" : "In-store music"}
+                  </p>
+                  <p style={{ margin: 0 }}>
+                    <span style={{ fontSize: "2rem", fontWeight: 800 }}>99,99€</span>
+                  </p>
+                  <p style={{ fontSize: "0.75rem", color: "var(--color-text-muted)", marginBottom: "1rem" }}>
+                    /{locale === "fr" ? "an" : "year"}
+                  </p>
+                  <a href={`/${locale}/abonnements`} style={{
+                    display: "block",
+                    padding: "0.5rem",
+                    backgroundColor: "var(--color-accent)",
+                    color: "var(--color-accent-text)",
+                    fontWeight: 600,
+                    fontSize: "0.8125rem",
+                    borderRadius: "9999px",
+                    textDecoration: "none",
+                  }}>
+                    {locale === "fr" ? "Choisir" : "Select"}
+                  </a>
+                </div>
+              </div>
             </div>
           )}
         </div>
