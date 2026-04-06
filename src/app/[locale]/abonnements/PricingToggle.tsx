@@ -51,6 +51,21 @@ type Props = {
   perYear: string;
 };
 
+function CheckIcon() {
+  return (
+    <svg className="w-5 h-5 shrink-0 mt-0.5" viewBox="0 0 20 20" fill="none">
+      <circle cx="10" cy="10" r="10" fill="var(--color-accent)" fillOpacity={0.12} />
+      <path
+        d="M6.5 10.5L9 13L13.5 7.5"
+        stroke="var(--color-accent)"
+        strokeWidth={1.8}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
 export default function PricingToggle({
   locale,
   labels,
@@ -69,180 +84,177 @@ export default function PricingToggle({
     setLoadingPlan(null);
   }
 
+  const creatorsPlan: PlanType = isAnnual ? "creators_annual" : "creators_monthly";
+
   return (
-    <div>
-      {/* Toggle */}
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "0.75rem", marginBottom: "3rem" }}>
-        <span style={{ fontSize: "0.9375rem", fontWeight: isAnnual ? 400 : 600, color: isAnnual ? "var(--color-text-muted)" : "var(--color-text-primary)" }}>
-          {labels.monthly}
-        </span>
-        <button
-          onClick={() => setIsAnnual(!isAnnual)}
-          style={{
-            position: "relative",
-            width: "48px",
-            height: "26px",
-            borderRadius: "9999px",
-            border: "none",
-            backgroundColor: isAnnual ? "var(--color-accent)" : "var(--color-border)",
-            cursor: "pointer",
-            transition: "background-color 0.2s",
-          }}
-          aria-label="Toggle billing period"
+    <div className="overflow-hidden">
+      {/* ── Billing toggle ── */}
+      <div className="flex justify-center mb-12">
+        <div
+          className="inline-flex items-center rounded-full p-1.5 border border-white/10 backdrop-blur-sm"
+          style={{ background: "rgba(255,255,255,0.04)" }}
         >
-          <span
-            style={{
-              position: "absolute",
-              top: "3px",
-              left: isAnnual ? "23px" : "3px",
-              width: "20px",
-              height: "20px",
-              borderRadius: "50%",
-              backgroundColor: "white",
-              transition: "left 0.2s",
-            }}
-          />
-        </button>
-        <span style={{ fontSize: "0.9375rem", fontWeight: isAnnual ? 600 : 400, color: isAnnual ? "var(--color-text-primary)" : "var(--color-text-muted)" }}>
-          {labels.annual}
-          {isAnnual && (
-            <span style={{ marginLeft: "0.5rem", fontSize: "0.75rem", backgroundColor: "var(--color-accent)", color: "var(--color-accent-text)", padding: "0.125rem 0.5rem", borderRadius: "9999px", fontWeight: 600 }}>
+          <button
+            onClick={() => setIsAnnual(false)}
+            className={`px-6 py-2.5 rounded-full text-sm font-semibold transition-all duration-300 cursor-pointer ${
+              !isAnnual
+                ? "bg-[var(--color-accent)] text-[var(--color-accent-text)]"
+                : "text-white/50 hover:text-white/70"
+            }`}
+            style={!isAnnual ? { boxShadow: "0 4px 20px rgba(245,166,35,0.25)" } : undefined}
+          >
+            {labels.monthly}
+          </button>
+          <button
+            onClick={() => setIsAnnual(true)}
+            className={`px-6 py-2.5 rounded-full text-sm font-semibold transition-all duration-300 cursor-pointer flex items-center gap-2 ${
+              isAnnual
+                ? "bg-[var(--color-accent)] text-[var(--color-accent-text)]"
+                : "text-white/50 hover:text-white/70"
+            }`}
+            style={isAnnual ? { boxShadow: "0 4px 20px rgba(245,166,35,0.25)" } : undefined}
+          >
+            {labels.annual}
+            <span
+              className="text-xs px-2 py-0.5 rounded-full font-bold"
+              style={{
+                background: isAnnual ? "rgba(27,58,75,0.25)" : "rgba(245,166,35,0.15)",
+                color: isAnnual ? "var(--color-accent-text)" : "var(--color-accent)",
+              }}
+            >
               {labels.save}
             </span>
-          )}
-        </span>
+          </button>
+        </div>
       </div>
 
-      {/* Cards */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: "1.5rem", maxWidth: "800px", margin: "0 auto" }}>
-        {/* Créateurs */}
-        <div style={{
-          padding: "2rem",
-          backgroundColor: "var(--color-bg-card)",
-          borderRadius: "var(--radius-lg)",
-          border: "2px solid var(--color-accent)",
-          position: "relative",
-        }}>
-          <span style={{
-            position: "absolute",
-            top: "-12px",
-            left: "50%",
-            transform: "translateX(-50%)",
-            backgroundColor: "var(--color-accent)",
-            color: "var(--color-accent-text)",
-            fontSize: "0.75rem",
-            fontWeight: 700,
-            padding: "0.25rem 0.875rem",
-            borderRadius: "9999px",
-            whiteSpace: "nowrap",
-          }}>
-            {creatorsData.badge}
-          </span>
+      {/* ── Pricing cards ── */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-[920px] mx-auto">
 
-          <h2 style={{ fontWeight: 800, fontSize: "1.5rem", marginBottom: "0.5rem" }}>{creatorsData.name}</h2>
-          <p style={{ fontSize: "0.875rem", color: "var(--color-text-secondary)", marginBottom: "1.5rem" }}>{creatorsData.description}</p>
-
-          <div style={{ marginBottom: "1.5rem" }}>
-            <span style={{ fontWeight: 800, fontSize: "2.5rem" }}>
-              {isAnnual ? creatorsData.annualPrice : creatorsData.monthlyPrice}
-            </span>
-            <span style={{ color: "var(--color-text-muted)", fontSize: "0.875rem", marginLeft: "0.25rem" }}>
-              {isAnnual ? perYear : perMonth}
-            </span>
-          </div>
-
-          <button
-            onClick={() => handleSubscribe(isAnnual ? "creators_annual" : "creators_monthly")}
-            disabled={loadingPlan !== null}
+        {/* ── Créateurs (popular) ── */}
+        <div className="relative group">
+          {/* Gradient border */}
+          <div
+            className="absolute -inset-px rounded-2xl"
             style={{
-              display: "block",
-              width: "100%",
-              padding: "0.875rem",
-              backgroundColor: "var(--color-accent)",
-              color: "var(--color-accent-text)",
-              fontWeight: 600,
-              fontSize: "1rem",
-              borderRadius: "var(--radius-full)",
-              textAlign: "center",
-              border: "none",
-              cursor: loadingPlan !== null ? "not-allowed" : "pointer",
-              marginBottom: "1.5rem",
-              opacity: loadingPlan === (isAnnual ? "creators_annual" : "creators_monthly") ? 0.7 : 1,
+              background: "linear-gradient(180deg, rgba(245,166,35,0.6) 0%, rgba(245,166,35,0.15) 100%)",
             }}
-          >
-            {loadingPlan === (isAnnual ? "creators_annual" : "creators_monthly") ? "..." : subscribeLabel}
-          </button>
+          />
+          {/* Soft glow on hover */}
+          <div
+            className="absolute -inset-px rounded-2xl blur-xl transition-opacity duration-500 opacity-[0.15] group-hover:opacity-[0.3]"
+            style={{ background: "rgba(245,166,35,0.6)" }}
+          />
 
-          <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: "0.625rem" }}>
-            {creatorsData.features.map((f) => (
-              <li key={f} style={{ display: "flex", alignItems: "flex-start", gap: "0.625rem", fontSize: "0.9rem" }}>
-                <span style={{ color: "var(--color-accent)", flexShrink: 0, marginTop: "1px" }}>✓</span>
-                <span style={{ color: "var(--color-text-secondary)" }}>{f}</span>
-              </li>
-            ))}
-          </ul>
+          <div
+            className="relative rounded-2xl p-8 h-full flex flex-col"
+            style={{ background: "var(--color-bg-secondary)" }}
+          >
+            {/* Badge */}
+            <div
+              className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold mb-6 self-start"
+              style={{ background: "rgba(245,166,35,0.12)", color: "var(--color-accent)" }}
+            >
+              <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+              </svg>
+              {creatorsData.badge}
+            </div>
+
+            <h2 className="text-2xl font-extrabold text-white mb-2">{creatorsData.name}</h2>
+            <p className="text-sm text-white/50 mb-8 leading-relaxed">{creatorsData.description}</p>
+
+            {/* Price */}
+            <div className="mb-8">
+              <span className="text-5xl font-extrabold text-white tracking-tight">
+                {isAnnual ? creatorsData.annualPrice : creatorsData.monthlyPrice}
+              </span>
+              <span className="text-white/40 text-sm ml-1.5">
+                {isAnnual ? perYear : perMonth}
+              </span>
+            </div>
+
+            {/* CTA */}
+            <button
+              onClick={() => handleSubscribe(creatorsPlan)}
+              disabled={loadingPlan !== null}
+              className="w-full py-3.5 rounded-xl font-semibold text-base transition-all duration-300 cursor-pointer
+                text-[var(--color-accent-text)] border-0
+                hover:scale-[1.02] active:scale-[0.98]
+                disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:scale-100
+                mb-8"
+              style={{
+                background: "linear-gradient(135deg, var(--color-accent) 0%, #e8961a 100%)",
+                boxShadow: "0 4px 24px rgba(245,166,35,0.25)",
+              }}
+            >
+              {loadingPlan === creatorsPlan ? "..." : subscribeLabel}
+            </button>
+
+            {/* Divider */}
+            <div className="h-px bg-white/10 mb-6" />
+
+            {/* Features */}
+            <ul className="space-y-4 mt-auto">
+              {creatorsData.features.map((f) => (
+                <li key={f} className="flex items-start gap-3 text-[0.9rem] text-white/70">
+                  <CheckIcon />
+                  <span>{f}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
         </div>
 
-        {/* Boutique */}
-        <div style={{
-          padding: "2rem",
-          backgroundColor: "var(--color-bg-card)",
-          borderRadius: "var(--radius-lg)",
-          border: "1px solid var(--color-border)",
-          position: "relative",
-        }}>
-          <span style={{
-            position: "absolute",
-            top: "-12px",
-            left: "50%",
-            transform: "translateX(-50%)",
-            backgroundColor: "var(--color-bg-secondary)",
-            color: "var(--color-text-muted)",
-            fontSize: "0.75rem",
-            fontWeight: 600,
-            padding: "0.25rem 0.875rem",
-            borderRadius: "9999px",
-            border: "1px solid var(--color-border)",
-            whiteSpace: "nowrap",
-          }}>
+        {/* ── Boutique ── */}
+        <div
+          className="rounded-2xl p-8 h-full flex flex-col border border-white/[0.08] transition-all duration-500
+            hover:border-white/[0.15]"
+          style={{ background: "rgba(255,255,255,0.03)" }}
+        >
+          {/* Badge */}
+          <div
+            className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold border border-white/10 mb-6 self-start"
+            style={{ background: "rgba(255,255,255,0.05)", color: "rgba(255,255,255,0.4)" }}
+          >
             {boutiqueData.badge}
-          </span>
-
-          <h2 style={{ fontWeight: 800, fontSize: "1.5rem", marginBottom: "0.5rem" }}>{boutiqueData.name}</h2>
-          <p style={{ fontSize: "0.875rem", color: "var(--color-text-secondary)", marginBottom: "1.5rem" }}>{boutiqueData.description}</p>
-
-          <div style={{ marginBottom: "1.5rem" }}>
-            <span style={{ fontWeight: 800, fontSize: "2.5rem" }}>{boutiqueData.annualPrice}</span>
-            <span style={{ color: "var(--color-text-muted)", fontSize: "0.875rem", marginLeft: "0.25rem" }}>{perYear}</span>
           </div>
 
+          <h2 className="text-2xl font-extrabold text-white mb-2">{boutiqueData.name}</h2>
+          <p className="text-sm text-white/50 mb-8 leading-relaxed">{boutiqueData.description}</p>
+
+          {/* Price */}
+          <div className="mb-8">
+            <span className="text-5xl font-extrabold text-white tracking-tight">
+              {boutiqueData.annualPrice}
+            </span>
+            <span className="text-white/40 text-sm ml-1.5">{perYear}</span>
+          </div>
+
+          {/* CTA */}
           <button
             onClick={() => handleSubscribe("boutique_annual")}
             disabled={loadingPlan !== null}
-            style={{
-              display: "block",
-              width: "100%",
-              padding: "0.875rem",
-              backgroundColor: "transparent",
-              color: "var(--color-text-primary)",
-              fontWeight: 600,
-              fontSize: "1rem",
-              borderRadius: "var(--radius-full)",
-              textAlign: "center",
-              border: "1px solid var(--color-border)",
-              cursor: loadingPlan !== null ? "not-allowed" : "pointer",
-              marginBottom: "1.5rem",
-              opacity: loadingPlan === "boutique_annual" ? 0.7 : 1,
-            }}
+            className="w-full py-3.5 rounded-xl font-semibold text-base transition-all duration-300 cursor-pointer
+              text-white border border-white/[0.12]
+              hover:border-white/[0.2] hover:scale-[1.02]
+              active:scale-[0.98]
+              disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:scale-100
+              mb-8"
+            style={{ background: "rgba(255,255,255,0.06)" }}
           >
             {loadingPlan === "boutique_annual" ? "..." : subscribeLabel}
           </button>
 
-          <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: "0.625rem" }}>
+          {/* Divider */}
+          <div className="h-px bg-white/10 mb-6" />
+
+          {/* Features */}
+          <ul className="space-y-4 mt-auto">
             {boutiqueData.features.map((f) => (
-              <li key={f} style={{ display: "flex", alignItems: "flex-start", gap: "0.625rem", fontSize: "0.9rem" }}>
-                <span style={{ color: "var(--color-accent)", flexShrink: 0, marginTop: "1px" }}>✓</span>
-                <span style={{ color: "var(--color-text-secondary)" }}>{f}</span>
+              <li key={f} className="flex items-start gap-3 text-[0.9rem] text-white/70">
+                <CheckIcon />
+                <span>{f}</span>
               </li>
             ))}
           </ul>

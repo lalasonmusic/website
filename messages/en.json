@@ -92,6 +92,7 @@
   },
   "pricing": {
     "title": "Our plans",
+    "subtitle": "300+ original royalty-free tracks for your videos, podcasts and businesses.",
     "monthly": "Monthly",
     "annual": "Annual",
     "save": "Save {percent}%",
@@ -155,7 +156,15 @@
     "planBoutiqueAnnual": "Boutique — Annual",
     "newPassword": "New password",
     "newPasswordButton": "Save password",
-    "newPasswordSuccess": "Password updated. You will be redirected."
+    "newPasswordSuccess": "Password updated. You will be redirected.",
+    "upsellBadge": "300+ tracks waiting for you",
+    "upsellTitle": "Choose your plan",
+    "upsellSubtitle": "Access the full catalogue. Download without limits. Create freely.",
+    "upsellCta": "Subscribe",
+    "upsellOrMonthly": "or {price} / month",
+    "trustNoCommitment": "No commitment",
+    "trustLifetimeLicense": "Lifetime licence",
+    "trustNewReleases": "New releases included"
   },
   "blog": {
     "title": "Blog",

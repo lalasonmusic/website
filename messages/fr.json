@@ -92,6 +92,7 @@
   },
   "pricing": {
     "title": "Nos offres",
+    "subtitle": "Plus de 300 morceaux originaux, libres de droit. Pour vos vidéos, podcasts et commerces.",
     "monthly": "Mensuel",
     "annual": "Annuel",
     "save": "Économisez {percent}%",
@@ -155,7 +156,15 @@
     "planBoutiqueAnnual": "Boutique — Annuel",
     "newPassword": "Nouveau mot de passe",
     "newPasswordButton": "Enregistrer le mot de passe",
-    "newPasswordSuccess": "Mot de passe mis à jour. Vous allez être redirigé."
+    "newPasswordSuccess": "Mot de passe mis à jour. Vous allez être redirigé.",
+    "upsellBadge": "300+ morceaux vous attendent",
+    "upsellTitle": "Choisissez votre formule",
+    "upsellSubtitle": "Accédez à l'intégralité du catalogue. Téléchargez sans limite. Créez sans contrainte.",
+    "upsellCta": "S'abonner",
+    "upsellOrMonthly": "ou {price} / mois",
+    "trustNoCommitment": "Sans engagement",
+    "trustLifetimeLicense": "Licence à vie",
+    "trustNewReleases": "Nouvelles sorties incluses"
   },
   "blog": {
     "title": "Blog",

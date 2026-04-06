@@ -40,47 +40,61 @@ export default async function AbonnementsPage({ params }: Props) {
   ];
 
   return (
-    <div style={{ padding: "4rem 1.5rem", maxWidth: "1100px", margin: "0 auto" }}>
-      <h1
-        style={{
-          fontWeight: 800,
-          fontSize: "clamp(2rem, 4vw, 3rem)",
-          textAlign: "center",
-          marginBottom: "1rem",
-        }}
-      >
-        {t("title")}
-      </h1>
-
-      <PricingToggle
-        locale={locale}
-        labels={{ monthly: t("monthly"), annual: t("annual"), save: t("save", { percent: "38" }) }}
-        creatorsData={{
-          name: t("creators.name"),
-          description: t("creators.description"),
-          monthlyPrice: t("creators.monthly_price"),
-          annualPrice: t("creators.annual_price"),
-          features: creatorsFeatures,
-          badge: t("mostPopular"),
-        }}
-        boutiqueData={{
-          name: t("boutique.name"),
-          description: t("boutique.description"),
-          annualPrice: t("boutique.annual_price"),
-          features: boutiqueFeatures,
-          badge: t("onlyAnnual"),
-        }}
-        subscribeLabel={t("subscribe")}
-        perMonth={t("perMonth")}
-        perYear={t("perYear")}
+    <div className="min-h-screen relative overflow-hidden">
+      {/* Decorative background glow */}
+      <div
+        className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[600px] rounded-full blur-3xl pointer-events-none"
+        style={{ background: "radial-gradient(ellipse, rgba(245,166,35,0.06) 0%, transparent 70%)" }}
       />
 
-      <p style={{ textAlign: "center", fontSize: "0.8125rem", color: "var(--color-text-muted)", marginTop: "2rem" }}>
-        <a href={`/${locale}/cgv`} style={{ color: "var(--color-text-muted)" }}>CGV</a>
-        {" · "}
-        <a href={`/${locale}/mentions-legales`} style={{ color: "var(--color-text-muted)" }}>Mentions légales</a>
-      </p>
+      {/* Hero */}
+      <section className="relative pt-24 pb-4 px-6 text-center">
+        <h1 className="text-4xl md:text-5xl font-extrabold text-white mb-4 tracking-tight">
+          {t("title")}
+        </h1>
+        <p className="text-lg text-white/50 max-w-xl mx-auto leading-relaxed">
+          {t("subtitle")}
+        </p>
+      </section>
 
+      {/* Pricing */}
+      <section className="relative px-4 md:px-6 pt-8 pb-20">
+        <PricingToggle
+          locale={locale}
+          labels={{ monthly: t("monthly"), annual: t("annual"), save: t("save", { percent: "38" }) }}
+          creatorsData={{
+            name: t("creators.name"),
+            description: t("creators.description"),
+            monthlyPrice: t("creators.monthly_price"),
+            annualPrice: t("creators.annual_price"),
+            features: creatorsFeatures,
+            badge: t("mostPopular"),
+          }}
+          boutiqueData={{
+            name: t("boutique.name"),
+            description: t("boutique.description"),
+            annualPrice: t("boutique.annual_price"),
+            features: boutiqueFeatures,
+            badge: t("onlyAnnual"),
+          }}
+          subscribeLabel={t("subscribe")}
+          perMonth={t("perMonth")}
+          perYear={t("perYear")}
+        />
+      </section>
+
+      {/* Footer links */}
+      <div className="text-center pb-12">
+        <p className="text-sm text-white/30">
+          <a href={`/${locale}/cgv`} className="hover:text-white/50 transition-colors">CGV</a>
+          <span className="mx-2">·</span>
+          <a href={`/${locale}/mentions-legales`} className="hover:text-white/50 transition-colors">
+            Mentions légales
+          </a>
+        </p>
+      </div>
+
+      {/* JSON-LD structured data */}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
