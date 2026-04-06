@@ -13,8 +13,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     title: locale === "fr" ? "Abonnements" : "Pricing",
     description:
       locale === "fr"
-        ? "Accédez à 300+ morceaux originaux libres de droit. Offres Créateurs dès 15,99 €/mois et Boutique à 99,99 €/an."
-        : "Access 300+ original royalty-free tracks. Creators plans from €15.99/month and Boutique at €99.99/year.",
+        ? "Accédez à des milliers de morceaux originaux libres de droit. Offres Créateurs dès 15,99 €/mois et Boutique à 99,99 €/an."
+        : "Access thousands of original royalty-free tracks. Creators plans from €15.99/month and Boutique at €99.99/year.",
     locale,
     pagePath: "/abonnements",
   });

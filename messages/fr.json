@@ -92,7 +92,7 @@
   },
   "pricing": {
     "title": "Nos offres",
-    "subtitle": "Plus de 300 morceaux originaux, libres de droit. Pour vos vidéos, podcasts et commerces.",
+    "subtitle": "Des milliers de morceaux originaux, libres de droit. Pour vos vidéos, podcasts et commerces.",
     "monthly": "Mensuel",
     "annual": "Annuel",
     "save": "Économisez {percent}%",
@@ -114,7 +114,7 @@
       "monthly_price": "15,99 €",
       "annual_price": "99 €",
       "features": [
-        "Accès illimité aux 300+ morceaux",
+        "Accès illimité à des milliers de morceaux",
         "Téléchargement WAV & MP3",
         "Licence YouTube, Instagram, podcasts",
         "Whitelist YouTube incluse",
@@ -127,7 +127,7 @@
       "annual_price": "99,99 €",
       "features": [
         "Diffusion en lieu public autorisée",
-        "Accès illimité aux 300+ morceaux",
+        "Accès illimité à des milliers de morceaux",
         "Licence restaurants, boutiques, hôtels",
         "Nouvelles sorties incluses"
       ]

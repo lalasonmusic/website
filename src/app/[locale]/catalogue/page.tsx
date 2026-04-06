@@ -25,8 +25,8 @@ export async function generateMetadata({ params }: Pick<Props, "params">): Promi
     title: locale === "fr" ? "Catalogue" : "Catalogue",
     description:
       locale === "fr"
-        ? "Écoutez et téléchargez 300+ morceaux originaux, libres de droit pour vos vidéos, podcasts et projets créatifs."
-        : "Listen to and download 300+ original royalty-free tracks for your videos, podcasts and creative projects.",
+        ? "Écoutez et téléchargez des milliers de morceaux originaux, libres de droit pour vos vidéos, podcasts et projets créatifs."
+        : "Listen to and download thousands of original royalty-free tracks for your videos, podcasts and creative projects.",
     locale,
     pagePath: "/catalogue",
   });
