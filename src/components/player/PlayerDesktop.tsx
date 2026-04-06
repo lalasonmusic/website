@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { useLocale } from "next-intl";
+import { usePathname } from "next/navigation";
 import { usePlayerStore } from "@/store/playerStore";
 import { track as trackEvent } from "@/lib/analytics";
 
@@ -124,6 +125,8 @@ function formatTime(seconds: number) {
 
 export default function PlayerDesktop() {
   const locale = useLocale();
+  const pathname = usePathname();
+  const onCatalogue = pathname.includes("/catalogue");
   const {
     currentTrack,
     isPlaying,
@@ -288,9 +291,9 @@ export default function PlayerDesktop() {
         <DownloadMenu trackId={currentTrack.id} trackTitle={currentTrack.title} artistName={currentTrack.artistName} />
       )}
 
-      {/* CTA link — adapts based on subscription */}
+      {/* CTA link — adapts based on context */}
       <Link
-        href={isSubscribed ? `/${locale}/catalogue` : `/${locale}/abonnements`}
+        href={!isSubscribed && onCatalogue ? `/${locale}/abonnements` : `/${locale}/catalogue`}
         style={{
           fontSize: "0.6875rem",
           color: "var(--color-accent)",
@@ -300,9 +303,9 @@ export default function PlayerDesktop() {
           flexShrink: 0,
         }}
       >
-        {isSubscribed
-          ? (locale === "fr" ? "Catalogue →" : "Browse →")
-          : (locale === "fr" ? "Nos offres →" : "Our plans →")
+        {!isSubscribed && onCatalogue
+          ? (locale === "fr" ? "Nos offres →" : "Our plans →")
+          : (locale === "fr" ? "Catalogue →" : "Browse →")
         }
       </Link>
 

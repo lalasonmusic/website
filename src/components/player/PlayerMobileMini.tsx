@@ -2,10 +2,13 @@
 
 import Link from "next/link";
 import { useLocale } from "next-intl";
+import { usePathname } from "next/navigation";
 import { usePlayerStore } from "@/store/playerStore";
 
 export default function PlayerMobileMini() {
   const locale = useLocale();
+  const pathname = usePathname();
+  const onCatalogue = pathname.includes("/catalogue");
   const { currentTrack, isPlaying, progress, duration, isSubscribed, togglePlay, showSubscribeCta } = usePlayerStore();
 
   if (!currentTrack) return null;
@@ -93,9 +96,9 @@ export default function PlayerMobileMini() {
           </p>
         </div>
 
-        {/* CTA link — adapts based on subscription */}
+        {/* CTA link — adapts based on context */}
         <Link
-          href={isSubscribed ? `/${locale}/catalogue` : `/${locale}/abonnements`}
+          href={!isSubscribed && onCatalogue ? `/${locale}/abonnements` : `/${locale}/catalogue`}
           style={{
             fontSize: "0.5625rem",
             color: "var(--color-accent)",
@@ -105,9 +108,9 @@ export default function PlayerMobileMini() {
             flexShrink: 0,
           }}
         >
-          {isSubscribed
-            ? (locale === "fr" ? "Catalogue" : "Browse")
-            : (locale === "fr" ? "Nos offres" : "Our plans")
+          {!isSubscribed && onCatalogue
+            ? (locale === "fr" ? "Nos offres" : "Our plans")
+            : (locale === "fr" ? "Catalogue" : "Browse")
           }
         </Link>
 
