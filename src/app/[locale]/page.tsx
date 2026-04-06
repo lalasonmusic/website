@@ -337,6 +337,76 @@ export default async function HomePage({ params }: Props) {
         </div>
       </section>
 
+      {/* ── YOUTUBE CHANNEL ── */}
+      <section style={{ padding: "5rem 1.5rem", backgroundColor: "#f8f7f5" }}>
+        <div style={{ maxWidth: "960px", margin: "0 auto", textAlign: "center" }}>
+          <h2 style={{
+            fontWeight: 800,
+            fontSize: "clamp(1.5rem, 2.5vw, 2rem)",
+            color: "#1b3a4b",
+            marginBottom: "0.75rem",
+          }}>
+            {locale === "fr"
+              ? "Retrouvez nos musiques libres de droit originales sur YouTube"
+              : "Find our original royalty-free music on YouTube"}
+          </h2>
+          <p style={{
+            color: "#6b7280",
+            fontSize: "0.9375rem",
+            marginBottom: "2.5rem",
+            maxWidth: "560px",
+            marginLeft: "auto",
+            marginRight: "auto",
+          }}>
+            {locale === "fr"
+              ? "La Musique Libre est une chaîne YouTube regroupant pour vous les meilleures musiques libres de droits."
+              : "La Musique Libre is a YouTube channel bringing you the best royalty-free music."}
+          </p>
+
+          <div style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(3, 1fr)",
+            gap: "1.25rem",
+            marginBottom: "2.5rem",
+          }}>
+            {["r8h8a3omWKA", "zrXbhncmorc", "A-8XzXakxio"].map((id) => (
+              <div key={id} style={{
+                aspectRatio: "16/9",
+                borderRadius: 10,
+                overflow: "hidden",
+                boxShadow: "0 4px 16px rgba(0,0,0,0.1)",
+              }}>
+                <iframe
+                  src={`https://www.youtube-nocookie.com/embed/${id}`}
+                  title="La Musique Libre"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                  style={{ width: "100%", height: "100%", border: "none" }}
+                />
+              </div>
+            ))}
+          </div>
+
+          <a
+            href="https://www.youtube.com/@LaMusiqueLibre"
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              display: "inline-block",
+              padding: "0.75rem 2rem",
+              backgroundColor: "#FF0000",
+              color: "white",
+              fontWeight: 600,
+              fontSize: "0.9375rem",
+              borderRadius: "9999px",
+              textDecoration: "none",
+            }}
+          >
+            {locale === "fr" ? "Je rejoins la chaîne" : "Join the channel"} →
+          </a>
+        </div>
+      </section>
+
       {/* ── CTA FINAL ── */}
       <section
         style={{
