@@ -97,22 +97,24 @@ export default function PlayerMobileMini() {
         </div>
 
         {/* CTA link — adapts based on context */}
-        <Link
-          href={!isSubscribed && onCatalogue ? `/${locale}/abonnements` : `/${locale}/catalogue`}
-          style={{
-            fontSize: "0.5625rem",
-            color: "var(--color-accent)",
-            textDecoration: "none",
-            fontWeight: 600,
-            whiteSpace: "nowrap",
-            flexShrink: 0,
-          }}
-        >
-          {!isSubscribed && onCatalogue
-            ? (locale === "fr" ? "Nos offres" : "Our plans")
-            : (locale === "fr" ? "Catalogue" : "Browse")
-          }
-        </Link>
+        {!(isSubscribed && onCatalogue) && (
+          <Link
+            href={!isSubscribed && onCatalogue ? `/${locale}/abonnements` : `/${locale}/catalogue`}
+            style={{
+              fontSize: "0.5625rem",
+              color: "var(--color-accent)",
+              textDecoration: "none",
+              fontWeight: 600,
+              whiteSpace: "nowrap",
+              flexShrink: 0,
+            }}
+          >
+            {!isSubscribed && onCatalogue
+              ? (locale === "fr" ? "Nos offres" : "Our plans")
+              : (locale === "fr" ? "Catalogue" : "Browse")
+            }
+          </Link>
+        )}
 
         {/* Play/Pause or Subscribe */}
         {!showSubscribeCta ? (

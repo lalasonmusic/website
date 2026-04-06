@@ -97,8 +97,12 @@ export default function PlayerProvider({ isSubscribed }: Props) {
                 subscribedRef.current = true;
                 setIsSubscribed(true);
               }
+            } else {
+              console.warn("[player] signed-url failed:", res.status);
             }
-          } catch {}
+          } catch (err) {
+            console.warn("[player] signed-url error:", err);
+          }
         }
       }
 

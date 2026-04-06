@@ -292,22 +292,24 @@ export default function PlayerDesktop() {
       )}
 
       {/* CTA link — adapts based on context */}
-      <Link
-        href={!isSubscribed && onCatalogue ? `/${locale}/abonnements` : `/${locale}/catalogue`}
-        style={{
-          fontSize: "0.6875rem",
-          color: "var(--color-accent)",
-          textDecoration: "none",
-          fontWeight: 600,
-          whiteSpace: "nowrap",
-          flexShrink: 0,
-        }}
-      >
-        {!isSubscribed && onCatalogue
-          ? (locale === "fr" ? "Nos offres →" : "Our plans →")
-          : (locale === "fr" ? "Catalogue →" : "Browse →")
-        }
-      </Link>
+      {!(isSubscribed && onCatalogue) && (
+        <Link
+          href={!isSubscribed && onCatalogue ? `/${locale}/abonnements` : `/${locale}/catalogue`}
+          style={{
+            fontSize: "0.6875rem",
+            color: "var(--color-accent)",
+            textDecoration: "none",
+            fontWeight: 600,
+            whiteSpace: "nowrap",
+            flexShrink: 0,
+          }}
+        >
+          {!isSubscribed && onCatalogue
+            ? (locale === "fr" ? "Nos offres →" : "Our plans →")
+            : (locale === "fr" ? "Catalogue →" : "Browse →")
+          }
+        </Link>
+      )}
 
       {/* Volume */}
       <div style={{ display: "flex", alignItems: "center", gap: "0.25rem", flexShrink: 0 }}>
