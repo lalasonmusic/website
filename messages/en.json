@@ -183,7 +183,21 @@
     "invoiceDownload": "PDF",
     "invoicePaid": "Paid",
     "invoiceOpen": "Pending",
-    "invoiceUncollectible": "Unpaid"
+    "invoiceUncollectible": "Unpaid",
+    "managePayment": "Manage payment",
+    "cancelSubscription": "Cancel subscription",
+    "cancelTitle": "Why do you want to cancel?",
+    "cancelSubtitle": "Your feedback helps us improve the service.",
+    "cancelReason1": "I don't use the service enough",
+    "cancelReason2": "The price is too high",
+    "cancelReason3": "I couldn't find the tracks I was looking for",
+    "cancelReason4": "I found an alternative",
+    "cancelReasonOther": "Other (please specify)",
+    "cancelPlaceholder": "Tell us more...",
+    "cancelConfirm": "Confirm cancellation",
+    "cancelBack": "Go back",
+    "cancelSuccess": "Your subscription will end on {date}. You'll keep access until then.",
+    "cancelError": "Something went wrong. Please try again later."
   },
   "blog": {
     "title": "Blog",

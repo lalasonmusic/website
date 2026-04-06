@@ -5,6 +5,7 @@ import { db } from "@/db";
 import { subscriptions, downloads, tracks, artists, youtubeChannels } from "@/db/schema";
 import { eq, and, desc, count } from "drizzle-orm";
 import ManageSubscriptionButton from "@/components/membre/ManageSubscriptionButton";
+import CancelSubscriptionModal from "@/components/membre/CancelSubscriptionModal";
 import YoutubeChannelForm from "@/components/membre/YoutubeChannelForm";
 import LicenceDownloadButton from "@/components/membre/LicenceDownloadButton";
 import LicenceInfoForm from "@/components/membre/LicenceInfoForm";
@@ -318,7 +319,27 @@ export default async function MembrePage({ params }: Props) {
                   </div>
                 </div>
 
-                <ManageSubscriptionButton label={t("manageSubscription")} />
+                <div className="flex items-center gap-3 flex-wrap">
+                  <ManageSubscriptionButton label={t("managePayment")} />
+                  <CancelSubscriptionModal
+                    labels={{
+                      title: t("cancelTitle"),
+                      subtitle: t("cancelSubtitle"),
+                      reasons: [
+                        t("cancelReason1"),
+                        t("cancelReason2"),
+                        t("cancelReason3"),
+                        t("cancelReason4"),
+                      ],
+                      reasonOther: t("cancelReasonOther"),
+                      placeholder: t("cancelPlaceholder"),
+                      confirm: t("cancelConfirm"),
+                      back: t("cancelBack"),
+                      success: t("cancelSuccess"),
+                      error: t("cancelError"),
+                    }}
+                  />
+                </div>
               </div>
 
               {/* ── License card ── */}

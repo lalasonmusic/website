@@ -183,7 +183,21 @@
     "invoiceDownload": "PDF",
     "invoicePaid": "Payée",
     "invoiceOpen": "En attente",
-    "invoiceUncollectible": "Impayée"
+    "invoiceUncollectible": "Impayée",
+    "managePayment": "Modifier le paiement",
+    "cancelSubscription": "Se désabonner",
+    "cancelTitle": "Pourquoi souhaitez-vous vous désabonner ?",
+    "cancelSubtitle": "Votre avis nous aide à améliorer le service.",
+    "cancelReason1": "Je n'utilise pas assez le service",
+    "cancelReason2": "Le prix est trop élevé",
+    "cancelReason3": "Je n'ai pas trouvé les morceaux que je cherchais",
+    "cancelReason4": "J'ai trouvé une alternative",
+    "cancelReasonOther": "Autre (précisez)",
+    "cancelPlaceholder": "Dites-nous en plus...",
+    "cancelConfirm": "Confirmer la résiliation",
+    "cancelBack": "Annuler",
+    "cancelSuccess": "Votre abonnement sera résilié le {date}. Vous conservez l'accès jusqu'à cette date.",
+    "cancelError": "Une erreur est survenue. Réessayez plus tard."
   },
   "blog": {
     "title": "Blog",
