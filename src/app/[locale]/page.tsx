@@ -53,11 +53,6 @@ export default async function HomePage({ params }: Props) {
   if (cats) allCategories = cats;
   if (artists) allArtists = artists;
 
-  const styles = allCategories.filter((c) => c.type === "STYLE");
-  const themes = allCategories.filter((c) => c.type === "THEME");
-  const moods = allCategories.filter((c) => c.type === "MOOD");
-  const featuredArtists = allArtists.slice(0, 7);
-
   const testimonials = [
     { name: t("testimonial1_name"), role: t("testimonial1_role"), text: t("testimonial1_text") },
     { name: t("testimonial2_name"), role: t("testimonial2_role"), text: t("testimonial2_text") },
@@ -283,6 +278,62 @@ export default async function HomePage({ params }: Props) {
           </h2>
 
           <TestimonialCarousel testimonials={testimonials} />
+        </div>
+      </section>
+
+      {/* ── QUI SOMMES-NOUS ── */}
+      <section style={{
+        padding: "5rem 1.5rem",
+        background: "linear-gradient(180deg, #0f2533 0%, #1b3a4b 100%)",
+      }}>
+        <div style={{
+          maxWidth: "960px",
+          margin: "0 auto",
+          display: "flex",
+          alignItems: "center",
+          gap: "3rem",
+          flexWrap: "wrap",
+        }}>
+          {/* Video */}
+          <div style={{
+            flex: "1 1 400px",
+            aspectRatio: "16/9",
+            borderRadius: 12,
+            overflow: "hidden",
+            boxShadow: "0 8px 32px rgba(0,0,0,0.3)",
+          }}>
+            <iframe
+              src="https://www.youtube.com/embed/PShwEajxAxk"
+              title="Lalason - Qui sommes-nous ?"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+              style={{
+                width: "100%",
+                height: "100%",
+                border: "none",
+              }}
+            />
+          </div>
+
+          {/* Text */}
+          <div style={{ flex: "1 1 300px" }}>
+            <h2 style={{
+              fontWeight: 800,
+              fontSize: "clamp(1.5rem, 2.5vw, 2rem)",
+              color: "white",
+              marginBottom: "1rem",
+            }}>
+              {t("about_title")}
+            </h2>
+            <p style={{
+              color: "rgba(255,255,255,0.7)",
+              fontSize: "0.9375rem",
+              lineHeight: 1.8,
+              margin: 0,
+            }}>
+              {t("about_text")}
+            </p>
+          </div>
         </div>
       </section>
 
