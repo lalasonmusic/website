@@ -303,7 +303,7 @@ export default async function HomePage({ params }: Props) {
             boxShadow: "0 8px 32px rgba(0,0,0,0.3)",
           }}>
             <iframe
-              src="https://www.youtube.com/embed/PShwEajxAxk"
+              src="https://www.youtube-nocookie.com/embed/PShwEajxAxk"
               title="Lalason - Qui sommes-nous ?"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               allowFullScreen
