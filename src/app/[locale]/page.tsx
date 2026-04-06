@@ -574,17 +574,34 @@ export default async function HomePage({ params }: Props) {
       <section style={{
         position: "relative",
         padding: "5rem 1.5rem",
-        backgroundImage: "url(/hero-bg.png)",
-        backgroundSize: "cover",
-        backgroundPosition: "center",
+        overflow: "hidden",
         textAlign: "center",
       }}>
+        {/* Background video */}
+        <video
+          autoPlay
+          muted
+          loop
+          playsInline
+          style={{
+            position: "absolute",
+            inset: 0,
+            width: "100%",
+            height: "100%",
+            objectFit: "cover",
+            zIndex: 0,
+          }}
+        >
+          <source src="/newsletter-bg.mp4" type="video/mp4" />
+        </video>
+        {/* Warm overlay */}
         <div style={{
           position: "absolute",
           inset: 0,
-          backgroundColor: "rgba(140, 90, 20, 0.75)",
+          backgroundColor: "rgba(140, 90, 20, 0.7)",
+          zIndex: 1,
         }} />
-        <div style={{ position: "relative", maxWidth: "600px", margin: "0 auto" }}>
+        <div style={{ position: "relative", zIndex: 2, maxWidth: "600px", margin: "0 auto" }}>
           <p style={{
             fontWeight: 700,
             fontSize: "clamp(1.25rem, 2.5vw, 1.75rem)",
