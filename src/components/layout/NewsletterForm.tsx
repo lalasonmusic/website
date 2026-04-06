@@ -27,12 +27,14 @@ export default function NewsletterForm({ placeholder, buttonLabel, successMessag
 
   if (submitted) {
     return (
-      <p style={{ fontSize: "0.875rem", color: "var(--color-accent)" }}>{successMessage}</p>
+      <p style={{ fontSize: "0.9375rem", color: "var(--color-accent)", fontWeight: 600, padding: "0.5rem 1rem" }}>
+        {successMessage}
+      </p>
     );
   }
 
   return (
-    <form onSubmit={handleSubmit} style={{ display: "flex", gap: "0.5rem" }}>
+    <form onSubmit={handleSubmit} style={{ display: "flex", flex: 1, gap: "0.5rem", alignItems: "center" }}>
       <input
         type="email"
         value={email}
@@ -41,28 +43,29 @@ export default function NewsletterForm({ placeholder, buttonLabel, successMessag
         placeholder={placeholder}
         style={{
           flex: 1,
-          padding: "0.5rem 0.75rem",
-          backgroundColor: "var(--color-bg-primary)",
-          border: "1px solid var(--color-border)",
-          borderRadius: "var(--radius-sm)",
-          color: "var(--color-text-primary)",
-          fontSize: "0.875rem",
+          padding: "0.75rem 1.25rem",
+          backgroundColor: "transparent",
+          border: "none",
+          outline: "none",
+          color: "#1b3a4b",
+          fontSize: "0.9375rem",
         }}
       />
       <button
         type="submit"
         disabled={loading}
         style={{
-          padding: "0.5rem 1rem",
+          padding: "0.625rem 1.5rem",
           backgroundColor: "var(--color-accent)",
           color: "var(--color-accent-text)",
           fontWeight: 600,
           fontSize: "0.875rem",
-          borderRadius: "var(--radius-sm)",
+          borderRadius: "9999px",
           border: "none",
           cursor: loading ? "not-allowed" : "pointer",
           whiteSpace: "nowrap",
           opacity: loading ? 0.7 : 1,
+          flexShrink: 0,
         }}
       >
         {buttonLabel}

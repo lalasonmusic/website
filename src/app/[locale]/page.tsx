@@ -9,6 +9,7 @@ import { AudioLines, FileCheck2, Headphones } from "lucide-react";
 import TestimonialCarousel from "@/components/home/TestimonialCarousel";
 import { blogService } from "@/lib/services/blogService";
 import FaqAccordion from "@/components/home/FaqAccordion";
+import NewsletterForm from "@/components/layout/NewsletterForm";
 
 type Props = {
   params: Promise<{ locale: string }>;
@@ -566,6 +567,50 @@ export default async function HomePage({ params }: Props) {
               answer: "Yes, you can monetize your videos. If you subscribe, all the projects you create and publish on social media are covered as long as your subscription is active.",
             },
           ]} />
+        </div>
+      </section>
+
+      {/* ── NEWSLETTER ── */}
+      <section style={{
+        position: "relative",
+        padding: "5rem 1.5rem",
+        backgroundImage: "url(/hero-bg.png)",
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        textAlign: "center",
+      }}>
+        <div style={{
+          position: "absolute",
+          inset: 0,
+          backgroundColor: "rgba(140, 90, 20, 0.75)",
+        }} />
+        <div style={{ position: "relative", maxWidth: "600px", margin: "0 auto" }}>
+          <p style={{
+            fontWeight: 700,
+            fontSize: "clamp(1.25rem, 2.5vw, 1.75rem)",
+            color: "white",
+            fontStyle: "italic",
+            lineHeight: 1.5,
+            marginBottom: "2rem",
+          }}>
+            {locale === "fr"
+              ? "Recevez toutes nos dernières actualités une fois par mois en vous inscrivant ici !"
+              : "Get all our latest news once a month by signing up here!"}
+          </p>
+          <div style={{
+            maxWidth: "480px",
+            margin: "0 auto",
+            backgroundColor: "white",
+            borderRadius: "9999px",
+            padding: "0.375rem",
+            display: "flex",
+          }}>
+            <NewsletterForm
+              placeholder={locale === "fr" ? "Ex. nom@exemple.fr" : "Ex. name@example.com"}
+              buttonLabel={locale === "fr" ? "S'abonner" : "Subscribe"}
+              successMessage={locale === "fr" ? "Merci pour votre inscription !" : "Thanks for subscribing!"}
+            />
+          </div>
         </div>
       </section>
 

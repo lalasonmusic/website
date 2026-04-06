@@ -1,5 +1,4 @@
 import { getTranslations } from "next-intl/server";
-import NewsletterForm from "./NewsletterForm";
 
 type Props = {
   locale: string;
@@ -57,17 +56,6 @@ export default async function Footer({ locale }: Props) {
             ))}
           </nav>
 
-          {/* Newsletter */}
-          <div style={{ minWidth: "240px" }}>
-            <p style={{ fontSize: "0.875rem", fontWeight: 500, marginBottom: "0.75rem" }}>
-              {t("newsletter")}
-            </p>
-            <NewsletterForm
-              placeholder={t("newsletterPlaceholder")}
-              buttonLabel={t("newsletterButton")}
-              successMessage={t("newsletterSuccess")}
-            />
-          </div>
         </div>
 
         {/* Bottom row */}
