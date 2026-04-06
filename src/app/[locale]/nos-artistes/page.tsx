@@ -79,9 +79,8 @@ export default async function NosArtistesPage({ params }: Props) {
           ) : (
             <div style={{
               display: "grid",
-              gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))",
+              gridTemplateColumns: "repeat(auto-fill, minmax(150px, 1fr))",
               gap: "2rem",
-              justifyItems: "center",
             }}>
               {allArtists.map((artist) => (
                 <a
