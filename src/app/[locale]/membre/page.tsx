@@ -282,25 +282,6 @@ export default async function MembrePage({ params }: Props) {
         <section className="px-4 md:px-6 py-10">
           <div className="max-w-[900px] mx-auto space-y-6">
 
-            {/* ── Stats bar ── */}
-            <div className="grid grid-cols-2 gap-4">
-              {[
-                { value: String(downloadCount), label: t("statDownloads"), icon: "M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" },
-                { value: String(daysLeft), label: t("statDaysLeft"), icon: "M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" },
-              ].map((stat) => (
-                <div
-                  key={stat.label}
-                  className="rounded-2xl p-5 border border-white/[0.08] text-center"
-                  style={{ background: "rgba(255,255,255,0.03)" }}
-                >
-                  <svg className="w-5 h-5 text-[var(--color-accent)] mx-auto mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d={stat.icon} />
-                  </svg>
-                  <p className="text-2xl font-extrabold text-white mb-0.5">{stat.value}</p>
-                  <p className="text-xs text-white/40">{stat.label}</p>
-                </div>
-              ))}
-            </div>
 
             {/* ── CTA Catalogue ── */}
             <a
