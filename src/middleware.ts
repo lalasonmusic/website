@@ -56,8 +56,8 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    // Routes next-intl (toutes sauf _next, api, auth, fichiers statiques)
-    "/((?!_next|api|auth|.*\\..*).*)",
+    // Routes next-intl (toutes sauf _next, api, auth, admin, fichiers statiques)
+    "/((?!_next|api|auth|admin|.*\\..*).*)",
     "/",
   ],
 };
