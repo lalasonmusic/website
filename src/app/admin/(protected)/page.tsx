@@ -8,7 +8,7 @@ import {
   artists,
   profiles,
 } from "@/db/schema";
-import { count, eq, and, gte, desc, sql } from "drizzle-orm";
+import { count, eq, and, gte, lt, desc } from "drizzle-orm";
 import { stripe } from "@/lib/stripe";
 
 async function getKpis() {
@@ -39,7 +39,7 @@ async function getKpis() {
     ),
     // New subscribers last month
     db.select({ value: count() }).from(subscriptions).where(
-      and(eq(subscriptions.status, "active"), gte(subscriptions.createdAt, startOfLastMonth), sql`${subscriptions.createdAt} < ${startOfMonth}`)
+      and(eq(subscriptions.status, "active"), gte(subscriptions.createdAt, startOfLastMonth), lt(subscriptions.createdAt, startOfMonth))
     ),
     // Total registered users
     db.select({ value: count() }).from(profiles),
@@ -132,7 +132,18 @@ async function getKpis() {
 }
 
 export default async function AdminPage() {
-  const kpis = await getKpis();
+  let kpis;
+  try {
+    kpis = await getKpis();
+  } catch (err) {
+    console.error("[admin] getKpis failed:", err);
+    return (
+      <div>
+        <h1 style={{ fontWeight: 800, fontSize: "1.75rem", marginBottom: "1rem" }}>Tableau de bord</h1>
+        <p style={{ color: "#ef4444" }}>Erreur de chargement des données. Réessayez.</p>
+      </div>
+    );
+  }
 
   const mainCards = [
     { label: "Abonnés actifs", value: String(kpis.subscriberCount), accent: true },
