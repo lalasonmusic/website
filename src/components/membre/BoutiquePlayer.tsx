@@ -106,7 +106,7 @@ export default function BoutiquePlayer({ tracks, locale, moodFilters }: Props) {
         <div className="p-8 md:p-10 flex flex-col md:flex-row items-center gap-8">
           {/* Artist visual */}
           <div
-            className="w-40 h-40 md:w-48 md:h-48 rounded-2xl flex items-center justify-center shrink-0 overflow-hidden"
+            className="w-28 h-28 sm:w-40 sm:h-40 md:w-48 md:h-48 rounded-2xl flex items-center justify-center shrink-0 overflow-hidden"
             style={{
               background: nowPlaying
                 ? `linear-gradient(180deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.02) 100%)`
@@ -348,7 +348,7 @@ export default function BoutiquePlayer({ tracks, locale, moodFilters }: Props) {
           )}
         </div>
 
-        <div style={{ maxHeight: "400px", overflowY: "auto" }}>
+        <div style={{ maxHeight: "clamp(250px, 50vh, 400px)", overflowY: "auto" }}>
           {filteredTracks.map((track, index) => {
             const isCurrent = currentTrack?.id === track.id;
             return (

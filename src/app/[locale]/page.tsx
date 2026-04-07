@@ -202,7 +202,7 @@ export default async function HomePage({ params }: Props) {
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: "repeat(3, 1fr)",
+              gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
               gap: "0",
             }}
           >
@@ -370,7 +370,7 @@ export default async function HomePage({ params }: Props) {
 
           <div style={{
             display: "grid",
-            gridTemplateColumns: "repeat(3, 1fr)",
+            gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
             gap: "1.25rem",
             marginBottom: "2.5rem",
           }}>
@@ -431,7 +431,7 @@ export default async function HomePage({ params }: Props) {
 
             <div style={{
               display: "grid",
-              gridTemplateColumns: "repeat(3, 1fr)",
+              gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
               gap: "1.5rem",
               marginBottom: "2.5rem",
             }}>

@@ -166,7 +166,7 @@ export default function PricingToggle({
 
             {/* Price */}
             <div className="mb-8">
-              <span className="text-5xl font-extrabold text-white tracking-tight">
+              <span className="text-3xl md:text-5xl font-extrabold text-white tracking-tight">
                 {isAnnual ? creatorsData.annualPrice : creatorsData.monthlyPrice}
               </span>
               <span className="text-white/40 text-sm ml-1.5">
@@ -225,7 +225,7 @@ export default function PricingToggle({
 
           {/* Price */}
           <div className="mb-8">
-            <span className="text-5xl font-extrabold text-white tracking-tight">
+            <span className="text-3xl md:text-5xl font-extrabold text-white tracking-tight">
               {boutiqueData.annualPrice}
             </span>
             <span className="text-white/40 text-sm ml-1.5">{perYear}</span>

@@ -107,10 +107,6 @@ export default async function MembrePage({ params }: Props) {
     } catch {}
   }
 
-  // Days left until renewal
-  const daysLeft = activeSub
-    ? Math.max(0, Math.ceil((activeSub.currentPeriodEnd.getTime() - Date.now()) / (1000 * 60 * 60 * 24)))
-    : 0;
   const isMonthly = activeSub?.planType === "creators_monthly";
 
   // Features for upsell cards
@@ -225,7 +221,7 @@ export default async function MembrePage({ params }: Props) {
                   <h3 className="text-2xl font-extrabold text-white mb-1.5">{p("creators.name")}</h3>
                   <p className="text-sm text-white/50 mb-6 leading-relaxed">{p("creators.description")}</p>
                   <div className="mb-1">
-                    <span className="text-4xl font-extrabold text-white tracking-tight">{p("creators.annual_price")}</span>
+                    <span className="text-2xl md:text-4xl font-extrabold text-white tracking-tight">{p("creators.annual_price")}</span>
                     <span className="text-white/40 text-sm ml-1.5">{p("perYear")}</span>
                   </div>
                   <p className="text-sm text-white/30 mb-6">{t("upsellOrMonthly", { price: p("creators.monthly_price") })}</p>
@@ -252,7 +248,7 @@ export default async function MembrePage({ params }: Props) {
                 <h3 className="text-2xl font-extrabold text-white mb-1.5">{p("boutique.name")}</h3>
                 <p className="text-sm text-white/50 mb-6 leading-relaxed">{p("boutique.description")}</p>
                 <div className="mb-7">
-                  <span className="text-4xl font-extrabold text-white tracking-tight">{p("boutique.annual_price")}</span>
+                  <span className="text-2xl md:text-4xl font-extrabold text-white tracking-tight">{p("boutique.annual_price")}</span>
                   <span className="text-white/40 text-sm ml-1.5">{p("perYear")}</span>
                 </div>
                 <a href={`/${locale}/abonnements`} className="block w-full py-3.5 rounded-xl font-semibold text-base text-center transition-all duration-300 text-white no-underline border border-white/[0.12] hover:border-white/[0.2] hover:scale-[1.02] active:scale-[0.98] mb-7" style={{ background: "rgba(255,255,255,0.06)" }}>
