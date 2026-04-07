@@ -3,6 +3,8 @@ import { subscriptions, downloads, profiles } from "@/db/schema";
 import { count, desc } from "drizzle-orm";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { stripe } from "@/lib/stripe";
+import { Suspense } from "react";
+import ClientSearch from "@/components/admin/ClientSearch";
 
 type Invoice = {
   id: string;
@@ -119,22 +121,41 @@ function formatAmount(amount: number, currency: string): string {
   return new Intl.NumberFormat("fr-FR", { style: "currency", currency: currency.toUpperCase(), minimumFractionDigits: 2 }).format(amount / 100);
 }
 
-export default async function ClientsPage() {
-  const clients = await getClients();
+type Props = {
+  searchParams: Promise<{ q?: string }>;
+};
+
+export default async function ClientsPage({ searchParams }: Props) {
+  const { q } = await searchParams;
+  const allClients = await getClients();
   const dateOpts: Intl.DateTimeFormatOptions = { day: "numeric", month: "short", year: "numeric" };
 
-  const activeCount = clients.filter((c) => c.status === "active").length;
-  const canceledCount = clients.filter((c) => c.status === "canceled").length;
+  // Filter by search query
+  const clients = q
+    ? allClients.filter((c) => {
+        const search = q.toLowerCase();
+        return (
+          c.email.toLowerCase().includes(search) ||
+          c.licenceNumber.toLowerCase().includes(search) ||
+          (planLabels[c.planType] ?? "").toLowerCase().includes(search)
+        );
+      })
+    : allClients;
+
+  const activeCount = allClients.filter((c) => c.status === "active").length;
+  const canceledCount = allClients.filter((c) => c.status === "canceled").length;
 
   return (
     <div>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "2rem" }}>
-        <div>
-          <h1 style={{ fontWeight: 800, fontSize: "1.75rem", marginBottom: "0.25rem" }}>Clients</h1>
-          <p style={{ color: "var(--color-text-muted)", fontSize: "0.875rem" }}>
-            {activeCount} actifs · {canceledCount} résiliés · {clients.length} total
-          </p>
-        </div>
+      <div style={{ marginBottom: "1.5rem" }}>
+        <h1 style={{ fontWeight: 800, fontSize: "1.75rem", marginBottom: "0.25rem" }}>Clients</h1>
+        <p style={{ color: "var(--color-text-muted)", fontSize: "0.875rem", marginBottom: "1rem" }}>
+          {activeCount} actifs · {canceledCount} résiliés · {allClients.length} total
+          {q && ` · ${clients.length} résultat${clients.length !== 1 ? "s" : ""} pour "${q}"`}
+        </p>
+        <Suspense>
+          <ClientSearch />
+        </Suspense>
       </div>
 
       {/* Client cards */}
