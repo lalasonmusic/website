@@ -2,7 +2,29 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 
+const BOT_PATTERNS = [
+  /bot/i, /crawler/i, /spider/i, /crawling/i,
+  /googlebot/i, /bingbot/i, /yandex/i, /baidu/i,
+  /facebookexternalhit/i, /twitterbot/i, /linkedinbot/i,
+  /slurp/i, /duckduckbot/i, /semrush/i, /ahrefs/i,
+  /mj12bot/i, /dotbot/i, /petalbot/i, /bytespider/i,
+  /headlesschrome/i, /lighthouse/i, /pagespeed/i,
+  /uptimerobot/i, /pingdom/i, /vercel/i, /monitor/i,
+];
+
+function isBot(ua: string | null): boolean {
+  if (!ua) return true;
+  return BOT_PATTERNS.some((p) => p.test(ua));
+}
+
 export async function POST(req: NextRequest) {
+  const userAgent = req.headers.get("user-agent");
+
+  // Filter bots
+  if (isBot(userAgent)) {
+    return NextResponse.json({ ok: true });
+  }
+
   const { sessionId, page } = await req.json();
   if (!sessionId || !page) {
     return NextResponse.json({ error: "Missing fields" }, { status: 400 });

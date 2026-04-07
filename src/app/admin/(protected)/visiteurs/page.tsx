@@ -33,9 +33,18 @@ async function getVisitors() {
     .gte("last_seen_at", oneHourAgo)
     .order("last_seen_at", { ascending: false });
 
+  // Filter out single-heartbeat sessions (bots/crawls that somehow got through)
+  // A real visitor will have last_seen_at > created_at (at least 2 heartbeats)
+  const filterReal = (sessions: VisitorSession[]) =>
+    sessions.filter((s) => {
+      const created = new Date(s.created_at).getTime();
+      const lastSeen = new Date(s.last_seen_at).getTime();
+      return lastSeen - created > 15_000; // at least 15s between first and last heartbeat
+    });
+
   return {
-    online: (online ?? []) as VisitorSession[],
-    recent: (recent ?? []) as VisitorSession[],
+    online: filterReal((online ?? []) as VisitorSession[]),
+    recent: filterReal((recent ?? []) as VisitorSession[]),
   };
 }
 
