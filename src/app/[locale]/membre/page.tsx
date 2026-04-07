@@ -583,18 +583,20 @@ export default async function MembrePage({ params }: Props) {
               </div>
             )}
 
-            {/* ── Support ── */}
-            <div className="text-center pt-2 pb-4 flex items-center justify-center gap-4">
-              <p className="text-sm text-white/25">
+            {/* ── Support + Logout ── */}
+            <div
+              className="rounded-2xl p-5 border border-white/[0.08] flex items-center justify-between flex-wrap gap-4"
+              style={{ background: "rgba(255,255,255,0.03)" }}
+            >
+              <p className="text-sm text-white/40">
                 {t("supportText")}{" "}
                 <a
                   href={`/${locale}/contact`}
-                  className="text-white/40 hover:text-white/60 transition-colors underline underline-offset-2"
+                  className="text-white/50 hover:text-white/70 transition-colors underline underline-offset-2"
                 >
                   {t("supportLink")}
                 </a>
               </p>
-              <span className="text-white/10">·</span>
               <LogoutButton label={t("logout")} locale={locale} />
             </div>
 

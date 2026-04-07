@@ -206,7 +206,8 @@
     "statTracks": "Morceaux disponibles",
     "dashboardCta": "Explorer le catalogue",
     "supportText": "Besoin d'aide ?",
-    "supportLink": "Contactez-nous"
+    "supportLink": "Contactez-nous",
+    "logout": "Déconnexion"
   },
   "blog": {
     "title": "Blog",

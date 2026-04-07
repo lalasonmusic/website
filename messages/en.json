@@ -206,7 +206,8 @@
     "statTracks": "Available tracks",
     "dashboardCta": "Browse the catalogue",
     "supportText": "Need help?",
-    "supportLink": "Contact us"
+    "supportLink": "Contact us",
+    "logout": "Log out"
   },
   "blog": {
     "title": "Blog",
