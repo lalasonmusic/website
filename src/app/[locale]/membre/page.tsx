@@ -12,7 +12,7 @@ import LicenceInfoForm from "@/components/membre/LicenceInfoForm";
 import InvoiceList from "@/components/membre/InvoiceList";
 import LogoutButton from "@/components/membre/LogoutButton";
 import { trackService } from "@/lib/services/trackService";
-import TrackCard from "@/components/catalogue/TrackCard";
+import BoutiquePlayer from "@/components/membre/BoutiquePlayer";
 
 type Props = {
   params: Promise<{ locale: string }>;
@@ -93,14 +93,19 @@ export default async function MembrePage({ params }: Props) {
     activeSub?.planType === "creators_monthly" || activeSub?.planType === "creators_annual";
   const isBoutiquePlan = activeSub?.planType === "boutique_annual";
 
-  // Fetch tracks for boutique player + track count for stats
+  // Fetch tracks for boutique player
   let boutiqueTracks: Awaited<ReturnType<typeof trackService.getPublished>>["tracks"] = [];
-  let totalTracks = 0;
-  try {
-    const result = await trackService.getPublished({ page: 1, limit: isBoutiquePlan ? 100 : 1 });
-    totalTracks = result.total;
-    if (isBoutiquePlan) boutiqueTracks = result.tracks;
-  } catch {}
+  let moodCategories: { slug: string; labelFr: string; labelEn: string }[] = [];
+  if (isBoutiquePlan) {
+    try {
+      const [tracksResult, allCats] = await Promise.all([
+        trackService.getPublished({ page: 1, limit: 500 }),
+        trackService.getAllCategories(),
+      ]);
+      boutiqueTracks = tracksResult.tracks;
+      moodCategories = allCats.filter((c) => c.type === "MOOD");
+    } catch {}
+  }
 
   // Days left until renewal
   const daysLeft = activeSub
@@ -556,31 +561,14 @@ export default async function MembrePage({ params }: Props) {
 
             {/* ── Boutique Player ── */}
             {isBoutiquePlan && boutiqueTracks.length > 0 && (
-              <div
-                className="rounded-2xl p-6 border border-white/[0.08]"
-                style={{ background: "rgba(255,255,255,0.03)" }}
-              >
-                <h2 className="text-base font-bold text-white mb-1">
-                  {locale === "fr" ? "Votre player en boutique" : "Your in-store player"}
-                </h2>
-                <p className="text-sm text-white/40 mb-4">
-                  {locale === "fr"
-                    ? "Lancez la lecture — les morceaux s'enchaînent automatiquement."
-                    : "Start playing — tracks play continuously one after another."}
-                </p>
-                <div className="rounded-xl overflow-hidden border border-white/[0.06]" style={{ maxHeight: "500px", overflowY: "auto" }}>
-                  {boutiqueTracks.map((track, index) => (
-                    <TrackCard
-                      key={track.id}
-                      track={track}
-                      queue={boutiqueTracks}
-                      queueIndex={index}
-                      locale={locale}
-                      isSubscribed={true}
-                    />
-                  ))}
-                </div>
-              </div>
+              <BoutiquePlayer
+                tracks={boutiqueTracks}
+                locale={locale}
+                moodFilters={moodCategories.map((c) => ({
+                  slug: c.slug,
+                  label: locale === "fr" ? c.labelFr : c.labelEn,
+                }))}
+              />
             )}
 
             {/* ── Support + Logout ── */}

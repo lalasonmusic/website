@@ -11,6 +11,8 @@ interface PlayerState {
   volume: number;
   isSubscribed: boolean;
   showSubscribeCta: boolean;
+  shuffle: boolean;
+  repeat: "off" | "all" | "one";
 }
 
 interface PlayerActions {
@@ -24,6 +26,8 @@ interface PlayerActions {
   setVolume: (volume: number) => void;
   setIsSubscribed: (v: boolean) => void;
   setShowSubscribeCta: (v: boolean) => void;
+  toggleShuffle: () => void;
+  toggleRepeat: () => void;
   stop: () => void;
 }
 
@@ -37,6 +41,8 @@ export const usePlayerStore = create<PlayerState & PlayerActions>((set, get) => 
   volume: 0.8,
   isSubscribed: false,
   showSubscribeCta: false,
+  shuffle: false,
+  repeat: "off",
 
   playTrack: (track, queue, index = 0) => {
     set({
@@ -58,10 +64,30 @@ export const usePlayerStore = create<PlayerState & PlayerActions>((set, get) => 
   },
 
   next: () => {
-    const { queue, queueIndex } = get();
+    const { queue, queueIndex, shuffle, repeat } = get();
+
+    // Repeat one → restart current track
+    if (repeat === "one") {
+      set({ progress: 0, isPlaying: true, showSubscribeCta: false });
+      return;
+    }
+
+    // Shuffle → pick random track (different from current)
+    if (shuffle && queue.length > 1) {
+      let randomIndex: number;
+      do {
+        randomIndex = Math.floor(Math.random() * queue.length);
+      } while (randomIndex === queueIndex && queue.length > 1);
+      set({ currentTrack: queue[randomIndex], queueIndex: randomIndex, progress: 0, isPlaying: true, showSubscribeCta: false });
+      return;
+    }
+
     const nextIndex = queueIndex + 1;
     if (nextIndex < queue.length) {
       set({ currentTrack: queue[nextIndex], queueIndex: nextIndex, progress: 0, isPlaying: true, showSubscribeCta: false });
+    } else if (repeat === "all" && queue.length > 0) {
+      // Loop back to start
+      set({ currentTrack: queue[0], queueIndex: 0, progress: 0, isPlaying: true, showSubscribeCta: false });
     } else {
       set({ isPlaying: false });
     }
@@ -84,6 +110,11 @@ export const usePlayerStore = create<PlayerState & PlayerActions>((set, get) => 
   setVolume: (volume) => set({ volume }),
   setIsSubscribed: (v) => set({ isSubscribed: v }),
   setShowSubscribeCta: (v) => set({ showSubscribeCta: v }),
+
+  toggleShuffle: () => set((s) => ({ shuffle: !s.shuffle })),
+  toggleRepeat: () => set((s) => ({
+    repeat: s.repeat === "off" ? "all" : s.repeat === "all" ? "one" : "off",
+  })),
 
   stop: () => set({ isPlaying: false, currentTrack: null, progress: 0, showSubscribeCta: false }),
 }));
