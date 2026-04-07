@@ -122,36 +122,38 @@ export default async function HomePage({ params }: Props) {
             {t("hero_subtitle")}
           </p>
 
-          <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap" }}>
-          <a
-            href={`/${locale}/catalogue`}
-            style={{
-              padding: "0.875rem 2rem",
-              backgroundColor: "var(--color-accent)",
-              color: "var(--color-accent-text)",
-              fontWeight: 600,
-              fontSize: "1rem",
-              borderRadius: "var(--radius-full)",
-              textDecoration: "none",
-            }}
-          >
-            {t("hero_cta_primary")}
-          </a>
-          <a
-            href={`/${locale}/abonnements`}
-            style={{
-              padding: "0.875rem 2rem",
-              backgroundColor: "transparent",
-              color: "white",
-              fontWeight: 500,
-              fontSize: "1rem",
-              borderRadius: "var(--radius-full)",
-              border: "1px solid rgba(255,255,255,0.4)",
-              textDecoration: "none",
-            }}
-          >
-            {t("hero_cta_secondary")}
-          </a>
+          <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem", maxWidth: "320px" }}>
+            <a
+              href={`/${locale}/catalogue`}
+              style={{
+                padding: "0.875rem 2rem",
+                backgroundColor: "var(--color-accent)",
+                color: "var(--color-accent-text)",
+                fontWeight: 600,
+                fontSize: "1rem",
+                borderRadius: "var(--radius-full)",
+                textDecoration: "none",
+                textAlign: "center",
+              }}
+            >
+              {t("hero_cta_primary")}
+            </a>
+            <a
+              href={`/${locale}/abonnements`}
+              style={{
+                padding: "0.875rem 2rem",
+                backgroundColor: "transparent",
+                color: "white",
+                fontWeight: 500,
+                fontSize: "1rem",
+                borderRadius: "var(--radius-full)",
+                border: "1px solid rgba(255,255,255,0.4)",
+                textDecoration: "none",
+                textAlign: "center",
+              }}
+            >
+              {t("hero_cta_secondary")}
+            </a>
           </div>
         </div>
       </section>

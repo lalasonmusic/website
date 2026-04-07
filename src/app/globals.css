@@ -97,6 +97,7 @@ body {
   font-family: "Poppins", sans-serif;
   font-weight: 400;
   -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
   -moz-osx-font-smoothing: grayscale;
 }
 
