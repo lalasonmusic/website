@@ -12,6 +12,7 @@ type Props = {
   queueIndex: number;
   locale: string;
   isSubscribed: boolean;
+  canDownload?: boolean;
 };
 
 function formatDuration(seconds: number | null) {
@@ -171,7 +172,7 @@ function DownloadButton({ trackId, trackTitle, artistName, locale }: { trackId: 
   );
 }
 
-export default function TrackCard({ track, queue, queueIndex, locale, isSubscribed }: Props) {
+export default function TrackCard({ track, queue, queueIndex, locale, isSubscribed, canDownload = isSubscribed }: Props) {
   const { currentTrack, isPlaying, progress, duration, playTrack, togglePlay } = usePlayerStore();
   const isCurrentTrack = currentTrack?.id === track.id;
   const isActive = isCurrentTrack && (isPlaying || progress > 0);
@@ -380,7 +381,7 @@ export default function TrackCard({ track, queue, queueIndex, locale, isSubscrib
       </span>
 
       {/* Download button — subscribers only */}
-      {isSubscribed && track.fullPath && (
+      {canDownload && track.fullPath && (
         <DownloadButton trackId={track.id} trackTitle={track.title} artistName={track.artistName} locale={locale} />
       )}
     </div>
