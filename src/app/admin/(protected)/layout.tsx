@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { db } from "@/db";
 import { profiles } from "@/db/schema";
 import { eq } from "drizzle-orm";
+import AdminLogoutButton from "@/components/admin/AdminLogoutButton";
 
 export default async function AdminProtectedLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient();
@@ -71,6 +72,7 @@ export default async function AdminProtectedLayout({ children }: { children: Rea
             {link.label}
           </Link>
         ))}
+        <AdminLogoutButton />
       </nav>
       <main
         style={{
