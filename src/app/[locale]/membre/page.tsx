@@ -10,6 +10,7 @@ import YoutubeChannelForm from "@/components/membre/YoutubeChannelForm";
 import LicenceDownloadButton from "@/components/membre/LicenceDownloadButton";
 import LicenceInfoForm from "@/components/membre/LicenceInfoForm";
 import InvoiceList from "@/components/membre/InvoiceList";
+import LogoutButton from "@/components/membre/LogoutButton";
 import { trackService } from "@/lib/services/trackService";
 import TrackCard from "@/components/catalogue/TrackCard";
 
@@ -583,7 +584,7 @@ export default async function MembrePage({ params }: Props) {
             )}
 
             {/* ── Support ── */}
-            <div className="text-center pt-2 pb-4">
+            <div className="text-center pt-2 pb-4 flex items-center justify-center gap-4">
               <p className="text-sm text-white/25">
                 {t("supportText")}{" "}
                 <a
@@ -593,6 +594,8 @@ export default async function MembrePage({ params }: Props) {
                   {t("supportLink")}
                 </a>
               </p>
+              <span className="text-white/10">·</span>
+              <LogoutButton label={t("logout")} locale={locale} />
             </div>
 
           </div>

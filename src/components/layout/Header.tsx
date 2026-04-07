@@ -84,7 +84,6 @@ export default async function Header({ locale }: Props) {
             <UserMenu
               locale={locale}
               memberLabel={t("member")}
-              logoutLabel={t("logout")}
             />
           ) : (
             <a
