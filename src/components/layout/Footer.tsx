@@ -36,7 +36,7 @@ export default async function Footer({ locale }: Props) {
         {/* Main grid */}
         <div style={{
           display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+          gridTemplateColumns: "repeat(auto-fit, minmax(min(180px, 100%), 1fr))",
           gap: "2rem",
           marginBottom: "2rem",
         }}>
