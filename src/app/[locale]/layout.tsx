@@ -10,6 +10,7 @@ import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import PlayerProvider from "@/components/player/PlayerProvider";
 import PostHogProvider from "@/components/analytics/PostHogProvider";
+import PresenceTracker from "@/components/analytics/PresenceTracker";
 import CookieBanner from "@/components/analytics/CookieBanner";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
@@ -54,6 +55,7 @@ export default async function LocaleLayout({ children, params }: Props) {
         </main>
         <Footer locale={locale} />
         <PlayerProvider isSubscribed={isSubscribed} />
+        <PresenceTracker />
         <CookieBanner />
         <Analytics />
         <SpeedInsights />
