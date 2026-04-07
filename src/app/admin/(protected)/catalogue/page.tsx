@@ -3,6 +3,7 @@ import { tracks, artists, downloads, categories } from "@/db/schema";
 import { count, eq, desc } from "drizzle-orm";
 import TogglePublishButton from "@/components/admin/TogglePublishButton";
 import AddTrackForm from "@/components/admin/AddTrackForm";
+import BulkUploadForm from "@/components/admin/BulkUploadForm";
 
 async function getTracks() {
   const allTracks = await db
@@ -66,10 +67,13 @@ export default async function CataloguePage() {
         </div>
       </div>
 
-      <AddTrackForm
-        artists={allArtists}
-        categories={allCategories.map((c) => ({ id: c.id, label: c.labelFr, type: c.type }))}
-      />
+      <div style={{ display: "flex", gap: "0.75rem", marginBottom: "1.5rem" }}>
+        <AddTrackForm
+          artists={allArtists}
+          categories={allCategories.map((c) => ({ id: c.id, label: c.labelFr, type: c.type }))}
+        />
+        <BulkUploadForm />
+      </div>
 
       <div style={{
         backgroundColor: "var(--color-bg-card)",
