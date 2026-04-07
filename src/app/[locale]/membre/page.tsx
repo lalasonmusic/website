@@ -289,21 +289,35 @@ export default async function MembrePage({ params }: Props) {
           <div className="max-w-[900px] mx-auto space-y-6">
 
 
-            {/* ── CTA Catalogue ── */}
-            <a
-              href={`/${locale}/catalogue`}
-              className="flex items-center justify-center gap-3 w-full py-4 rounded-2xl text-base font-bold no-underline transition-all duration-300 hover:scale-[1.01]"
-              style={{
-                background: "linear-gradient(135deg, var(--color-accent) 0%, #e8961a 100%)",
-                color: "var(--color-accent-text)",
-                boxShadow: "0 4px 24px rgba(245,166,35,0.2)",
-              }}
-            >
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
-              {t("dashboardCta")}
-            </a>
+            {/* ── Boutique Player (top for boutique subscribers) ── */}
+            {isBoutiquePlan && boutiqueTracks.length > 0 && (
+              <BoutiquePlayer
+                tracks={boutiqueTracks}
+                locale={locale}
+                moodFilters={moodCategories.map((c) => ({
+                  slug: c.slug,
+                  label: locale === "fr" ? c.labelFr : c.labelEn,
+                }))}
+              />
+            )}
+
+            {/* ── CTA Catalogue (creators only) ── */}
+            {isCreatorsPlan && (
+              <a
+                href={`/${locale}/catalogue`}
+                className="flex items-center justify-center gap-3 w-full py-4 rounded-2xl text-base font-bold no-underline transition-all duration-300 hover:scale-[1.01]"
+                style={{
+                  background: "linear-gradient(135deg, var(--color-accent) 0%, #e8961a 100%)",
+                  color: "var(--color-accent-text)",
+                  boxShadow: "0 4px 24px rgba(245,166,35,0.2)",
+                }}
+              >
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+                {t("dashboardCta")}
+              </a>
+            )}
 
             {/* ── Upgrade banner (monthly only) ── */}
             {isMonthly && (
@@ -557,18 +571,6 @@ export default async function MembrePage({ params }: Props) {
                   </div>
                 )}
               </div>
-            )}
-
-            {/* ── Boutique Player ── */}
-            {isBoutiquePlan && boutiqueTracks.length > 0 && (
-              <BoutiquePlayer
-                tracks={boutiqueTracks}
-                locale={locale}
-                moodFilters={moodCategories.map((c) => ({
-                  slug: c.slug,
-                  label: locale === "fr" ? c.labelFr : c.labelEn,
-                }))}
-              />
             )}
 
             {/* ── Support + Logout ── */}
