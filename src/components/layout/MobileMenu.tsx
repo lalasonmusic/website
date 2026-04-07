@@ -23,7 +23,7 @@ export default function MobileMenu({ locale, isLoggedIn }: Props) {
 
   return (
     <>
-      {/* Burger button */}
+      {/* Burger / Close button */}
       <button
         onClick={() => setOpen(!open)}
         aria-label="Menu"
@@ -35,6 +35,8 @@ export default function MobileMenu({ locale, isLoggedIn }: Props) {
           border: "none",
           cursor: "pointer",
           padding: "0.5rem",
+          position: "relative",
+          zIndex: 10001,
         }}
       >
         <span style={{ display: "block", width: "22px", height: "2px", backgroundColor: "var(--color-text-primary)", transition: "all 0.2s", transform: open ? "translateY(7px) rotate(45deg)" : "none" }} />
@@ -42,31 +44,33 @@ export default function MobileMenu({ locale, isLoggedIn }: Props) {
         <span style={{ display: "block", width: "22px", height: "2px", backgroundColor: "var(--color-text-primary)", transition: "all 0.2s", transform: open ? "translateY(-7px) rotate(-45deg)" : "none" }} />
       </button>
 
-      {/* Dropdown menu */}
+      {/* Fullscreen overlay */}
       {open && (
         <div
-          onClick={() => setOpen(false)}
           style={{
             position: "fixed",
-            inset: 0,
-            top: "60px",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
             backgroundColor: "#0f2533",
-            zIndex: 9999,
-            padding: "2rem 1.5rem",
+            zIndex: 10000,
             display: "flex",
             flexDirection: "column",
-            gap: "1.75rem",
-            overflowY: "auto",
+            justifyContent: "center",
+            alignItems: "center",
+            gap: "2rem",
           }}
         >
           {navLinks.map((link) => (
             <a
               key={link.href}
               href={link.href}
+              onClick={() => setOpen(false)}
               style={{
-                fontSize: "1.125rem",
-                fontWeight: 500,
-                color: "var(--color-text-primary)",
+                fontSize: "1.5rem",
+                fontWeight: 600,
+                color: "white",
                 textDecoration: "none",
               }}
             >
@@ -74,12 +78,13 @@ export default function MobileMenu({ locale, isLoggedIn }: Props) {
             </a>
           ))}
 
-          <hr style={{ borderColor: "var(--color-border)" }} />
+          <div style={{ width: 40, height: 1, backgroundColor: "rgba(255,255,255,0.15)", margin: "0.25rem 0" }} />
 
           <a
             href={isLoggedIn ? `/${locale}/membre` : `/${locale}/connexion`}
+            onClick={() => setOpen(false)}
             style={{
-              fontSize: "1rem",
+              fontSize: "1.25rem",
               fontWeight: 600,
               color: "var(--color-accent)",
               textDecoration: "none",
@@ -102,8 +107,6 @@ export default function MobileMenu({ locale, isLoggedIn }: Props) {
                 background: "none",
                 border: "none",
                 cursor: "pointer",
-                padding: 0,
-                textAlign: "left",
                 fontFamily: "inherit",
               }}
             >
@@ -111,7 +114,9 @@ export default function MobileMenu({ locale, isLoggedIn }: Props) {
             </button>
           )}
 
-          <LanguageSwitcher />
+          <div style={{ marginTop: "0.5rem" }}>
+            <LanguageSwitcher />
+          </div>
         </div>
       )}
     </>
