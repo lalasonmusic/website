@@ -22,6 +22,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
 
   const navLinks = [
     { href: "/admin", label: "Tableau de bord" },
+    { href: "/admin/clients", label: "Clients" },
     { href: "/admin/youtube-channels", label: "Chaînes YouTube" },
   ];
 
