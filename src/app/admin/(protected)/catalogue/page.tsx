@@ -1,7 +1,8 @@
 import { db } from "@/db";
-import { tracks, artists, downloads } from "@/db/schema";
+import { tracks, artists, downloads, categories } from "@/db/schema";
 import { count, eq, desc } from "drizzle-orm";
 import TogglePublishButton from "@/components/admin/TogglePublishButton";
+import AddTrackForm from "@/components/admin/AddTrackForm";
 
 async function getTracks() {
   const allTracks = await db
@@ -42,14 +43,19 @@ function formatDuration(s: number | null) {
 }
 
 export default async function CataloguePage() {
-  const allTracks = await getTracks();
+  const [allTracks, allArtists, allCategories] = await Promise.all([
+    getTracks(),
+    db.select({ id: artists.id, name: artists.name }).from(artists).orderBy(artists.name),
+    db.select({ id: categories.id, labelFr: categories.labelFr, type: categories.type }).from(categories).orderBy(categories.type, categories.labelFr),
+  ]);
+
   const published = allTracks.filter((t) => t.isPublished).length;
   const unpublished = allTracks.length - published;
   const totalDownloads = allTracks.reduce((sum, t) => sum + t.downloadCount, 0);
 
   return (
     <div>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "2rem" }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "1.5rem" }}>
         <div>
           <h1 style={{ fontWeight: 800, fontSize: "1.75rem", marginBottom: "0.25rem" }}>
             Catalogue
@@ -59,6 +65,11 @@ export default async function CataloguePage() {
           </p>
         </div>
       </div>
+
+      <AddTrackForm
+        artists={allArtists}
+        categories={allCategories.map((c) => ({ id: c.id, label: c.labelFr, type: c.type }))}
+      />
 
       <div style={{
         backgroundColor: "var(--color-bg-card)",
