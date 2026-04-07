@@ -37,14 +37,14 @@ const creatorUsages = {
 
 const boutiqueUsages = {
   fr: [
-    "Diffusion en lieu public (commerces, restaurants, hôtels)",
-    "Ambiance sonore en boutique",
-    "Espaces recevant du public",
+    "Diffusion musicale en lieu recevant du public",
+    "Commerces, restaurants, hotels, salons, espaces de coworking",
+    "Ambiance sonore continue en boutique",
   ],
   en: [
-    "Public broadcast (shops, restaurants, hotels)",
-    "In-store background music",
-    "Public-facing venues",
+    "Music broadcast in public-facing venues",
+    "Shops, restaurants, hotels, salons, coworking spaces",
+    "Continuous in-store background music",
   ],
 };
 
@@ -167,32 +167,67 @@ export async function GET(request: NextRequest) {
   y -= 15;
 
   // Legal note
-  const noteTitle = locale === "fr" ? "Important" : "Important";
+  const noteTitle = locale === "fr" ? "Mentions importantes" : "Important notices";
   page.drawText(noteTitle, { x: left, y, font: bold, size: 11, color: dark });
   y -= lineH;
 
-  const noteLines =
-    locale === "fr"
-      ? [
-          "Ce certificat atteste que le titulaire dispose d'une licence valide pour utiliser",
-          "les morceaux du catalogue Lalason dans le cadre des usages listés ci-dessus.",
-          "",
-          "En cas de réclamation Content ID ou de demande de preuve de licence,",
-          "communiquez ce numéro de licence à la plateforme concernée.",
-          "",
-          "Cette licence est valide uniquement pendant la durée de l'abonnement actif.",
-          "Les contenus créés pendant la période de validité restent couverts.",
-        ]
-      : [
-          "This certificate attests that the holder has a valid licence to use tracks",
-          "from the Lalason catalogue for the uses listed above.",
-          "",
-          "In case of a Content ID claim or licence proof request,",
-          "share this licence number with the relevant platform.",
-          "",
-          "This licence is valid only during the active subscription period.",
-          "Content created during the validity period remains covered.",
-        ];
+  const creatorNotes = {
+    fr: [
+      "Ce certificat atteste que le titulaire dispose d'une licence valide pour utiliser",
+      "les morceaux du catalogue Lalason dans le cadre des usages listés ci-dessus.",
+      "",
+      "En cas de réclamation Content ID ou de demande de preuve de licence,",
+      "communiquez ce numéro de licence à la plateforme concernée.",
+      "",
+      "Cette licence est valide uniquement pendant la durée de l'abonnement actif.",
+      "Les contenus créés pendant la période de validité restent couverts.",
+    ],
+    en: [
+      "This certificate attests that the holder has a valid licence to use tracks",
+      "from the Lalason catalogue for the uses listed above.",
+      "",
+      "In case of a Content ID claim or licence proof request,",
+      "share this licence number with the relevant platform.",
+      "",
+      "This licence is valid only during the active subscription period.",
+      "Content created during the validity period remains covered.",
+    ],
+  };
+
+  const boutiqueNotes = {
+    fr: [
+      "Ce certificat autorise la diffusion musicale du répertoire Lalason dans le lieu",
+      "du titulaire pour une durée d'un (1) an à compter de la date de souscription.",
+      "",
+      "L'intégralité du répertoire Lalason est composée d'oeuvres originales créées",
+      "exclusivement pour Lalason. Ces oeuvres ne sont affiliées à aucun organisme",
+      "de gestion collective de droits d'auteur (SACEM, SUISA, GEMA, etc.).",
+      "Les auteurs et compositeurs ne sont membres d'aucun de ces organismes.",
+      "",
+      "Cette licence couvre uniquement la diffusion des morceaux du catalogue Lalason.",
+      "Lalason décline toute responsabilité si le titulaire diffuse des oeuvres musicales",
+      "extérieures au répertoire Lalason dans son établissement.",
+      "",
+      "En cas de contrôle, présentez ce certificat comme justificatif de licence.",
+    ],
+    en: [
+      "This certificate authorises the broadcast of the Lalason music catalogue",
+      "at the holder's premises for a period of one (1) year from the subscription date.",
+      "",
+      "The entire Lalason catalogue consists of original works created exclusively",
+      "for Lalason. These works are not affiliated with any collective rights",
+      "management organisation (SACEM, SUISA, GEMA, PRS, BMI, ASCAP, etc.).",
+      "The authors and composers are not members of any such organisation.",
+      "",
+      "This licence covers only the broadcast of tracks from the Lalason catalogue.",
+      "Lalason accepts no responsibility if the holder broadcasts music from outside",
+      "the Lalason catalogue at their premises.",
+      "",
+      "In case of an inspection, present this certificate as proof of licence.",
+    ],
+  };
+
+  const noteLines = isBoutique ? boutiqueNotes[locale] : creatorNotes[locale];
 
   for (const line of noteLines) {
     if (line) {
