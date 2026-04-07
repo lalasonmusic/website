@@ -50,12 +50,13 @@ export default function MobileMenu({ locale, isLoggedIn }: Props) {
             position: "fixed",
             inset: 0,
             top: "60px",
-            backgroundColor: "var(--color-bg-secondary)",
-            zIndex: 40,
-            padding: "1.5rem",
+            backgroundColor: "#0f2533",
+            zIndex: 9999,
+            padding: "2rem 1.5rem",
             display: "flex",
             flexDirection: "column",
-            gap: "1.5rem",
+            gap: "1.75rem",
+            overflowY: "auto",
           }}
         >
           {navLinks.map((link) => (
