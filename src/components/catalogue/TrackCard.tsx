@@ -5,6 +5,7 @@ import { usePlayerStore } from "@/store/playerStore";
 import type { TrackWithDetails, PlayerTrack } from "@/types/track";
 import { track as trackEvent } from "@/lib/analytics";
 import { Download } from "lucide-react";
+import FavoriteButton from "./FavoriteButton";
 
 type Props = {
   track: TrackWithDetails;
@@ -13,6 +14,8 @@ type Props = {
   locale: string;
   isSubscribed: boolean;
   canDownload?: boolean;
+  isFavorite?: boolean;
+  canFavorite?: boolean;
 };
 
 function formatDuration(seconds: number | null) {
@@ -172,7 +175,7 @@ function DownloadButton({ trackId, trackTitle, artistName, locale }: { trackId: 
   );
 }
 
-export default function TrackCard({ track, queue, queueIndex, locale, isSubscribed, canDownload = isSubscribed }: Props) {
+export default function TrackCard({ track, queue, queueIndex, locale, isSubscribed, canDownload = isSubscribed, isFavorite = false, canFavorite = false }: Props) {
   const { currentTrack, isPlaying, progress, duration, playTrack, togglePlay } = usePlayerStore();
   const isCurrentTrack = currentTrack?.id === track.id;
   const isActive = isCurrentTrack && (isPlaying || progress > 0);
@@ -379,6 +382,11 @@ export default function TrackCard({ track, queue, queueIndex, locale, isSubscrib
       }}>
         {formatDuration(track.durationSeconds)}
       </span>
+
+      {/* Favorite button — Creators only */}
+      {canFavorite && (
+        <FavoriteButton trackId={track.id} initialFavorite={isFavorite} />
+      )}
 
       {/* Download button — subscribers only */}
       {canDownload && track.fullPath && (

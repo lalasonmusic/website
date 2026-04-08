@@ -517,22 +517,38 @@ export default async function MembrePage({ params }: Props) {
         <section className="px-4 md:px-6 py-10">
           <div className="max-w-[900px] mx-auto space-y-6">
 
-            {/* ── CTA Catalogue (creators only) ── */}
+            {/* ── CTA Catalogue + Favorites (creators only) ── */}
             {isCreatorsPlan && (
-              <a
-                href={`/${locale}/catalogue`}
-                className="flex items-center justify-center gap-3 w-full py-4 rounded-2xl text-base font-bold no-underline transition-all duration-300 hover:scale-[1.01]"
-                style={{
-                  background: "linear-gradient(135deg, var(--color-accent) 0%, #e8961a 100%)",
-                  color: "var(--color-accent-text)",
-                  boxShadow: "0 4px 24px rgba(245,166,35,0.2)",
-                }}
-              >
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-                {t("dashboardCta")}
-              </a>
+              <div className="grid grid-cols-1 sm:grid-cols-[2fr_1fr] gap-3">
+                <a
+                  href={`/${locale}/catalogue`}
+                  className="flex items-center justify-center gap-3 py-4 rounded-2xl text-base font-bold no-underline transition-all duration-300 hover:scale-[1.01]"
+                  style={{
+                    background: "linear-gradient(135deg, var(--color-accent) 0%, #e8961a 100%)",
+                    color: "var(--color-accent-text)",
+                    boxShadow: "0 4px 24px rgba(245,166,35,0.2)",
+                  }}
+                >
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                  {t("dashboardCta")}
+                </a>
+                <a
+                  href={`/${locale}/membre/favoris`}
+                  className="flex items-center justify-center gap-2 py-4 rounded-2xl text-sm font-bold no-underline transition-all duration-300 hover:scale-[1.01] border"
+                  style={{
+                    background: "rgba(245,166,35,0.08)",
+                    color: "var(--color-accent)",
+                    borderColor: "rgba(245,166,35,0.3)",
+                  }}
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+                  </svg>
+                  {t("favoritesLink")}
+                </a>
+              </div>
             )}
 
             {/* ── Upgrade banner (monthly only) ── */}

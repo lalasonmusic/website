@@ -9,3 +9,4 @@ export * from "./downloads";
 export * from "./youtube-channels";
 export * from "./facebook-accounts";
 export * from "./playlists";
+export * from "./track-favorites";

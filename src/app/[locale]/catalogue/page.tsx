@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
 import { trackService } from "@/lib/services/trackService";
 import { db } from "@/db";
-import { subscriptions } from "@/db/schema";
+import { subscriptions, trackFavorites } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
 import { Suspense } from "react";
 import CatalogueFilters from "@/components/catalogue/CatalogueFilters";
@@ -42,6 +42,7 @@ export default async function CataloguePage({ params, searchParams }: Props) {
   // Check subscription + plan type
   let isSubscribed = false;
   let canDownload = false;
+  let favoriteIds = new Set<string>();
   try {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
@@ -54,6 +55,15 @@ export default async function CataloguePage({ params, searchParams }: Props) {
       isSubscribed = !!sub;
       // Only Creators plans can download — Boutique is play-only
       canDownload = sub?.planType === "creators_monthly" || sub?.planType === "creators_annual";
+
+      // Fetch favorites for Creators
+      if (canDownload) {
+        const favs = await db
+          .select({ trackId: trackFavorites.trackId })
+          .from(trackFavorites)
+          .where(eq(trackFavorites.userId, user.id));
+        favoriteIds = new Set(favs.map((f) => f.trackId));
+      }
     }
   } catch {}
 
@@ -141,6 +151,34 @@ export default async function CataloguePage({ params, searchParams }: Props) {
           }}
         />
         <div style={{ position: "relative", maxWidth: "900px", margin: "0 auto" }}>
+          {/* Quick link to favorites for Creators */}
+          {canDownload && (
+            <div style={{ marginBottom: "1.25rem" }}>
+              <a
+                href={`/${locale}/membre/favoris`}
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 8,
+                  padding: "0.5rem 1rem",
+                  background: "rgba(245,166,35,0.12)",
+                  color: "var(--color-accent)",
+                  border: "1px solid rgba(245,166,35,0.3)",
+                  borderRadius: 9999,
+                  fontSize: "0.8125rem",
+                  fontWeight: 600,
+                  textDecoration: "none",
+                  fontFamily: "inherit",
+                }}
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+                </svg>
+                {locale === "fr" ? "Mes favoris" : "My favorites"}
+              </a>
+            </div>
+          )}
+
           {/* Subtle value prop + CTA */}
           {!isSubscribed && (
             <p
@@ -228,6 +266,8 @@ export default async function CataloguePage({ params, searchParams }: Props) {
                   locale={locale}
                   isSubscribed={isSubscribed}
                   canDownload={canDownload}
+                  canFavorite={canDownload}
+                  isFavorite={favoriteIds.has(track.id)}
                 />
               ))}
             </div>
