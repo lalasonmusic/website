@@ -84,17 +84,42 @@ export async function GET(request: NextRequest, context: RouteContext) {
   const planType = ((lineItem as unknown as { price?: { metadata?: { plan_type?: string } } })?.price?.metadata?.plan_type) ?? "";
   const planLabel = planLabels[planType]?.[locale] ?? planDescription;
 
-  // Customer info
+  // Customer info — billing details (preferred) or licence holder (fallback)
   const licenceFirstName = (user.user_metadata?.licence_first_name as string) ?? "";
   const licenceLastName = (user.user_metadata?.licence_last_name as string) ?? "";
   const licenceAddress = (user.user_metadata?.licence_address as string) ?? "";
-  const customerName = [licenceFirstName, licenceLastName].filter(Boolean).join(" ") || (user.email ?? "—");
 
-  // Customer country from Stripe
-  const customerCountry = invoice.customer_address?.country ?? "";
-  const countryName = customerCountry
-    ? new Intl.DisplayNames([dateLocale], { type: "region" }).of(customerCountry) ?? customerCountry
+  // Billing info (company details)
+  const billingCompany = (user.user_metadata?.billing_company as string) ?? "";
+  const billingVat = (user.user_metadata?.billing_vat as string) ?? "";
+  const billingAddress = (user.user_metadata?.billing_address as string) ?? "";
+  const billingPostalCode = (user.user_metadata?.billing_postal_code as string) ?? "";
+  const billingCity = (user.user_metadata?.billing_city as string) ?? "";
+  const billingCountry = (user.user_metadata?.billing_country as string) ?? "";
+
+  const personalName = [licenceFirstName, licenceLastName].filter(Boolean).join(" ");
+  const customerName = billingCompany || personalName || (user.email ?? "—");
+
+  // Build the customer address block
+  const customerAddressLines: string[] = [];
+  if (billingCompany && personalName) {
+    customerAddressLines.push(personalName);
+  }
+  const streetAddress = billingAddress || licenceAddress;
+  if (streetAddress) customerAddressLines.push(streetAddress);
+  const cityLine = [billingPostalCode, billingCity].filter(Boolean).join(" ");
+  if (cityLine) customerAddressLines.push(cityLine);
+  if (billingCountry) customerAddressLines.push(billingCountry);
+  if (billingVat) customerAddressLines.push(`TVA: ${billingVat}`);
+
+  // Customer country from Stripe (fallback when billing country not set)
+  const stripeCountry = invoice.customer_address?.country ?? "";
+  const fallbackCountry = stripeCountry
+    ? new Intl.DisplayNames([dateLocale], { type: "region" }).of(stripeCountry) ?? stripeCountry
     : "";
+  if (!billingCountry && fallbackCountry && customerAddressLines.length > 0) {
+    customerAddressLines.push(fallbackCountry);
+  }
 
   // Tax rate (calculated from amounts, or from Stripe Tax when enabled)
   const taxRate = subtotal > 0 && tax > 0 ? Math.round((tax / subtotal) * 10000) / 100 : 0;
@@ -175,17 +200,19 @@ export async function GET(request: NextRequest, context: RouteContext) {
   const custTitle = locale === "fr" ? "Client" : "Bill to";
   page.drawText(custTitle, { x: colRight, y: custY, font: bold, size: 10, color: dark });
   let custLine = custY - lineH;
-  page.drawText(customerName, { x: colRight, y: custLine, font, size: 10, color: gray });
+
+  // Customer name (company or personal)
+  page.drawText(customerName, { x: colRight, y: custLine, font: bold, size: 10, color: dark });
   custLine -= lineH;
-  if (licenceAddress) {
-    page.drawText(licenceAddress, { x: colRight, y: custLine, font, size: 9, color: gray });
+
+  // Address block (each line)
+  for (const line of customerAddressLines) {
+    page.drawText(line, { x: colRight, y: custLine, font, size: 9, color: gray });
     custLine -= lineH;
   }
+
+  // Email always at the bottom
   page.drawText(user.email ?? "", { x: colRight, y: custLine, font, size: 9, color: gray });
-  custLine -= lineH;
-  if (countryName) {
-    page.drawText(countryName, { x: colRight, y: custLine, font, size: 9, color: gray });
-  }
 
   y -= lineH + 20;
 

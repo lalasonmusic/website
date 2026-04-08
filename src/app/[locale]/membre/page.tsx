@@ -10,6 +10,7 @@ import YoutubeChannelForm from "@/components/membre/YoutubeChannelForm";
 import FacebookAccountForm from "@/components/membre/FacebookAccountForm";
 import LicenceDownloadButton from "@/components/membre/LicenceDownloadButton";
 import LicenceInfoForm from "@/components/membre/LicenceInfoForm";
+import BillingInfoForm from "@/components/membre/BillingInfoForm";
 import InvoiceList from "@/components/membre/InvoiceList";
 import LogoutButton from "@/components/membre/LogoutButton";
 import { trackService } from "@/lib/services/trackService";
@@ -530,6 +531,39 @@ export default async function MembrePage({ params }: Props) {
                 />
               </div>
             )}
+
+            {/* ── Billing information ── */}
+            <div
+              className="rounded-2xl p-6 border border-white/[0.08]"
+              style={{ background: "rgba(255,255,255,0.03)" }}
+            >
+              <div className="flex items-center gap-2 mb-2">
+                <svg className="w-5 h-5 text-white/50" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                </svg>
+                <h2 className="text-base font-bold text-white">{t("billingTitle")}</h2>
+              </div>
+              <p className="text-sm text-white/40 mb-4">{t("billingDesc")}</p>
+              <BillingInfoForm
+                initialCompany={user.user_metadata?.billing_company ?? ""}
+                initialVat={user.user_metadata?.billing_vat ?? ""}
+                initialAddress={user.user_metadata?.billing_address ?? ""}
+                initialPostalCode={user.user_metadata?.billing_postal_code ?? ""}
+                initialCity={user.user_metadata?.billing_city ?? ""}
+                initialCountry={user.user_metadata?.billing_country ?? ""}
+                labels={{
+                  company: t("billingCompany"),
+                  vat: t("billingVat"),
+                  address: t("billingAddress"),
+                  postalCode: t("billingPostalCode"),
+                  city: t("billingCity"),
+                  country: t("billingCountry"),
+                  save: t("billingSave"),
+                  saved: t("billingSaved"),
+                  hint: t("billingHint"),
+                }}
+              />
+            </div>
 
             {/* ── Invoices ── */}
             <div
