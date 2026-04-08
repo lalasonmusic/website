@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { usePlayerStore } from "@/store/playerStore";
 import type { TrackWithDetails, PlayerTrack } from "@/types/track";
 import PlaylistCarousel from "./PlaylistCarousel";
@@ -70,7 +70,15 @@ export default function BoutiquePlayer({ tracks, locale, moodFilters }: Props) {
     setVolume,
     toggleShuffle,
     toggleRepeat,
+    setHasEmbeddedPlayer,
   } = usePlayerStore();
+
+  // Tell the global player store that an embedded player is active.
+  // This hides the footer mini player to avoid duplication.
+  useEffect(() => {
+    setHasEmbeddedPlayer(true);
+    return () => setHasEmbeddedPlayer(false);
+  }, [setHasEmbeddedPlayer]);
 
   // Filter tracks by mood
   const filteredTracks = activeMood

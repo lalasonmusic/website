@@ -135,6 +135,7 @@ export default function PlayerDesktop() {
     volume,
     isSubscribed,
     showSubscribeCta,
+    hasEmbeddedPlayer,
     togglePlay,
     next,
     prev,
@@ -142,7 +143,7 @@ export default function PlayerDesktop() {
     setVolume,
   } = usePlayerStore();
 
-  if (!currentTrack) return null;
+  if (!currentTrack || hasEmbeddedPlayer) return null;
 
   const progressPercent = duration > 0 ? (progress / duration) * 100 : 0;
 

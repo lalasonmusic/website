@@ -15,6 +15,7 @@ import InvoiceList from "@/components/membre/InvoiceList";
 import LogoutButton from "@/components/membre/LogoutButton";
 import { trackService } from "@/lib/services/trackService";
 import BoutiquePlayer from "@/components/membre/BoutiquePlayer";
+import BoutiqueDashboardTabs from "@/components/membre/BoutiqueDashboardTabs";
 
 type Props = {
   params: Promise<{ locale: string }>;
@@ -290,22 +291,231 @@ export default async function MembrePage({ params }: Props) {
       )}
 
       {/* ── Subscriber dashboard ── */}
-      {activeSub && (
+      {activeSub && isBoutiquePlan && (
+        <section className="px-4 md:px-6 py-10">
+          <div className="max-w-[900px] mx-auto">
+            <BoutiqueDashboardTabs
+              labels={{
+                player: t("tabPlayer"),
+                account: t("tabAccount"),
+                billing: t("tabBilling"),
+              }}
+              playerSection={
+                boutiqueTracks.length > 0 ? (
+                  <BoutiquePlayer
+                    tracks={boutiqueTracks}
+                    locale={locale}
+                    moodFilters={moodCategories.map((c) => ({
+                      slug: c.slug,
+                      label: locale === "fr" ? c.labelFr : c.labelEn,
+                    }))}
+                  />
+                ) : null
+              }
+              accountSection={
+                <div className="space-y-6">
+                  {/* License + Subscription (2 columns) */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {licenseNumber && (
+                      <div
+                        className="rounded-2xl p-6 border border-white/[0.08]"
+                        style={{ background: "rgba(255,255,255,0.03)" }}
+                      >
+                        <div className="flex items-center gap-2 mb-5">
+                          <svg className="w-5 h-5 text-[var(--color-accent)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                          </svg>
+                          <h2 className="text-base font-bold text-white">{t("licenseTitle")}</h2>
+                        </div>
+
+                        <div
+                          className="flex items-center gap-3 px-4 py-3 rounded-xl mb-4"
+                          style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.08)" }}
+                        >
+                          <svg className="w-4 h-4 text-[var(--color-accent)] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14" />
+                          </svg>
+                          <span className="font-mono text-white/80 text-sm tracking-wider font-semibold">
+                            {licenseNumber}
+                          </span>
+                        </div>
+
+                        <p className="text-sm text-white/40 leading-relaxed mb-5">
+                          {t("licenseDesc")}
+                        </p>
+
+                        <div className="mb-5">
+                          <LicenceInfoForm
+                            initialFirstName={user.user_metadata?.licence_first_name ?? ""}
+                            initialLastName={user.user_metadata?.licence_last_name ?? ""}
+                            initialAddress={user.user_metadata?.licence_address ?? ""}
+                            labels={{
+                              firstName: t("licenseFirstName"),
+                              lastName: t("licenseLastName"),
+                              address: t("licenseAddress"),
+                              save: t("licenseSave"),
+                              saved: t("licenseSaved"),
+                              hint: t("licenseFormHint"),
+                            }}
+                          />
+                        </div>
+
+                        <LicenceDownloadButton
+                          label={t("licenseDownload")}
+                          locale={locale}
+                        />
+                      </div>
+                    )}
+
+                    <div
+                      className="rounded-2xl p-6 border border-white/[0.08]"
+                      style={{ background: "rgba(255,255,255,0.03)" }}
+                    >
+                      <div className="flex items-center justify-between mb-5">
+                        <h2 className="text-base font-bold text-white">{t("plan")}</h2>
+                        <span
+                          className="text-xs font-semibold px-2.5 py-1 rounded-full"
+                          style={{ background: "rgba(34,197,94,0.15)", color: "#22c55e" }}
+                        >
+                          {t("statusActive")}
+                        </span>
+                      </div>
+
+                      <p className="text-xl font-extrabold text-white mb-4">
+                        {planLabels[activeSub.planType]}
+                      </p>
+
+                      <div className="space-y-2 mb-6">
+                        <div className="flex items-center gap-2 text-sm">
+                          <svg className="w-4 h-4 text-white/30 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                          </svg>
+                          <span className="text-white/40">{t("subscribedSince")}</span>
+                          <span className="text-white/70 font-medium">
+                            {activeSub.createdAt.toLocaleDateString(dateLocale, dateOpts)}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2 text-sm">
+                          <svg className="w-4 h-4 text-white/30 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                          </svg>
+                          <span className="text-white/40">{t("renewalDate")}</span>
+                          <span className="text-white/70 font-medium">
+                            {activeSub.currentPeriodEnd.toLocaleDateString(dateLocale, dateOpts)}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-3 flex-wrap">
+                        <ManageSubscriptionButton label={t("managePayment")} />
+                        <CancelSubscriptionModal
+                          labels={{
+                            title: t("cancelTitle"),
+                            subtitle: t("cancelSubtitle"),
+                            reasons: [
+                              t("cancelReason1"),
+                              t("cancelReason2"),
+                              t("cancelReason3"),
+                              t("cancelReason4"),
+                            ],
+                            reasonOther: t("cancelReasonOther"),
+                            placeholder: t("cancelPlaceholder"),
+                            confirm: t("cancelConfirm"),
+                            back: t("cancelBack"),
+                            success: t("cancelSuccess"),
+                            error: t("cancelError"),
+                          }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Support + Logout */}
+                  <div
+                    className="rounded-2xl p-5 border border-white/[0.08] flex items-center justify-between flex-wrap gap-4"
+                    style={{ background: "rgba(255,255,255,0.03)" }}
+                  >
+                    <p className="text-sm text-white/40">
+                      {t("supportText")}{" "}
+                      <a
+                        href={`/${locale}/contact`}
+                        className="text-white/50 hover:text-white/70 transition-colors underline underline-offset-2"
+                      >
+                        {t("supportLink")}
+                      </a>
+                    </p>
+                    <LogoutButton label={t("logout")} locale={locale} />
+                  </div>
+                </div>
+              }
+              billingSection={
+                <div className="space-y-6">
+                  {/* Billing info */}
+                  <div
+                    className="rounded-2xl p-6 border border-white/[0.08]"
+                    style={{ background: "rgba(255,255,255,0.03)" }}
+                  >
+                    <div className="flex items-center gap-2 mb-2">
+                      <svg className="w-5 h-5 text-white/50" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                      </svg>
+                      <h2 className="text-base font-bold text-white">{t("billingTitle")}</h2>
+                    </div>
+                    <p className="text-sm text-white/40 mb-4">{t("billingDesc")}</p>
+                    <BillingInfoForm
+                      initialCompany={user.user_metadata?.billing_company ?? ""}
+                      initialVat={user.user_metadata?.billing_vat ?? ""}
+                      initialAddress={user.user_metadata?.billing_address ?? ""}
+                      initialPostalCode={user.user_metadata?.billing_postal_code ?? ""}
+                      initialCity={user.user_metadata?.billing_city ?? ""}
+                      initialCountry={user.user_metadata?.billing_country ?? ""}
+                      labels={{
+                        company: t("billingCompany"),
+                        vat: t("billingVat"),
+                        address: t("billingAddress"),
+                        postalCode: t("billingPostalCode"),
+                        city: t("billingCity"),
+                        country: t("billingCountry"),
+                        save: t("billingSave"),
+                        saved: t("billingSaved"),
+                        hint: t("billingHint"),
+                      }}
+                    />
+                  </div>
+
+                  {/* Invoices */}
+                  <div
+                    className="rounded-2xl p-6 border border-white/[0.08]"
+                    style={{ background: "rgba(255,255,255,0.03)" }}
+                  >
+                    <div className="flex items-center gap-2 mb-5">
+                      <svg className="w-5 h-5 text-white/50" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z" />
+                      </svg>
+                      <h2 className="text-base font-bold text-white">{t("invoicesTitle")}</h2>
+                    </div>
+                    <InvoiceList
+                      locale={locale}
+                      labels={{
+                        empty: t("invoicesEmpty"),
+                        download: t("invoiceDownload"),
+                        paid: t("invoicePaid"),
+                        open: t("invoiceOpen"),
+                        uncollectible: t("invoiceUncollectible"),
+                      }}
+                    />
+                  </div>
+                </div>
+              }
+            />
+          </div>
+        </section>
+      )}
+
+      {/* ── Subscriber dashboard (Creators — vertical layout) ── */}
+      {activeSub && !isBoutiquePlan && (
         <section className="px-4 md:px-6 py-10">
           <div className="max-w-[900px] mx-auto space-y-6">
-
-
-            {/* ── Boutique Player (top for boutique subscribers) ── */}
-            {isBoutiquePlan && boutiqueTracks.length > 0 && (
-              <BoutiquePlayer
-                tracks={boutiqueTracks}
-                locale={locale}
-                moodFilters={moodCategories.map((c) => ({
-                  slug: c.slug,
-                  label: locale === "fr" ? c.labelFr : c.labelEn,
-                }))}
-              />
-            )}
 
             {/* ── CTA Catalogue (creators only) ── */}
             {isCreatorsPlan && (

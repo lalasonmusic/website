@@ -9,9 +9,9 @@ export default function PlayerMobileMini() {
   const locale = useLocale();
   const pathname = usePathname();
   const onCatalogue = pathname.includes("/catalogue");
-  const { currentTrack, isPlaying, progress, duration, isSubscribed, togglePlay, showSubscribeCta } = usePlayerStore();
+  const { currentTrack, isPlaying, progress, duration, isSubscribed, togglePlay, showSubscribeCta, hasEmbeddedPlayer } = usePlayerStore();
 
-  if (!currentTrack) return null;
+  if (!currentTrack || hasEmbeddedPlayer) return null;
 
   const progressPercent = duration > 0 ? (progress / duration) * 100 : 0;
 

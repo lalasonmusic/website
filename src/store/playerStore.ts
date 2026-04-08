@@ -13,6 +13,8 @@ interface PlayerState {
   showSubscribeCta: boolean;
   shuffle: boolean;
   repeat: "off" | "all" | "one";
+  // True when a dedicated boutique player is mounted (hides the footer player)
+  hasEmbeddedPlayer: boolean;
 }
 
 interface PlayerActions {
@@ -28,6 +30,7 @@ interface PlayerActions {
   setShowSubscribeCta: (v: boolean) => void;
   toggleShuffle: () => void;
   toggleRepeat: () => void;
+  setHasEmbeddedPlayer: (v: boolean) => void;
   stop: () => void;
 }
 
@@ -43,6 +46,7 @@ export const usePlayerStore = create<PlayerState & PlayerActions>((set, get) => 
   showSubscribeCta: false,
   shuffle: false,
   repeat: "off",
+  hasEmbeddedPlayer: false,
 
   playTrack: (track, queue, index = 0) => {
     set({
@@ -115,6 +119,7 @@ export const usePlayerStore = create<PlayerState & PlayerActions>((set, get) => 
   toggleRepeat: () => set((s) => ({
     repeat: s.repeat === "off" ? "all" : s.repeat === "all" ? "one" : "off",
   })),
+  setHasEmbeddedPlayer: (v) => set({ hasEmbeddedPlayer: v }),
 
   stop: () => set({ isPlaying: false, currentTrack: null, progress: 0, showSubscribeCta: false }),
 }));
