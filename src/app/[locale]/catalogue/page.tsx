@@ -17,6 +17,10 @@ type Props = {
   searchParams: Promise<{ q?: string; style?: string; theme?: string; mood?: string; page?: string }>;
 };
 
+// Always fetch fresh data — never serve a cached version of the catalogue
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 const TRACKS_PER_PAGE = 20;
 
 export async function generateMetadata({ params }: Pick<Props, "params">): Promise<Metadata> {
