@@ -24,6 +24,7 @@ export default async function AdminProtectedLayout({ children }: { children: Rea
 
   const navLinks = [
     { href: "/admin", label: "Tableau de bord" },
+    { href: "/admin/messages", label: "Messages" },
     { href: "/admin/visiteurs", label: "Visiteurs" },
     { href: "/admin/clients", label: "Clients" },
     { href: "/admin/catalogue", label: "Catalogue" },
