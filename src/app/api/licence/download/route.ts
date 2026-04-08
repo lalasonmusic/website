@@ -20,14 +20,16 @@ const planDescriptions: Record<string, { fr: string; en: string }> = {
 
 const creatorUsages = {
   fr: [
-    "Vidéos YouTube (monétisation autorisée)",
+    "Vidéos YouTube (whitelisting + monétisation autorisée)",
+    "Vidéos Facebook (whitelisting + monétisation autorisée)",
     "Stories et Reels Instagram / TikTok",
     "Podcasts (Spotify, Apple Podcasts, etc.)",
     "Publicités en ligne",
     "Tout contenu créatif numérique",
   ],
   en: [
-    "YouTube videos (monetisation authorised)",
+    "YouTube videos (whitelisting + monetisation authorised)",
+    "Facebook videos (whitelisting + monetisation authorised)",
     "Instagram / TikTok Stories and Reels",
     "Podcasts (Spotify, Apple Podcasts, etc.)",
     "Online advertising",

@@ -2,11 +2,12 @@ import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
 import { db } from "@/db";
-import { subscriptions, downloads, tracks, artists, youtubeChannels } from "@/db/schema";
+import { subscriptions, downloads, tracks, artists, youtubeChannels, facebookAccounts } from "@/db/schema";
 import { eq, and, desc, count } from "drizzle-orm";
 import ManageSubscriptionButton from "@/components/membre/ManageSubscriptionButton";
 import CancelSubscriptionModal from "@/components/membre/CancelSubscriptionModal";
 import YoutubeChannelForm from "@/components/membre/YoutubeChannelForm";
+import FacebookAccountForm from "@/components/membre/FacebookAccountForm";
 import LicenceDownloadButton from "@/components/membre/LicenceDownloadButton";
 import LicenceInfoForm from "@/components/membre/LicenceInfoForm";
 import InvoiceList from "@/components/membre/InvoiceList";
@@ -79,6 +80,14 @@ export default async function MembrePage({ params }: Props) {
     .from(youtubeChannels)
     .where(eq(youtubeChannels.userId, user.id))
     .orderBy(desc(youtubeChannels.submittedAt))
+    .limit(1);
+
+  // Latest submitted Facebook account
+  const [latestFacebook] = await db
+    .select({ accountUrl: facebookAccounts.accountUrl })
+    .from(facebookAccounts)
+    .where(eq(facebookAccounts.userId, user.id))
+    .orderBy(desc(facebookAccounts.submittedAt))
     .limit(1);
 
   const planLabels: Record<string, string> = {
@@ -492,6 +501,31 @@ export default async function MembrePage({ params }: Props) {
                     save: t("youtubeChannelSave"),
                     saved: t("youtubeChannelSaved"),
                     placeholder: t("youtubeChannelPlaceholder"),
+                  }}
+                />
+              </div>
+            )}
+
+            {/* ── Facebook Whitelist ── */}
+            {isCreatorsPlan && (
+              <div
+                className="rounded-2xl p-6 border border-white/[0.08]"
+                style={{ background: "rgba(255,255,255,0.03)" }}
+              >
+                <div className="flex items-center gap-2 mb-2">
+                  <svg className="w-5 h-5" fill="#1877F2" viewBox="0 0 24 24">
+                    <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
+                  </svg>
+                  <h2 className="text-base font-bold text-white">{t("facebookAccount")}</h2>
+                </div>
+                <p className="text-sm text-white/40 mb-4">{t("facebookAccountDesc")}</p>
+                <FacebookAccountForm
+                  existingAccountUrl={latestFacebook?.accountUrl}
+                  labels={{
+                    accountUrl: t("facebookAccountUrl"),
+                    save: t("facebookAccountSave"),
+                    saved: t("facebookAccountSaved"),
+                    placeholder: t("facebookAccountPlaceholder"),
                   }}
                 />
               </div>

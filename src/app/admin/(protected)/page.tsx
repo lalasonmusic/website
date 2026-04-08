@@ -4,11 +4,12 @@ import {
   blogPosts,
   subscriptions,
   youtubeChannels,
+  facebookAccounts,
   downloads,
   artists,
   profiles,
 } from "@/db/schema";
-import { count, eq, and, gte, lt, desc, sql } from "drizzle-orm";
+import { count, eq, and, gte, lt, desc } from "drizzle-orm";
 import { stripe } from "@/lib/stripe";
 import SubscribersChart from "@/components/admin/charts/SubscribersChart";
 import DownloadsChart from "@/components/admin/charts/DownloadsChart";
@@ -20,7 +21,7 @@ async function getKpis() {
   const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
 
   const [
-    trackRow, articleRow, subscriberRow, pendingRow,
+    trackRow, articleRow, subscriberRow, pendingYtRow, pendingFbRow,
     newThisMonth, newLastMonth, totalUsers,
     creatorsMonthlyRow, creatorsAnnualRow, boutiqueRow,
     downloadsThisMonth,
@@ -29,6 +30,7 @@ async function getKpis() {
     db.select({ value: count() }).from(blogPosts).where(eq(blogPosts.isPublished, true)),
     db.select({ value: count() }).from(subscriptions).where(eq(subscriptions.status, "active")),
     db.select({ value: count() }).from(youtubeChannels).where(eq(youtubeChannels.status, "pending")),
+    db.select({ value: count() }).from(facebookAccounts).where(eq(facebookAccounts.status, "pending")),
     db.select({ value: count() }).from(subscriptions).where(
       and(eq(subscriptions.status, "active"), gte(subscriptions.createdAt, startOfMonth))
     ),
@@ -106,7 +108,7 @@ async function getKpis() {
     trackCount: trackRow[0].value,
     articleCount: articleRow[0].value,
     subscriberCount: subscriberRow[0].value,
-    pendingChannelCount: pendingRow[0].value,
+    pendingChannelCount: pendingYtRow[0].value + pendingFbRow[0].value,
     newThisMonth: newThisMonth[0].value,
     newLastMonth: newLastMonth[0].value,
     totalUsers: totalUsers[0].value,

@@ -117,7 +117,7 @@
         "Accès illimité à des milliers de morceaux",
         "Téléchargement WAV & MP3",
         "Licence YouTube, Instagram, podcasts",
-        "Whitelist YouTube incluse",
+        "Whitelist YouTube et Facebook incluses",
         "Nouvelles sorties incluses"
       ]
     },
@@ -177,6 +177,12 @@
     "licenseDownload": "Télécharger le certificat PDF",
     "exploreCatalogue": "Explorer le catalogue",
     "youtubeChannelDesc": "Ajoutez votre Channel ID pour éviter les réclamations Content ID sur YouTube.",
+    "facebookAccount": "Whitelist Facebook",
+    "facebookAccountDesc": "Ajoutez l'URL de votre page ou compte Facebook pour éviter les blocages musicaux.",
+    "facebookAccountUrl": "URL Facebook",
+    "facebookAccountSave": "Enregistrer",
+    "facebookAccountSaved": "Compte Facebook enregistré. Nous l'ajouterons à la whitelist sous 48h.",
+    "facebookAccountPlaceholder": "https://www.facebook.com/votre-page",
     "downloadsEmpty": "Vous n'avez encore rien téléchargé. Explorez le catalogue et trouvez votre premier morceau !",
     "invoicesTitle": "Mes factures",
     "invoicesEmpty": "Aucune facture pour l'instant.",
