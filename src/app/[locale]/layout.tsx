@@ -32,16 +32,19 @@ export default async function LocaleLayout({ children, params }: Props) {
 
   // Check subscription status for the player
   let isSubscribed = false;
+  let canDownload = false;
   try {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (user) {
       const [sub] = await db
-        .select({ id: subscriptions.id })
+        .select({ id: subscriptions.id, planType: subscriptions.planType })
         .from(subscriptions)
         .where(and(eq(subscriptions.userId, user.id), eq(subscriptions.status, "active")))
         .limit(1);
       isSubscribed = !!sub;
+      // Only Creators plans can download — Boutique is play-only
+      canDownload = sub?.planType === "creators_monthly" || sub?.planType === "creators_annual";
     }
   } catch {
     // DB may not be available yet
@@ -55,7 +58,7 @@ export default async function LocaleLayout({ children, params }: Props) {
           {children}
         </main>
         <Footer locale={locale} />
-        <PlayerProvider isSubscribed={isSubscribed} />
+        <PlayerProvider isSubscribed={isSubscribed} canDownload={canDownload} />
         <PresenceTracker />
         <ChatWidget />
         <CookieBanner />

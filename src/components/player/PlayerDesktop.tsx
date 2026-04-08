@@ -134,6 +134,7 @@ export default function PlayerDesktop() {
     duration,
     volume,
     isSubscribed,
+    canDownload,
     showSubscribeCta,
     hasEmbeddedPlayer,
     togglePlay,
@@ -288,7 +289,7 @@ export default function PlayerDesktop() {
       </div>
 
       {/* Download button — subscribers only */}
-      {isSubscribed && currentTrack.fullPath && (
+      {canDownload && currentTrack.fullPath && (
         <DownloadMenu trackId={currentTrack.id} trackTitle={currentTrack.title} artistName={currentTrack.artistName} />
       )}
 

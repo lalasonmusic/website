@@ -9,11 +9,12 @@ import PlayerMobileMini from "./PlayerMobileMini";
 
 type Props = {
   isSubscribed: boolean;
+  canDownload: boolean;
 };
 
 const PREVIEW_LIMIT_SECONDS = 30;
 
-export default function PlayerProvider({ isSubscribed }: Props) {
+export default function PlayerProvider({ isSubscribed, canDownload }: Props) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const signedUrlCache = useRef<Map<string, string>>(new Map());
   const subscribedRef = useRef(isSubscribed);
@@ -26,14 +27,19 @@ export default function PlayerProvider({ isSubscribed }: Props) {
     setDuration,
     setShowSubscribeCta,
     setIsSubscribed,
+    setCanDownload,
     next,
   } = usePlayerStore();
 
-  // Sync isSubscribed from server
+  // Sync isSubscribed + canDownload from server
   useEffect(() => {
     subscribedRef.current = isSubscribed;
     setIsSubscribed(isSubscribed);
   }, [isSubscribed, setIsSubscribed]);
+
+  useEffect(() => {
+    setCanDownload(canDownload);
+  }, [canDownload, setCanDownload]);
 
   // Init audio element once
   useEffect(() => {

@@ -10,6 +10,8 @@ interface PlayerState {
   duration: number;
   volume: number;
   isSubscribed: boolean;
+  // Boutique plan can play full tracks but cannot download
+  canDownload: boolean;
   showSubscribeCta: boolean;
   shuffle: boolean;
   repeat: "off" | "all" | "one";
@@ -31,6 +33,7 @@ interface PlayerActions {
   setDuration: (seconds: number) => void;
   setVolume: (volume: number) => void;
   setIsSubscribed: (v: boolean) => void;
+  setCanDownload: (v: boolean) => void;
   setShowSubscribeCta: (v: boolean) => void;
   toggleShuffle: () => void;
   toggleRepeat: () => void;
@@ -48,6 +51,7 @@ export const usePlayerStore = create<PlayerState & PlayerActions>((set, get) => 
   duration: 0,
   volume: 0.8,
   isSubscribed: false,
+  canDownload: false,
   showSubscribeCta: false,
   shuffle: false,
   repeat: "off",
@@ -121,6 +125,7 @@ export const usePlayerStore = create<PlayerState & PlayerActions>((set, get) => 
   setDuration: (seconds) => set({ duration: seconds }),
   setVolume: (volume) => set({ volume }),
   setIsSubscribed: (v) => set({ isSubscribed: v }),
+  setCanDownload: (v) => set({ canDownload: v }),
   setShowSubscribeCta: (v) => set({ showSubscribeCta: v }),
 
   toggleShuffle: () => set((s) => ({ shuffle: !s.shuffle })),
