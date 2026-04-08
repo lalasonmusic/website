@@ -3,10 +3,10 @@ import { supabaseAdmin } from "@/lib/supabase/admin";
 
 export async function POST(req: NextRequest) {
   try {
-    const { sessionId, email, name, question } = await req.json();
+    const { sessionId, email, name, subject, detailedMessage, lastQuestion } = await req.json();
 
-    if (!sessionId || !email || !question) {
-      return NextResponse.json({ error: "Missing fields" }, { status: 400 });
+    if (!sessionId || !email || !subject || !detailedMessage) {
+      return NextResponse.json({ error: "Champs manquants" }, { status: 400 });
     }
 
     // Basic email validation
@@ -21,11 +21,13 @@ export async function POST(req: NextRequest) {
     // Insert escalated message
     const { error } = await supabaseAdmin.from("chat_messages").insert({
       session_id: sessionId,
-      user_question: question,
+      user_question: lastQuestion ?? subject,
       bot_answer: null,
       escalated: true,
       customer_email: email,
       customer_name: name ?? null,
+      subject,
+      detailed_message: detailedMessage,
       status: "pending",
       page,
       country,

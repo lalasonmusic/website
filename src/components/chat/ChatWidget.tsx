@@ -27,6 +27,9 @@ export default function ChatWidget() {
   const [showEscalateForm, setShowEscalateForm] = useState(false);
   const [escalateEmail, setEscalateEmail] = useState("");
   const [escalateName, setEscalateName] = useState("");
+  const [escalateSubject, setEscalateSubject] = useState("");
+  const [escalateDetail, setEscalateDetail] = useState("");
+  const [escalateSending, setEscalateSending] = useState(false);
   const [escalateSent, setEscalateSent] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
@@ -91,25 +94,35 @@ export default function ChatWidget() {
 
   async function handleEscalate(e: React.FormEvent) {
     e.preventDefault();
+    if (escalateSending) return;
+
     const lastUserMessage = [...messages].reverse().find((m) => m.role === "user");
-    if (!lastUserMessage) return;
 
-    await fetch("/api/chat/escalate", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        sessionId: getSessionId(),
-        email: escalateEmail,
-        name: escalateName,
-        question: lastUserMessage.content,
-      }),
-    });
+    setEscalateSending(true);
+    try {
+      const res = await fetch("/api/chat/escalate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          sessionId: getSessionId(),
+          email: escalateEmail,
+          name: escalateName,
+          subject: escalateSubject,
+          detailedMessage: escalateDetail,
+          lastQuestion: lastUserMessage?.content ?? null,
+        }),
+      });
 
-    setEscalateSent(true);
-    setTimeout(() => {
-      setShowEscalateForm(false);
-      setEscalateSent(false);
-    }, 3000);
+      if (res.ok) {
+        setEscalateSent(true);
+        setEscalateSubject("");
+        setEscalateDetail("");
+        setEscalateEmail("");
+        setEscalateName("");
+      }
+    } finally {
+      setEscalateSending(false);
+    }
   }
 
   function handleKeyPress(e: React.KeyboardEvent<HTMLInputElement>) {
@@ -262,19 +275,20 @@ export default function ChatWidget() {
               <button
                 onClick={() => setShowEscalateForm(true)}
                 style={{
-                  alignSelf: "flex-start",
-                  padding: "0.5rem 0.875rem",
-                  fontSize: "0.75rem",
-                  fontWeight: 600,
+                  alignSelf: "stretch",
+                  padding: "0.75rem",
+                  fontSize: "0.8125rem",
+                  fontWeight: 700,
                   borderRadius: 10,
-                  border: "1px solid rgba(245,166,35,0.3)",
-                  backgroundColor: "rgba(245,166,35,0.1)",
-                  color: "var(--color-accent)",
+                  border: "none",
+                  background: "linear-gradient(135deg, var(--color-accent) 0%, #e8961a 100%)",
+                  color: "var(--color-accent-text)",
                   cursor: "pointer",
                   fontFamily: "inherit",
+                  boxShadow: "0 4px 12px rgba(245,166,35,0.25)",
                 }}
               >
-                Laisser mon email pour être recontacté →
+                📝 Remplir le formulaire de contact
               </button>
             )}
 
@@ -282,15 +296,18 @@ export default function ChatWidget() {
               <form
                 onSubmit={handleEscalate}
                 style={{
-                  padding: "0.75rem",
-                  borderRadius: 10,
-                  backgroundColor: "rgba(245,166,35,0.08)",
+                  padding: "1rem",
+                  borderRadius: 12,
+                  backgroundColor: "rgba(245,166,35,0.06)",
                   border: "1px solid rgba(245,166,35,0.2)",
                   display: "flex",
                   flexDirection: "column",
-                  gap: "0.5rem",
+                  gap: "0.625rem",
                 }}
               >
+                <p style={{ margin: "0 0 0.25rem", fontSize: "0.75rem", color: "rgba(255,255,255,0.5)", fontWeight: 500 }}>
+                  Nous vous répondrons directement par email sous 24-48h.
+                </p>
                 <input
                   type="text"
                   placeholder="Votre nom (optionnel)"
@@ -322,39 +339,97 @@ export default function ChatWidget() {
                     fontFamily: "inherit",
                   }}
                 />
-                <button
-                  type="submit"
+                <input
+                  type="text"
+                  placeholder="Objet de votre demande *"
+                  value={escalateSubject}
+                  onChange={(e) => setEscalateSubject(e.target.value)}
+                  required
                   style={{
-                    padding: "0.5rem",
-                    backgroundColor: "var(--color-accent)",
-                    color: "var(--color-accent-text)",
-                    fontWeight: 600,
-                    fontSize: "0.8125rem",
+                    padding: "0.5rem 0.75rem",
+                    backgroundColor: "rgba(255,255,255,0.06)",
+                    border: "1px solid rgba(255,255,255,0.1)",
                     borderRadius: 8,
-                    border: "none",
-                    cursor: "pointer",
+                    color: "white",
+                    fontSize: "0.8125rem",
                     fontFamily: "inherit",
                   }}
-                >
-                  Envoyer
-                </button>
+                />
+                <textarea
+                  placeholder="Décrivez votre demande en détail *"
+                  value={escalateDetail}
+                  onChange={(e) => setEscalateDetail(e.target.value)}
+                  required
+                  rows={4}
+                  style={{
+                    padding: "0.5rem 0.75rem",
+                    backgroundColor: "rgba(255,255,255,0.06)",
+                    border: "1px solid rgba(255,255,255,0.1)",
+                    borderRadius: 8,
+                    color: "white",
+                    fontSize: "0.8125rem",
+                    fontFamily: "inherit",
+                    resize: "vertical",
+                    minHeight: 80,
+                  }}
+                />
+                <div style={{ display: "flex", gap: "0.5rem" }}>
+                  <button
+                    type="button"
+                    onClick={() => setShowEscalateForm(false)}
+                    style={{
+                      padding: "0.5rem 0.875rem",
+                      backgroundColor: "transparent",
+                      color: "rgba(255,255,255,0.5)",
+                      fontWeight: 500,
+                      fontSize: "0.8125rem",
+                      borderRadius: 8,
+                      border: "1px solid rgba(255,255,255,0.1)",
+                      cursor: "pointer",
+                      fontFamily: "inherit",
+                    }}
+                  >
+                    Annuler
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={escalateSending}
+                    style={{
+                      flex: 1,
+                      padding: "0.5rem",
+                      backgroundColor: "var(--color-accent)",
+                      color: "var(--color-accent-text)",
+                      fontWeight: 700,
+                      fontSize: "0.8125rem",
+                      borderRadius: 8,
+                      border: "none",
+                      cursor: escalateSending ? "not-allowed" : "pointer",
+                      opacity: escalateSending ? 0.6 : 1,
+                      fontFamily: "inherit",
+                    }}
+                  >
+                    {escalateSending ? "Envoi..." : "Envoyer ma demande"}
+                  </button>
+                </div>
               </form>
             )}
 
             {escalateSent && (
               <div
                 style={{
-                  alignSelf: "flex-start",
-                  padding: "0.625rem 0.875rem",
-                  borderRadius: 10,
+                  alignSelf: "stretch",
+                  padding: "1rem",
+                  borderRadius: 12,
                   backgroundColor: "rgba(34,197,94,0.1)",
-                  border: "1px solid rgba(34,197,94,0.25)",
+                  border: "1px solid rgba(34,197,94,0.3)",
                   color: "#22c55e",
                   fontSize: "0.8125rem",
                   fontWeight: 500,
+                  textAlign: "center",
                 }}
               >
-                ✓ Votre demande a été transmise. Nous vous répondrons sous 24-48h.
+                ✓ Votre demande a bien été envoyée à notre équipe.<br />
+                Nous vous répondrons sous 24-48h.
               </div>
             )}
 

@@ -9,6 +9,8 @@ type ChatMessage = {
   escalated: boolean;
   customer_email: string | null;
   customer_name: string | null;
+  subject: string | null;
+  detailed_message: string | null;
   status: string;
   page: string | null;
   country: string | null;
@@ -106,61 +108,84 @@ export default async function MessagesPage() {
           </p>
         ) : (
           <div>
-            {escalated.map((msg) => (
-              <div
-                key={msg.id}
-                style={{
-                  padding: "1rem 1.25rem",
-                  borderBottom: "1px solid var(--color-border)",
-                }}
-              >
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "0.5rem" }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: "0.625rem" }}>
-                    <p style={{ fontSize: "0.875rem", fontWeight: 700, margin: 0, color: "var(--color-accent)" }}>
-                      {msg.customer_name ? `${msg.customer_name} ` : ""}
-                      {msg.customer_email}
-                    </p>
-                    {msg.country && (
-                      <span style={{ fontSize: "0.75rem", color: "var(--color-text-muted)" }}>
-                        {countryFlag(msg.country)} {msg.city ?? msg.country}
-                      </span>
-                    )}
+            {escalated.map((msg) => {
+              const subject = msg.subject ?? msg.user_question;
+              const detail = msg.detailed_message ?? msg.user_question;
+              return (
+                <div
+                  key={msg.id}
+                  style={{
+                    padding: "1.25rem 1.5rem",
+                    borderBottom: "1px solid var(--color-border)",
+                  }}
+                >
+                  {/* Header: email + location + time */}
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "0.75rem", flexWrap: "wrap", gap: "0.5rem" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "0.625rem", flexWrap: "wrap" }}>
+                      <p style={{ fontSize: "0.875rem", fontWeight: 700, margin: 0, color: "var(--color-accent)" }}>
+                        {msg.customer_name ? `${msg.customer_name} · ` : ""}
+                        {msg.customer_email}
+                      </p>
+                      {msg.country && (
+                        <span style={{ fontSize: "0.75rem", color: "var(--color-text-muted)" }}>
+                          {countryFlag(msg.country)} {msg.city ?? msg.country}
+                        </span>
+                      )}
+                    </div>
+                    <span style={{ fontSize: "0.75rem", color: "var(--color-text-muted)" }}>
+                      {timeAgo(msg.created_at)}
+                    </span>
                   </div>
-                  <span style={{ fontSize: "0.75rem", color: "var(--color-text-muted)" }}>
-                    {timeAgo(msg.created_at)}
-                  </span>
+
+                  {/* Subject */}
+                  <p
+                    style={{
+                      fontSize: "0.9375rem",
+                      fontWeight: 700,
+                      color: "white",
+                      margin: "0 0 0.5rem",
+                    }}
+                  >
+                    {subject}
+                  </p>
+
+                  {/* Detailed message */}
+                  <div
+                    style={{
+                      fontSize: "0.8125rem",
+                      color: "var(--color-text-secondary)",
+                      padding: "0.75rem 0.875rem",
+                      borderRadius: 8,
+                      backgroundColor: "rgba(255,255,255,0.04)",
+                      lineHeight: 1.6,
+                      whiteSpace: "pre-wrap",
+                      marginBottom: "0.75rem",
+                    }}
+                  >
+                    {detail}
+                  </div>
+
+                  <div style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
+                    <a
+                      href={`mailto:${msg.customer_email}?subject=${encodeURIComponent("Re: " + subject)}&body=${encodeURIComponent("Bonjour" + (msg.customer_name ? " " + msg.customer_name : "") + ",\n\nMerci pour votre message.\n\nConcernant votre demande :\n> " + detail.split("\n").join("\n> ") + "\n\n")}`}
+                      style={{
+                        display: "inline-block",
+                        fontSize: "0.75rem",
+                        fontWeight: 600,
+                        color: "var(--color-accent)",
+                        textDecoration: "none",
+                        padding: "0.5rem 0.875rem",
+                        border: "1px solid rgba(245,166,35,0.3)",
+                        borderRadius: 8,
+                        backgroundColor: "rgba(245,166,35,0.08)",
+                      }}
+                    >
+                      Répondre par email →
+                    </a>
+                  </div>
                 </div>
-                <p
-                  style={{
-                    fontSize: "0.8125rem",
-                    color: "var(--color-text-secondary)",
-                    margin: "0.5rem 0",
-                    padding: "0.625rem 0.875rem",
-                    borderRadius: 8,
-                    backgroundColor: "rgba(255,255,255,0.04)",
-                    lineHeight: 1.5,
-                  }}
-                >
-                  {msg.user_question}
-                </p>
-                <a
-                  href={`mailto:${msg.customer_email}?subject=Re: votre question sur Lalason&body=${encodeURIComponent("Bonjour" + (msg.customer_name ? " " + msg.customer_name : "") + ",\n\nMerci pour votre message. Concernant votre question :\n\n> " + msg.user_question + "\n\n")}`}
-                  style={{
-                    display: "inline-block",
-                    fontSize: "0.75rem",
-                    fontWeight: 600,
-                    color: "var(--color-accent)",
-                    textDecoration: "none",
-                    padding: "0.375rem 0.75rem",
-                    border: "1px solid rgba(245,166,35,0.3)",
-                    borderRadius: 6,
-                    backgroundColor: "rgba(245,166,35,0.08)",
-                  }}
-                >
-                  Répondre par email →
-                </a>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>
