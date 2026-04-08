@@ -19,6 +19,49 @@ function getSessionId(): string {
   return id;
 }
 
+const T = {
+  fr: {
+    headerTitle: "Assistant Lalason",
+    online: "En ligne",
+    welcome: "Bonjour ! 👋 Je suis l'assistant Lalason. Comment puis-je vous aider aujourd'hui ?",
+    placeholder: "Posez votre question...",
+    error: "Désolé, une erreur est survenue. Réessayez plus tard.",
+    openLabel: "Ouvrir le chat",
+    closeLabel: "Fermer",
+    escalateCta: "📝 Remplir le formulaire de contact",
+    formIntro: "Nous vous répondrons directement par email sous 24-48h.",
+    formName: "Votre nom (optionnel)",
+    formEmail: "Votre email *",
+    formSubject: "Objet de votre demande *",
+    formDetail: "Décrivez votre demande en détail *",
+    formCancel: "Annuler",
+    formSend: "Envoyer ma demande",
+    formSending: "Envoi...",
+    successLine1: "✓ Votre demande a bien été envoyée à notre équipe.",
+    successLine2: "Nous vous répondrons sous 24-48h.",
+  },
+  en: {
+    headerTitle: "Lalason Assistant",
+    online: "Online",
+    welcome: "Hi there! 👋 I'm the Lalason assistant. How can I help you today?",
+    placeholder: "Ask your question...",
+    error: "Sorry, something went wrong. Please try again later.",
+    openLabel: "Open chat",
+    closeLabel: "Close",
+    escalateCta: "📝 Fill in the contact form",
+    formIntro: "We'll reply directly by email within 24-48h.",
+    formName: "Your name (optional)",
+    formEmail: "Your email *",
+    formSubject: "Subject of your request *",
+    formDetail: "Describe your request in detail *",
+    formCancel: "Cancel",
+    formSend: "Send my request",
+    formSending: "Sending...",
+    successLine1: "✓ Your request has been sent to our team.",
+    successLine2: "We'll reply within 24-48h.",
+  },
+};
+
 export default function ChatWidget() {
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -34,6 +77,8 @@ export default function ChatWidget() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
   const isAdminPage = pathname.startsWith("/admin");
+  const locale: "fr" | "en" = pathname.startsWith("/en") ? "en" : "fr";
+  const t = T[locale];
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -44,11 +89,11 @@ export default function ChatWidget() {
       setMessages([
         {
           role: "assistant",
-          content: "Bonjour ! 👋 Je suis l'assistant Lalason. Comment puis-je vous aider aujourd'hui ?",
+          content: t.welcome,
         },
       ]);
     }
-  }, [open, messages.length]);
+  }, [open, messages.length, t.welcome]);
 
   // Don't show on admin pages
   if (isAdminPage) return null;
@@ -70,6 +115,7 @@ export default function ChatWidget() {
           message: userMessage.content,
           sessionId: getSessionId(),
           history: newMessages.slice(-6),
+          locale,
         }),
       });
 
@@ -78,14 +124,14 @@ export default function ChatWidget() {
         ...newMessages,
         {
           role: "assistant",
-          content: data.answer ?? "Désolé, une erreur est survenue.",
+          content: data.answer ?? t.error,
           needsEscalation: data.needsEscalation,
         },
       ]);
     } catch {
       setMessages([
         ...newMessages,
-        { role: "assistant", content: "Désolé, une erreur est survenue. Réessayez plus tard." },
+        { role: "assistant", content: t.error },
       ]);
     } finally {
       setLoading(false);
@@ -141,7 +187,7 @@ export default function ChatWidget() {
       {!open && (
         <button
           onClick={() => setOpen(true)}
-          aria-label="Ouvrir le chat"
+          aria-label={t.openLabel}
           style={{
             position: "fixed",
             bottom: 80,
@@ -200,16 +246,16 @@ export default function ChatWidget() {
           >
             <div>
               <p style={{ fontWeight: 700, fontSize: "0.9375rem", color: "white", margin: 0 }}>
-                Assistant Lalason
+                {t.headerTitle}
               </p>
               <p style={{ fontSize: "0.6875rem", color: "rgba(255,255,255,0.5)", margin: 0, display: "flex", alignItems: "center", gap: 5 }}>
                 <span style={{ width: 6, height: 6, borderRadius: "50%", backgroundColor: "#22c55e", display: "inline-block" }} />
-                En ligne
+                {t.online}
               </p>
             </div>
             <button
               onClick={() => setOpen(false)}
-              aria-label="Fermer"
+              aria-label={t.closeLabel}
               style={{
                 background: "none",
                 border: "none",
@@ -288,7 +334,7 @@ export default function ChatWidget() {
                   boxShadow: "0 4px 12px rgba(245,166,35,0.25)",
                 }}
               >
-                📝 Remplir le formulaire de contact
+                {t.escalateCta}
               </button>
             )}
 
@@ -306,11 +352,11 @@ export default function ChatWidget() {
                 }}
               >
                 <p style={{ margin: "0 0 0.25rem", fontSize: "0.75rem", color: "rgba(255,255,255,0.5)", fontWeight: 500 }}>
-                  Nous vous répondrons directement par email sous 24-48h.
+                  {t.formIntro}
                 </p>
                 <input
                   type="text"
-                  placeholder="Votre nom (optionnel)"
+                  placeholder={t.formName}
                   value={escalateName}
                   onChange={(e) => setEscalateName(e.target.value)}
                   style={{
@@ -325,7 +371,7 @@ export default function ChatWidget() {
                 />
                 <input
                   type="email"
-                  placeholder="Votre email *"
+                  placeholder={t.formEmail}
                   value={escalateEmail}
                   onChange={(e) => setEscalateEmail(e.target.value)}
                   required
@@ -341,7 +387,7 @@ export default function ChatWidget() {
                 />
                 <input
                   type="text"
-                  placeholder="Objet de votre demande *"
+                  placeholder={t.formSubject}
                   value={escalateSubject}
                   onChange={(e) => setEscalateSubject(e.target.value)}
                   required
@@ -356,7 +402,7 @@ export default function ChatWidget() {
                   }}
                 />
                 <textarea
-                  placeholder="Décrivez votre demande en détail *"
+                  placeholder={t.formDetail}
                   value={escalateDetail}
                   onChange={(e) => setEscalateDetail(e.target.value)}
                   required
@@ -389,7 +435,7 @@ export default function ChatWidget() {
                       fontFamily: "inherit",
                     }}
                   >
-                    Annuler
+                    {t.formCancel}
                   </button>
                   <button
                     type="submit"
@@ -408,7 +454,7 @@ export default function ChatWidget() {
                       fontFamily: "inherit",
                     }}
                   >
-                    {escalateSending ? "Envoi..." : "Envoyer ma demande"}
+                    {escalateSending ? t.formSending : t.formSend}
                   </button>
                 </div>
               </form>
@@ -428,8 +474,8 @@ export default function ChatWidget() {
                   textAlign: "center",
                 }}
               >
-                ✓ Votre demande a bien été envoyée à notre équipe.<br />
-                Nous vous répondrons sous 24-48h.
+                {t.successLine1}<br />
+                {t.successLine2}
               </div>
             )}
 
@@ -450,7 +496,7 @@ export default function ChatWidget() {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyPress}
-              placeholder="Posez votre question..."
+              placeholder={t.placeholder}
               disabled={loading}
               style={{
                 flex: 1,
