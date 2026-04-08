@@ -3,6 +3,7 @@
 import { useState, useCallback } from "react";
 import { usePlayerStore } from "@/store/playerStore";
 import type { TrackWithDetails, PlayerTrack } from "@/types/track";
+import PlaylistCarousel from "./PlaylistCarousel";
 
 type Props = {
   tracks: TrackWithDetails[];
@@ -97,6 +98,9 @@ export default function BoutiquePlayer({ tracks, locale, moodFilters }: Props) {
 
   return (
     <div className="space-y-6">
+      {/* ── Playlists Carousel ── */}
+      <PlaylistCarousel locale={locale} />
+
       {/* ── Now Playing Hero ── */}
       <div
         className="rounded-2xl overflow-hidden relative"

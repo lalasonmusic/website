@@ -28,6 +28,7 @@ export default async function AdminProtectedLayout({ children }: { children: Rea
     { href: "/admin/visiteurs", label: "Visiteurs" },
     { href: "/admin/clients", label: "Clients" },
     { href: "/admin/catalogue", label: "Catalogue" },
+    { href: "/admin/playlists", label: "Playlists" },
     { href: "/admin/artistes", label: "Artistes" },
     { href: "/admin/youtube-channels", label: "Chaînes YouTube" },
     { href: "/admin/facebook-accounts", label: "Comptes Facebook" },

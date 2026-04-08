@@ -8,3 +8,4 @@ export * from "./subscriptions";
 export * from "./downloads";
 export * from "./youtube-channels";
 export * from "./facebook-accounts";
+export * from "./playlists";
