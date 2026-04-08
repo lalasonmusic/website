@@ -25,7 +25,9 @@ export const revalidate = 0;
 const PREVIEW_BASE = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/audio-previews`;
 
 function buildPreviewUrl(path: string | null) {
-  return path ? `${PREVIEW_BASE}/${path}` : null;
+  if (!path) return null;
+  if (path.startsWith("http")) return path;
+  return `${PREVIEW_BASE}/${path}`;
 }
 
 export default async function FavoritesPage({ params }: Props) {

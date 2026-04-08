@@ -7,7 +7,9 @@ const PREVIEW_BASE = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/
 const COVERS_BASE = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/covers`;
 
 function buildPreviewUrl(path: string | null) {
-  return path ? `${PREVIEW_BASE}/${path}` : null;
+  if (!path) return null;
+  if (path.startsWith("http")) return path;
+  return `${PREVIEW_BASE}/${path}`;
 }
 
 function buildCoverUrl(path: string | null) {

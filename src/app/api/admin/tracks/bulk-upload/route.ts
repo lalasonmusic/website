@@ -207,9 +207,8 @@ export async function POST(req: NextRequest) {
               .from("audio-previews")
               .upload(item.path, buffer, { contentType: "audio/mpeg", upsert: true });
 
-            const previewUrl = !prevErr
-              ? supabaseAdmin.storage.from("audio-previews").getPublicUrl(item.path).data.publicUrl
-              : null;
+            // Store the bare filename in DB — buildPreviewUrl() in trackService prepends the base URL.
+            const previewPathForDb = !prevErr ? item.path : null;
 
             // Convert to WAV (best-effort)
             try {
@@ -232,7 +231,7 @@ export async function POST(req: NextRequest) {
                 title: parsed.title,
                 artistId,
                 fileFullPath: item.path,
-                filePreviewPath: previewUrl,
+                filePreviewPath: previewPathForDb,
                 isPublished: true,
               })
               .onConflictDoNothing()
