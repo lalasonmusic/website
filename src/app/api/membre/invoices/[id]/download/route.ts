@@ -57,6 +57,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
   let currency: string;
   let isPaid: boolean;
   let planLabel: string;
+  let taxRate: number = 0;
 
   if (isPreview) {
     // PREVIEW MODE: generate fake invoice based on user's active subscription
@@ -76,9 +77,11 @@ export async function GET(request: NextRequest, context: RouteContext) {
     }
 
     const amount = planAmounts[activeSub.planType] ?? 0;
-    // VAT calculation: assume 20% TVA inclusive (TTC) → split into HT + TVA
+    // VAT calculation: assume 20% TTC inclusive — split into HT + TVA
+    // In production, Stripe Tax will compute the actual rate based on customer country
+    const PREVIEW_VAT_RATE = 20;
     const totalCents = amount;
-    const subtotalCents = Math.round(totalCents / 1.2);
+    const subtotalCents = Math.round(totalCents / (1 + PREVIEW_VAT_RATE / 100));
     const taxCents = totalCents - subtotalCents;
 
     invoiceNumber = `APERCU-${activeSub.createdAt.getFullYear()}${String(activeSub.createdAt.getMonth() + 1).padStart(2, "0")}-XXXX`;
@@ -91,6 +94,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
     currency = "eur";
     isPaid = true;
     planLabel = planLabels[activeSub.planType]?.[locale] ?? activeSub.planType;
+    taxRate = PREVIEW_VAT_RATE;
   } else {
     // REAL MODE: fetch from Stripe
     const [profile] = await db
@@ -165,8 +169,10 @@ export async function GET(request: NextRequest, context: RouteContext) {
 
   // (No fallback country needed — billing info or licence info is the source of truth)
 
-  // Tax rate (calculated from amounts, or from Stripe Tax when enabled)
-  const taxRate = subtotal > 0 && tax > 0 ? Math.round((tax / subtotal) * 10000) / 100 : 0;
+  // Tax rate: in preview mode it's already set (20%); in real mode compute from Stripe amounts
+  if (!isPreview) {
+    taxRate = subtotal > 0 && tax > 0 ? Math.round((tax / subtotal) * 10000) / 100 : 0;
+  }
 
   // Payment method
   const paymentMethod = "Stripe";
@@ -309,15 +315,23 @@ export async function GET(request: NextRequest, context: RouteContext) {
   page.drawText(taxLabel, { x: totalsX, y, font, size: 10, color: gray });
   const taxText = formatAmount(tax, currency, locale);
   page.drawText(taxText, { x: totalsValX - font.widthOfTextAtSize(taxText, 10), y, font, size: 10, color: dark });
-  y -= lineH + 5;
+  y -= lineH + 14;
 
-  // Total
-  page.drawRectangle({ x: totalsX - 10, y: y - 5, width: totalsValX - totalsX + 20, height: 28, color: rgb(0.96, 0.97, 0.97), borderColor: lightGray, borderWidth: 0.5 });
+  // Total (highlighted box)
+  page.drawRectangle({
+    x: totalsX - 12,
+    y: y - 8,
+    width: totalsValX - totalsX + 24,
+    height: 32,
+    color: rgb(0.96, 0.97, 0.97),
+    borderColor: lightGray,
+    borderWidth: 0.5,
+  });
   const totalLabel = "Total";
-  page.drawText(totalLabel, { x: totalsX, y: y + 3, font: bold, size: 11, color: dark });
+  page.drawText(totalLabel, { x: totalsX, y: y + 4, font: bold, size: 11, color: dark });
   const totalText = formatAmount(total, currency, locale);
-  page.drawText(totalText, { x: totalsValX - bold.widthOfTextAtSize(totalText, 11), y: y + 3, font: bold, size: 11, color: dark });
-  y -= 45;
+  page.drawText(totalText, { x: totalsValX - bold.widthOfTextAtSize(totalText, 11), y: y + 4, font: bold, size: 11, color: dark });
+  y -= 50;
 
   // ── Payment method ──
   const pmLabel = locale === "fr" ? "Mode de paiement :" : "Payment method:";
@@ -343,6 +357,15 @@ export async function GET(request: NextRequest, context: RouteContext) {
   for (const line of legalLines) {
     page.drawText(line, { x: left, y, font, size: 8, color: gray });
     y -= 13;
+  }
+
+  // Preview note
+  if (isPreview) {
+    y -= 6;
+    const previewNote = locale === "fr"
+      ? "APERÇU — Le taux de TVA réel sera calculé automatiquement selon le pays du client."
+      : "PREVIEW — The actual VAT rate will be calculated automatically based on the customer's country.";
+    page.drawText(previewNote, { x: left, y, font, size: 8, color: rgb(0.961, 0.651, 0.137) });
   }
 
   // ── Footer bar ──
