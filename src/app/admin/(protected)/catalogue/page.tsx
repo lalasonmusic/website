@@ -1,9 +1,14 @@
+import { Suspense } from "react";
 import { db } from "@/db";
 import { tracks, artists, downloads, categories } from "@/db/schema";
 import { count, eq, desc } from "drizzle-orm";
 import TogglePublishButton from "@/components/admin/TogglePublishButton";
 import AddTrackForm from "@/components/admin/AddTrackForm";
 import BulkUploadForm from "@/components/admin/BulkUploadForm";
+import CatalogueSearch from "@/components/admin/CatalogueSearch";
+
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 async function getTracks() {
   const allTracks = await db
@@ -43,16 +48,34 @@ function formatDuration(s: number | null) {
   return `${m}:${sec.toString().padStart(2, "0")}`;
 }
 
-export default async function CataloguePage() {
-  const [allTracks, allArtists, allCategories] = await Promise.all([
+type Props = {
+  searchParams: Promise<{ q?: string }>;
+};
+
+export default async function CataloguePage({ searchParams }: Props) {
+  const { q } = await searchParams;
+
+  const [allTracksRaw, allArtists, allCategories] = await Promise.all([
     getTracks(),
     db.select({ id: artists.id, name: artists.name }).from(artists).orderBy(artists.name),
     db.select({ id: categories.id, labelFr: categories.labelFr, type: categories.type }).from(categories).orderBy(categories.type, categories.labelFr),
   ]);
 
-  const published = allTracks.filter((t) => t.isPublished).length;
-  const unpublished = allTracks.length - published;
-  const totalDownloads = allTracks.reduce((sum, t) => sum + t.downloadCount, 0);
+  // Filter by search query
+  const allTracks = q
+    ? allTracksRaw.filter((t) => {
+        const search = q.toLowerCase();
+        return (
+          t.title.toLowerCase().includes(search) ||
+          t.artistName.toLowerCase().includes(search)
+        );
+      })
+    : allTracksRaw;
+
+  const totalCount = allTracksRaw.length;
+  const published = allTracksRaw.filter((t) => t.isPublished).length;
+  const unpublished = totalCount - published;
+  const totalDownloads = allTracksRaw.reduce((sum, t) => sum + t.downloadCount, 0);
 
   return (
     <div>
@@ -63,6 +86,7 @@ export default async function CataloguePage() {
           </h1>
           <p style={{ color: "var(--color-text-muted)", fontSize: "0.875rem" }}>
             {published} publiés · {unpublished} brouillons · {totalDownloads} téléchargements
+            {q && ` · ${allTracks.length} résultat${allTracks.length !== 1 ? "s" : ""} pour "${q}"`}
           </p>
         </div>
       </div>
@@ -74,6 +98,10 @@ export default async function CataloguePage() {
         />
         <BulkUploadForm />
       </div>
+
+      <Suspense>
+        <CatalogueSearch />
+      </Suspense>
 
       <div style={{
         backgroundColor: "var(--color-bg-card)",

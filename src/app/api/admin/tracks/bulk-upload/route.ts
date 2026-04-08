@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { db } from "@/db";
@@ -120,163 +120,209 @@ export async function POST(req: NextRequest) {
   // Auth check
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!user) {
+    return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
+  }
 
   const [profile] = await db.select({ role: profiles.role }).from(profiles).where(eq(profiles.id, user.id)).limit(1);
-  if (profile?.role !== "admin") return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  if (profile?.role !== "admin") {
+    return new Response(JSON.stringify({ error: "Forbidden" }), { status: 403 });
+  }
 
   const formData = await req.formData();
   const files = formData.getAll("files") as File[];
 
   if (files.length === 0) {
-    return NextResponse.json({ error: "No files" }, { status: 400 });
+    return new Response(JSON.stringify({ error: "No files" }), { status: 400 });
   }
 
-  // Get all artists and categories
-  const [allArtists, allCategories] = await Promise.all([
-    db.select({ id: artists.id, name: artists.name }).from(artists),
-    db.select({ id: categories.id, slug: categories.slug, labelFr: categories.labelFr, type: categories.type }).from(categories),
-  ]);
+  // Pre-read all file buffers BEFORE starting the stream — formData is tied to req lifecycle
+  const fileBuffers: { name: string; buffer: Buffer }[] = [];
+  for (const f of files) {
+    fileBuffers.push({ name: f.name, buffer: Buffer.from(await f.arrayBuffer()) });
+  }
 
-  const artistMap = new Map(allArtists.map((a) => [a.name.toLowerCase(), a.id]));
-  const catSlugMap = new Map(allCategories.map((c) => [c.slug, c.id]));
+  const encoder = new TextEncoder();
 
-  const results: { filename: string; status: string; error?: string }[] = [];
-  const tracksForAi: { index: number; title: string; artist: string }[] = [];
-  const createdTrackIds: { index: number; trackId: string }[] = [];
+  const stream = new ReadableStream({
+    async start(controller) {
+      const send = (event: Record<string, unknown>) => {
+        controller.enqueue(encoder.encode(JSON.stringify(event) + "\n"));
+      };
 
-  for (let i = 0; i < files.length; i++) {
-    const file = files[i];
-    const parsed = parseFilename(file.name);
-
-    if (!parsed) {
-      results.push({ filename: file.name, status: "error", error: "Format invalide. Utilisez: Artiste - Titre.mp3" });
-      continue;
-    }
-
-    // Find or create artist
-    let artistId = artistMap.get(parsed.artist.toLowerCase());
-    if (!artistId) {
-      const artistSlug = parsed.artist
-        .toLowerCase()
-        .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "")
-        .replace(/[^a-z0-9]+/g, "-")
-        .replace(/(^-|-$)/g, "");
-
-      const [newArtist] = await db
-        .insert(artists)
-        .values({ name: parsed.artist, slug: artistSlug })
-        .onConflictDoNothing()
-        .returning({ id: artists.id });
-
-      if (newArtist) {
-        artistId = newArtist.id;
-        artistMap.set(parsed.artist.toLowerCase(), artistId);
-      } else {
-        // Artist slug conflict — fetch existing
-        const [existing] = await db.select({ id: artists.id }).from(artists).where(eq(artists.slug, artistSlug)).limit(1);
-        artistId = existing?.id;
-      }
-    }
-
-    if (!artistId) {
-      results.push({ filename: file.name, status: "error", error: "Artiste non trouvé" });
-      continue;
-    }
-
-    const slug = generateSlug(parsed.artist, parsed.title);
-    const fileName = `${slug}.mp3`;
-
-    // Upload to storage
-    try {
-      const buffer = Buffer.from(await file.arrayBuffer());
-
-      // Upload MP3 (full + preview)
-      await supabaseAdmin.storage
-        .from("audio-full")
-        .upload(fileName, buffer, { contentType: "audio/mpeg", upsert: true });
-
-      const { error: prevErr } = await supabaseAdmin.storage
-        .from("audio-previews")
-        .upload(fileName, buffer, { contentType: "audio/mpeg", upsert: true });
-
-      const previewUrl = !prevErr
-        ? supabaseAdmin.storage.from("audio-previews").getPublicUrl(fileName).data.publicUrl
-        : null;
-
-      // Convert to WAV and upload (best-effort, doesn't block track creation)
       try {
-        const wavBuffer = await convertMp3ToWav(buffer, slug);
-        if (wavBuffer) {
-          const wavFileName = `${slug}.wav`;
-          await supabaseAdmin.storage
-            .from("audio-full")
-            .upload(wavFileName, wavBuffer, { contentType: "audio/wav", upsert: true });
+        // Get all artists and categories
+        const [allArtists, allCategories] = await Promise.all([
+          db.select({ id: artists.id, name: artists.name }).from(artists),
+          db.select({ id: categories.id, slug: categories.slug, labelFr: categories.labelFr, type: categories.type }).from(categories),
+        ]);
+
+        const artistMap = new Map(allArtists.map((a) => [a.name.toLowerCase(), a.id]));
+        const catSlugMap = new Map(allCategories.map((c) => [c.slug, c.id]));
+
+        const results: { filename: string; status: string; error?: string }[] = [];
+        const tracksForAi: { index: number; title: string; artist: string }[] = [];
+        const createdTrackIds: { index: number; trackId: string }[] = [];
+
+        send({ type: "start", total: fileBuffers.length });
+
+        for (let i = 0; i < fileBuffers.length; i++) {
+          const file = fileBuffers[i];
+
+          send({ type: "file-start", index: i, filename: file.name });
+
+          const parsed = parseFilename(file.name);
+
+          if (!parsed) {
+            results.push({ filename: file.name, status: "error", error: "Format invalide. Utilisez: Artiste - Titre.mp3" });
+            send({ type: "file-done", index: i, filename: file.name, status: "error", error: "Format invalide" });
+            continue;
+          }
+
+          // Find or create artist
+          let artistId = artistMap.get(parsed.artist.toLowerCase());
+          if (!artistId) {
+            const artistSlug = parsed.artist
+              .toLowerCase()
+              .normalize("NFD")
+              .replace(/[\u0300-\u036f]/g, "")
+              .replace(/[^a-z0-9]+/g, "-")
+              .replace(/(^-|-$)/g, "");
+
+            const [newArtist] = await db
+              .insert(artists)
+              .values({ name: parsed.artist, slug: artistSlug })
+              .onConflictDoNothing()
+              .returning({ id: artists.id });
+
+            if (newArtist) {
+              artistId = newArtist.id;
+              artistMap.set(parsed.artist.toLowerCase(), artistId);
+            } else {
+              const [existing] = await db.select({ id: artists.id }).from(artists).where(eq(artists.slug, artistSlug)).limit(1);
+              artistId = existing?.id;
+            }
+          }
+
+          if (!artistId) {
+            results.push({ filename: file.name, status: "error", error: "Artiste non trouvé" });
+            send({ type: "file-done", index: i, filename: file.name, status: "error", error: "Artiste non trouvé" });
+            continue;
+          }
+
+          const slug = generateSlug(parsed.artist, parsed.title);
+          const fileName = `${slug}.mp3`;
+
+          try {
+            const buffer = file.buffer;
+
+            // Upload MP3 (full + preview)
+            await supabaseAdmin.storage
+              .from("audio-full")
+              .upload(fileName, buffer, { contentType: "audio/mpeg", upsert: true });
+
+            const { error: prevErr } = await supabaseAdmin.storage
+              .from("audio-previews")
+              .upload(fileName, buffer, { contentType: "audio/mpeg", upsert: true });
+
+            const previewUrl = !prevErr
+              ? supabaseAdmin.storage.from("audio-previews").getPublicUrl(fileName).data.publicUrl
+              : null;
+
+            // Convert to WAV and upload (best-effort)
+            try {
+              const wavBuffer = await convertMp3ToWav(buffer, slug);
+              if (wavBuffer) {
+                const wavFileName = `${slug}.wav`;
+                await supabaseAdmin.storage
+                  .from("audio-full")
+                  .upload(wavFileName, wavBuffer, { contentType: "audio/wav", upsert: true });
+              }
+            } catch (err) {
+              console.error("[bulk-upload] WAV upload error:", err);
+            }
+
+            // Insert track
+            const [newTrack] = await db
+              .insert(tracks)
+              .values({
+                slug,
+                title: parsed.title,
+                artistId,
+                fileFullPath: fileName,
+                filePreviewPath: previewUrl,
+                isPublished: false,
+              })
+              .onConflictDoNothing()
+              .returning({ id: tracks.id });
+
+            if (newTrack) {
+              tracksForAi.push({ index: i, title: parsed.title, artist: parsed.artist });
+              createdTrackIds.push({ index: i, trackId: newTrack.id });
+              results.push({ filename: file.name, status: "ok" });
+              send({ type: "file-done", index: i, filename: file.name, status: "ok" });
+            } else {
+              results.push({ filename: file.name, status: "skipped", error: "Morceau déjà existant" });
+              send({ type: "file-done", index: i, filename: file.name, status: "skipped", error: "Morceau déjà existant" });
+            }
+          } catch (err) {
+            results.push({ filename: file.name, status: "error", error: String(err) });
+            send({ type: "file-done", index: i, filename: file.name, status: "error", error: String(err) });
+          }
         }
+
+        // AI categorization for all new tracks
+        if (tracksForAi.length > 0) {
+          send({ type: "ai-start", count: tracksForAi.length });
+          try {
+            const aiResults = await aiCategorize(tracksForAi, allCategories);
+
+            for (const [aiIndex, slugs] of aiResults) {
+              const trackEntry = createdTrackIds.find((t) => t.index === tracksForAi[aiIndex]?.index);
+              if (!trackEntry) continue;
+
+              const catIds = slugs
+                .map((s) => catSlugMap.get(s))
+                .filter((id): id is string => !!id);
+
+              if (catIds.length > 0) {
+                await db.insert(trackCategories).values(
+                  catIds.map((catId) => ({
+                    trackId: trackEntry.trackId,
+                    categoryId: catId,
+                  }))
+                ).onConflictDoNothing();
+              }
+            }
+            send({ type: "ai-done" });
+          } catch (err) {
+            console.error("[bulk-upload] AI categorization failed:", err);
+            send({ type: "ai-done", error: String(err) });
+          }
+        }
+
+        const okCount = results.filter((r) => r.status === "ok").length;
+        const errorCount = results.filter((r) => r.status === "error").length;
+        const skippedCount = results.filter((r) => r.status === "skipped").length;
+
+        send({
+          type: "complete",
+          summary: { total: fileBuffers.length, ok: okCount, errors: errorCount, skipped: skippedCount },
+          results,
+        });
       } catch (err) {
-        console.error("[bulk-upload] WAV upload error:", err);
+        send({ type: "fatal", error: String(err) });
+      } finally {
+        controller.close();
       }
+    },
+  });
 
-      // Insert track
-      const [newTrack] = await db
-        .insert(tracks)
-        .values({
-          slug,
-          title: parsed.title,
-          artistId,
-          fileFullPath: fileName,
-          filePreviewPath: previewUrl,
-          isPublished: false,
-        })
-        .onConflictDoNothing()
-        .returning({ id: tracks.id });
-
-      if (newTrack) {
-        tracksForAi.push({ index: i, title: parsed.title, artist: parsed.artist });
-        createdTrackIds.push({ index: i, trackId: newTrack.id });
-        results.push({ filename: file.name, status: "ok" });
-      } else {
-        results.push({ filename: file.name, status: "skipped", error: "Morceau déjà existant" });
-      }
-    } catch (err) {
-      results.push({ filename: file.name, status: "error", error: String(err) });
-    }
-  }
-
-  // AI categorization for all new tracks
-  if (tracksForAi.length > 0) {
-    try {
-      const aiResults = await aiCategorize(tracksForAi, allCategories);
-
-      for (const [aiIndex, slugs] of aiResults) {
-        const trackEntry = createdTrackIds.find((t) => t.index === tracksForAi[aiIndex]?.index);
-        if (!trackEntry) continue;
-
-        const catIds = slugs
-          .map((s) => catSlugMap.get(s))
-          .filter((id): id is string => !!id);
-
-        if (catIds.length > 0) {
-          await db.insert(trackCategories).values(
-            catIds.map((catId) => ({
-              trackId: trackEntry.trackId,
-              categoryId: catId,
-            }))
-          ).onConflictDoNothing();
-        }
-      }
-    } catch (err) {
-      console.error("[bulk-upload] AI categorization failed:", err);
-    }
-  }
-
-  const okCount = results.filter((r) => r.status === "ok").length;
-  const errorCount = results.filter((r) => r.status === "error").length;
-  const skippedCount = results.filter((r) => r.status === "skipped").length;
-
-  return NextResponse.json({
-    summary: { total: files.length, ok: okCount, errors: errorCount, skipped: skippedCount },
-    results,
+  return new Response(stream, {
+    headers: {
+      "Content-Type": "application/x-ndjson",
+      "Cache-Control": "no-cache, no-transform",
+      "X-Accel-Buffering": "no",
+    },
   });
 }
