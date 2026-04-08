@@ -18,6 +18,10 @@ export default function PlayerProvider({ isSubscribed, canDownload }: Props) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const signedUrlCache = useRef<Map<string, string>>(new Map());
   const subscribedRef = useRef(isSubscribed);
+  // Tracks the current track ID being loaded to avoid race conditions
+  const loadingTrackIdRef = useRef<string | null>(null);
+  // Set to true when we're loading a brand new track (to prevent the isPlaying useEffect from firing audio.play() prematurely)
+  const isLoadingNewTrackRef = useRef(false);
 
   const {
     currentTrack,
@@ -45,7 +49,8 @@ export default function PlayerProvider({ isSubscribed, canDownload }: Props) {
   useEffect(() => {
     if (!audioRef.current) {
       audioRef.current = new Audio();
-      audioRef.current.preload = "metadata";
+      // Preload "auto" tells the browser to start buffering immediately
+      audioRef.current.preload = "auto";
     }
 
     const audio = audioRef.current;
@@ -76,17 +81,19 @@ export default function PlayerProvider({ isSubscribed, canDownload }: Props) {
     };
   }, [setProgress, setDuration, setShowSubscribeCta, next]);
 
-  // React to currentTrack changes → load new audio
+  // React to currentTrack changes → load new audio + play immediately
   useEffect(() => {
     if (!audioRef.current || !currentTrack) return;
 
     const audio = audioRef.current;
+    const trackId = currentTrack.id;
+    loadingTrackIdRef.current = trackId;
+    isLoadingNewTrackRef.current = true;
 
     async function loadAndPlay() {
       let url: string | null = null;
 
       // Always try full track via API if path exists
-      // The API checks subscription server-side — no reliance on stale props
       if (currentTrack!.fullPath) {
         const cached = signedUrlCache.current.get(currentTrack!.id);
         if (cached) {
@@ -103,12 +110,8 @@ export default function PlayerProvider({ isSubscribed, canDownload }: Props) {
                 subscribedRef.current = true;
                 setIsSubscribed(true);
               }
-            } else {
-              console.warn("[player] signed-url failed:", res.status);
             }
-          } catch (err) {
-            console.warn("[player] signed-url error:", err);
-          }
+          } catch {}
         }
       }
 
@@ -117,23 +120,51 @@ export default function PlayerProvider({ isSubscribed, canDownload }: Props) {
         url = currentTrack!.previewPath;
       }
 
-      if (!url) return;
+      if (!url) {
+        isLoadingNewTrackRef.current = false;
+        return;
+      }
 
+      // Abort if a newer track started loading in the meantime
+      if (loadingTrackIdRef.current !== trackId) return;
+
+      // Pause current playback before swapping src to avoid AbortError
+      audio!.pause();
       audio!.src = url;
       audio!.load();
       audio!.currentTime = 0;
-      audio!.play().catch(() => {
-        usePlayerStore.setState({ isPlaying: false });
-      });
+
+      // Wait for canplay event before calling play() to avoid double-click issue
+      const playWhenReady = () => {
+        if (loadingTrackIdRef.current !== trackId) return;
+        audio!.play().catch(() => {
+          usePlayerStore.setState({ isPlaying: false });
+        }).finally(() => {
+          isLoadingNewTrackRef.current = false;
+        });
+      };
+
+      // If already buffered enough (HAVE_FUTURE_DATA = 3 or HAVE_ENOUGH_DATA = 4), play immediately
+      if (audio!.readyState >= 3) {
+        playWhenReady();
+      } else {
+        const handleCanPlay = () => {
+          audio!.removeEventListener("canplay", handleCanPlay);
+          playWhenReady();
+        };
+        audio!.addEventListener("canplay", handleCanPlay);
+      }
     }
 
     loadAndPlay();
   }, [currentTrack?.id, setIsSubscribed]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // React to isPlaying changes
+  // React to isPlaying changes (only for pause/resume of an already-loaded track)
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio || !currentTrack) return;
+    // Don't fire play() while a new track is still loading — the load effect handles it
+    if (isLoadingNewTrackRef.current) return;
 
     if (isPlaying) {
       audio.play().catch(() => {
