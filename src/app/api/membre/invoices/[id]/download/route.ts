@@ -1,8 +1,8 @@
 import { NextRequest } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { db } from "@/db";
-import { profiles } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { profiles, subscriptions } from "@/db/schema";
+import { eq, and, desc } from "drizzle-orm";
 import { stripe } from "@/lib/stripe";
 import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
 
@@ -12,6 +12,13 @@ const planLabels: Record<string, { fr: string; en: string }> = {
   creators_monthly: { fr: "Créateurs — Mensuel", en: "Creators — Monthly" },
   creators_annual: { fr: "Créateurs — Annuel", en: "Creators — Annual" },
   boutique_annual: { fr: "Boutique — Annuel", en: "Boutique — Annual" },
+};
+
+// Plan amounts in cents (TTC)
+const planAmounts: Record<string, number> = {
+  creators_monthly: 1599,
+  creators_annual: 9900,
+  boutique_annual: 9999,
 };
 
 function formatAmount(amount: number, currency: string, locale: string): string {
@@ -38,51 +45,95 @@ export async function GET(request: NextRequest, context: RouteContext) {
   const dateLocale = locale === "fr" ? "fr-FR" : "en-GB";
   const dateOpts: Intl.DateTimeFormatOptions = { day: "numeric", month: "long", year: "numeric" };
 
-  // Get Stripe customer ID to verify ownership
-  const [profile] = await db
-    .select({ stripeCustomerId: profiles.stripeCustomerId })
-    .from(profiles)
-    .where(eq(profiles.id, user.id))
-    .limit(1);
+  const isPreview = invoiceId === "preview";
 
-  if (!profile?.stripeCustomerId) {
-    return new Response("No customer found", { status: 403 });
+  let invoiceNumber: string;
+  let invoiceDate: string;
+  let periodStart: string;
+  let periodEnd: string;
+  let subtotal: number;
+  let tax: number;
+  let total: number;
+  let currency: string;
+  let isPaid: boolean;
+  let planLabel: string;
+
+  if (isPreview) {
+    // PREVIEW MODE: generate fake invoice based on user's active subscription
+    const [activeSub] = await db
+      .select({
+        planType: subscriptions.planType,
+        createdAt: subscriptions.createdAt,
+        currentPeriodEnd: subscriptions.currentPeriodEnd,
+      })
+      .from(subscriptions)
+      .where(and(eq(subscriptions.userId, user.id), eq(subscriptions.status, "active")))
+      .orderBy(desc(subscriptions.createdAt))
+      .limit(1);
+
+    if (!activeSub) {
+      return new Response("No active subscription", { status: 403 });
+    }
+
+    const amount = planAmounts[activeSub.planType] ?? 0;
+    // VAT calculation: assume 20% TVA inclusive (TTC) → split into HT + TVA
+    const totalCents = amount;
+    const subtotalCents = Math.round(totalCents / 1.2);
+    const taxCents = totalCents - subtotalCents;
+
+    invoiceNumber = `APERCU-${activeSub.createdAt.getFullYear()}${String(activeSub.createdAt.getMonth() + 1).padStart(2, "0")}-XXXX`;
+    invoiceDate = activeSub.createdAt.toLocaleDateString(dateLocale, dateOpts);
+    periodStart = activeSub.createdAt.toLocaleDateString(dateLocale, dateOpts);
+    periodEnd = activeSub.currentPeriodEnd.toLocaleDateString(dateLocale, dateOpts);
+    subtotal = subtotalCents;
+    tax = taxCents;
+    total = totalCents;
+    currency = "eur";
+    isPaid = true;
+    planLabel = planLabels[activeSub.planType]?.[locale] ?? activeSub.planType;
+  } else {
+    // REAL MODE: fetch from Stripe
+    const [profile] = await db
+      .select({ stripeCustomerId: profiles.stripeCustomerId })
+      .from(profiles)
+      .where(eq(profiles.id, user.id))
+      .limit(1);
+
+    if (!profile?.stripeCustomerId) {
+      return new Response("No customer found", { status: 403 });
+    }
+
+    let invoice;
+    try {
+      invoice = await stripe.invoices.retrieve(invoiceId);
+    } catch {
+      return new Response("Invoice not found", { status: 404 });
+    }
+
+    if (invoice.customer !== profile.stripeCustomerId) {
+      return new Response("Forbidden", { status: 403 });
+    }
+
+    invoiceNumber = invoice.number ?? invoiceId.substring(0, 16).toUpperCase();
+    invoiceDate = new Date((invoice.created ?? 0) * 1000).toLocaleDateString(dateLocale, dateOpts);
+    periodStart = invoice.lines?.data?.[0]?.period?.start
+      ? new Date(invoice.lines.data[0].period.start * 1000).toLocaleDateString(dateLocale, dateOpts)
+      : "—";
+    periodEnd = invoice.lines?.data?.[0]?.period?.end
+      ? new Date(invoice.lines.data[0].period.end * 1000).toLocaleDateString(dateLocale, dateOpts)
+      : "—";
+
+    subtotal = invoice.subtotal ?? 0;
+    tax = (invoice.total ?? 0) - (invoice.subtotal ?? 0);
+    total = invoice.amount_paid ?? invoice.total ?? 0;
+    currency = invoice.currency ?? "eur";
+    isPaid = invoice.status === "paid";
+
+    const lineItem = invoice.lines?.data?.[0];
+    const planDescription = lineItem?.description ?? "Lalason Subscription";
+    const planType = ((lineItem as unknown as { price?: { metadata?: { plan_type?: string } } })?.price?.metadata?.plan_type) ?? "";
+    planLabel = planLabels[planType]?.[locale] ?? planDescription;
   }
-
-  // Fetch invoice from Stripe
-  let invoice;
-  try {
-    invoice = await stripe.invoices.retrieve(invoiceId);
-  } catch {
-    return new Response("Invoice not found", { status: 404 });
-  }
-
-  // Verify this invoice belongs to the user
-  if (invoice.customer !== profile.stripeCustomerId) {
-    return new Response("Forbidden", { status: 403 });
-  }
-
-  // Extract data
-  const invoiceNumber = invoice.number ?? invoiceId.substring(0, 16).toUpperCase();
-  const invoiceDate = new Date((invoice.created ?? 0) * 1000).toLocaleDateString(dateLocale, dateOpts);
-  const periodStart = invoice.lines?.data?.[0]?.period?.start
-    ? new Date(invoice.lines.data[0].period.start * 1000).toLocaleDateString(dateLocale, dateOpts)
-    : "—";
-  const periodEnd = invoice.lines?.data?.[0]?.period?.end
-    ? new Date(invoice.lines.data[0].period.end * 1000).toLocaleDateString(dateLocale, dateOpts)
-    : "—";
-
-  const subtotal = invoice.subtotal ?? 0;
-  const tax = (invoice.total ?? 0) - (invoice.subtotal ?? 0);
-  const total = invoice.amount_paid ?? invoice.total ?? 0;
-  const currency = invoice.currency ?? "eur";
-  const isPaid = invoice.status === "paid";
-
-  // Plan info from line items
-  const lineItem = invoice.lines?.data?.[0];
-  const planDescription = lineItem?.description ?? "Lalason Subscription";
-  const planType = ((lineItem as unknown as { price?: { metadata?: { plan_type?: string } } })?.price?.metadata?.plan_type) ?? "";
-  const planLabel = planLabels[planType]?.[locale] ?? planDescription;
 
   // Customer info — billing details (preferred) or licence holder (fallback)
   const licenceFirstName = (user.user_metadata?.licence_first_name as string) ?? "";
@@ -112,14 +163,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
   if (billingCountry) customerAddressLines.push(billingCountry);
   if (billingVat) customerAddressLines.push(`TVA: ${billingVat}`);
 
-  // Customer country from Stripe (fallback when billing country not set)
-  const stripeCountry = invoice.customer_address?.country ?? "";
-  const fallbackCountry = stripeCountry
-    ? new Intl.DisplayNames([dateLocale], { type: "region" }).of(stripeCountry) ?? stripeCountry
-    : "";
-  if (!billingCountry && fallbackCountry && customerAddressLines.length > 0) {
-    customerAddressLines.push(fallbackCountry);
-  }
+  // (No fallback country needed — billing info or licence info is the source of truth)
 
   // Tax rate (calculated from amounts, or from Stripe Tax when enabled)
   const taxRate = subtotal > 0 && tax > 0 ? Math.round((tax / subtotal) * 10000) / 100 : 0;
