@@ -62,6 +62,8 @@ export default function BoutiquePlayer({ tracks, locale, moodFilters }: Props) {
     queueIndex,
     shuffle,
     repeat,
+    activePlaylistName,
+    activePlaylistEmoji,
     playTrack,
     togglePlay,
     seek,
@@ -71,6 +73,7 @@ export default function BoutiquePlayer({ tracks, locale, moodFilters }: Props) {
     toggleShuffle,
     toggleRepeat,
     setHasEmbeddedPlayer,
+    setActivePlaylist,
   } = usePlayerStore();
 
   // Tell the global player store that an embedded player is active.
@@ -89,16 +92,19 @@ export default function BoutiquePlayer({ tracks, locale, moodFilters }: Props) {
 
   const handlePlayTrack = useCallback(
     (index: number) => {
+      // Manual play from the queue → clear the active playlist label
+      setActivePlaylist(null);
       playTrack(playerTracks[index], playerTracks, index);
     },
-    [playerTracks, playTrack]
+    [playerTracks, playTrack, setActivePlaylist]
   );
 
   const handlePlayAll = useCallback(() => {
     if (playerTracks.length > 0) {
+      setActivePlaylist(null);
       playTrack(playerTracks[0], playerTracks, 0);
     }
-  }, [playerTracks, playTrack]);
+  }, [playerTracks, playTrack, setActivePlaylist]);
 
   const progressPercent = duration > 0 ? (progress / duration) * 100 : 0;
   const nowPlaying = currentTrack;
@@ -146,9 +152,26 @@ export default function BoutiquePlayer({ tracks, locale, moodFilters }: Props) {
           <div className="flex-1 text-center md:text-left min-w-0">
             {nowPlaying ? (
               <>
-                <p className="text-sm text-white/40 font-medium mb-1">
-                  {locale === "fr" ? "En cours de lecture" : "Now playing"}
-                </p>
+                {activePlaylistName ? (
+                  <div
+                    className="inline-flex items-center gap-1.5 mb-2 px-3 py-1 rounded-full"
+                    style={{
+                      background: "rgba(245,166,35,0.18)",
+                      border: "1px solid rgba(245,166,35,0.35)",
+                    }}
+                  >
+                    {activePlaylistEmoji && (
+                      <span style={{ fontSize: "0.875rem" }}>{activePlaylistEmoji}</span>
+                    )}
+                    <span style={{ fontSize: "0.6875rem", fontWeight: 700, color: "var(--color-accent)", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+                      {activePlaylistName}
+                    </span>
+                  </div>
+                ) : (
+                  <p className="text-sm text-white/40 font-medium mb-1">
+                    {locale === "fr" ? "En cours de lecture" : "Now playing"}
+                  </p>
+                )}
                 <h2 className="text-2xl md:text-3xl font-extrabold text-white mb-1 truncate">
                   {nowPlaying.title}
                 </h2>

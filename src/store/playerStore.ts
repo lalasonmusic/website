@@ -15,6 +15,9 @@ interface PlayerState {
   repeat: "off" | "all" | "one";
   // True when a dedicated boutique player is mounted (hides the footer player)
   hasEmbeddedPlayer: boolean;
+  // Active playlist name (set when playing from a playlist card)
+  activePlaylistName: string | null;
+  activePlaylistEmoji: string | null;
 }
 
 interface PlayerActions {
@@ -31,6 +34,7 @@ interface PlayerActions {
   toggleShuffle: () => void;
   toggleRepeat: () => void;
   setHasEmbeddedPlayer: (v: boolean) => void;
+  setActivePlaylist: (name: string | null, emoji?: string | null) => void;
   stop: () => void;
 }
 
@@ -47,6 +51,8 @@ export const usePlayerStore = create<PlayerState & PlayerActions>((set, get) => 
   shuffle: false,
   repeat: "off",
   hasEmbeddedPlayer: false,
+  activePlaylistName: null,
+  activePlaylistEmoji: null,
 
   playTrack: (track, queue, index = 0) => {
     set({
@@ -120,6 +126,7 @@ export const usePlayerStore = create<PlayerState & PlayerActions>((set, get) => 
     repeat: s.repeat === "off" ? "all" : s.repeat === "all" ? "one" : "off",
   })),
   setHasEmbeddedPlayer: (v) => set({ hasEmbeddedPlayer: v }),
+  setActivePlaylist: (name, emoji = null) => set({ activePlaylistName: name, activePlaylistEmoji: emoji }),
 
   stop: () => set({ isPlaying: false, currentTrack: null, progress: 0, showSubscribeCta: false }),
 }));

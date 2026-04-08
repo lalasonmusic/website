@@ -34,7 +34,7 @@ export default function PlaylistCarousel({ locale }: Props) {
   const [playlists, setPlaylists] = useState<ApiPlaylist[]>([]);
   const [loading, setLoading] = useState(true);
   const [activePlaylistId, setActivePlaylistId] = useState<string | null>(null);
-  const { playTrack } = usePlayerStore();
+  const { playTrack, setActivePlaylist } = usePlayerStore();
 
   useEffect(() => {
     fetch("/api/playlists")
@@ -58,6 +58,8 @@ export default function PlaylistCarousel({ locale }: Props) {
       previewPath: t.previewPath,
       fullPath: t.fullPath,
     }));
+    const name = locale === "fr" ? playlist.nameFr : playlist.nameEn;
+    setActivePlaylist(name, playlist.emoji);
     playTrack(playerTracks[0], playerTracks, 0);
     setActivePlaylistId(playlist.id);
   }
