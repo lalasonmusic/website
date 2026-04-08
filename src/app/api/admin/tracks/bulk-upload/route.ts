@@ -5,8 +5,48 @@ import { db } from "@/db";
 import { profiles, tracks, artists, trackCategories, categories } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import Anthropic from "@anthropic-ai/sdk";
+import ffmpegPath from "ffmpeg-static";
+import ffmpeg from "fluent-ffmpeg";
+import { writeFileSync, readFileSync, unlinkSync, mkdirSync, existsSync } from "fs";
+import { join } from "path";
+import { tmpdir } from "os";
+
+ffmpeg.setFfmpegPath(ffmpegPath as string);
 
 const anthropic = new Anthropic();
+
+// Convert an MP3 buffer to a WAV buffer using ffmpeg
+async function convertMp3ToWav(mp3Buffer: Buffer, slug: string): Promise<Buffer | null> {
+  const tmpDir = join(tmpdir(), "lalason-bulk");
+  if (!existsSync(tmpDir)) mkdirSync(tmpDir, { recursive: true });
+
+  const tmpMp3 = join(tmpDir, `${slug}-${Date.now()}.mp3`);
+  const tmpWav = join(tmpDir, `${slug}-${Date.now()}.wav`);
+
+  try {
+    writeFileSync(tmpMp3, mp3Buffer);
+
+    await new Promise<void>((resolve, reject) => {
+      ffmpeg(tmpMp3)
+        .toFormat("wav")
+        .audioCodec("pcm_s16le")
+        .audioFrequency(44100)
+        .audioChannels(2)
+        .on("end", () => resolve())
+        .on("error", (err: Error) => reject(err))
+        .save(tmpWav);
+    });
+
+    const wavBuffer = readFileSync(tmpWav);
+    return wavBuffer;
+  } catch (err) {
+    console.error("[bulk-upload] WAV convert error:", err);
+    return null;
+  } finally {
+    try { unlinkSync(tmpMp3); } catch {}
+    try { unlinkSync(tmpWav); } catch {}
+  }
+}
 
 // Parse "Artist - Title.mp3" → { artist, title }
 function parseFilename(filename: string): { artist: string; title: string } | null {
@@ -152,6 +192,7 @@ export async function POST(req: NextRequest) {
     try {
       const buffer = Buffer.from(await file.arrayBuffer());
 
+      // Upload MP3 (full + preview)
       await supabaseAdmin.storage
         .from("audio-full")
         .upload(fileName, buffer, { contentType: "audio/mpeg", upsert: true });
@@ -163,6 +204,19 @@ export async function POST(req: NextRequest) {
       const previewUrl = !prevErr
         ? supabaseAdmin.storage.from("audio-previews").getPublicUrl(fileName).data.publicUrl
         : null;
+
+      // Convert to WAV and upload (best-effort, doesn't block track creation)
+      try {
+        const wavBuffer = await convertMp3ToWav(buffer, slug);
+        if (wavBuffer) {
+          const wavFileName = `${slug}.wav`;
+          await supabaseAdmin.storage
+            .from("audio-full")
+            .upload(wavFileName, wavBuffer, { contentType: "audio/wav", upsert: true });
+        }
+      } catch (err) {
+        console.error("[bulk-upload] WAV upload error:", err);
+      }
 
       // Insert track
       const [newTrack] = await db
