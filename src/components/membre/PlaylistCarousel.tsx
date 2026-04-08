@@ -59,7 +59,8 @@ export default function PlaylistCarousel({ locale }: Props) {
       fullPath: t.fullPath,
     }));
     const name = locale === "fr" ? playlist.nameFr : playlist.nameEn;
-    setActivePlaylist(name, playlist.emoji);
+    const trackIds = playlist.tracks.map((t) => t.id);
+    setActivePlaylist(name, playlist.emoji, trackIds);
     playTrack(playerTracks[0], playerTracks, 0);
     setActivePlaylistId(playlist.id);
   }

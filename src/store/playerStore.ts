@@ -18,6 +18,7 @@ interface PlayerState {
   // Active playlist name (set when playing from a playlist card)
   activePlaylistName: string | null;
   activePlaylistEmoji: string | null;
+  activePlaylistTrackIds: string[] | null;
 }
 
 interface PlayerActions {
@@ -34,7 +35,7 @@ interface PlayerActions {
   toggleShuffle: () => void;
   toggleRepeat: () => void;
   setHasEmbeddedPlayer: (v: boolean) => void;
-  setActivePlaylist: (name: string | null, emoji?: string | null) => void;
+  setActivePlaylist: (name: string | null, emoji?: string | null, trackIds?: string[] | null) => void;
   stop: () => void;
 }
 
@@ -53,6 +54,7 @@ export const usePlayerStore = create<PlayerState & PlayerActions>((set, get) => 
   hasEmbeddedPlayer: false,
   activePlaylistName: null,
   activePlaylistEmoji: null,
+  activePlaylistTrackIds: null,
 
   playTrack: (track, queue, index = 0) => {
     set({
@@ -126,7 +128,8 @@ export const usePlayerStore = create<PlayerState & PlayerActions>((set, get) => 
     repeat: s.repeat === "off" ? "all" : s.repeat === "all" ? "one" : "off",
   })),
   setHasEmbeddedPlayer: (v) => set({ hasEmbeddedPlayer: v }),
-  setActivePlaylist: (name, emoji = null) => set({ activePlaylistName: name, activePlaylistEmoji: emoji }),
+  setActivePlaylist: (name, emoji = null, trackIds = null) =>
+    set({ activePlaylistName: name, activePlaylistEmoji: emoji, activePlaylistTrackIds: trackIds }),
 
   stop: () => set({ isPlaying: false, currentTrack: null, progress: 0, showSubscribeCta: false }),
 }));

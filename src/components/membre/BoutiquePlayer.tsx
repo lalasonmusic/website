@@ -64,6 +64,7 @@ export default function BoutiquePlayer({ tracks, locale, moodFilters }: Props) {
     repeat,
     activePlaylistName,
     activePlaylistEmoji,
+    activePlaylistTrackIds,
     playTrack,
     togglePlay,
     seek,
@@ -83,10 +84,19 @@ export default function BoutiquePlayer({ tracks, locale, moodFilters }: Props) {
     return () => setHasEmbeddedPlayer(false);
   }, [setHasEmbeddedPlayer]);
 
-  // Filter tracks by mood
-  const filteredTracks = activeMood
-    ? tracks.filter((t) => t.categories.some((c) => c.slug === activeMood))
-    : tracks;
+  // Filter tracks: playlist > mood > all tracks
+  let filteredTracks: TrackWithDetails[];
+  if (activePlaylistTrackIds && activePlaylistTrackIds.length > 0) {
+    // Preserve playlist order
+    const trackMap = new Map(tracks.map((t) => [t.id, t]));
+    filteredTracks = activePlaylistTrackIds
+      .map((id) => trackMap.get(id))
+      .filter((t): t is TrackWithDetails => Boolean(t));
+  } else if (activeMood) {
+    filteredTracks = tracks.filter((t) => t.categories.some((c) => c.slug === activeMood));
+  } else {
+    filteredTracks = tracks;
+  }
 
   const playerTracks = filteredTracks.map(toPlayerTrack);
 
@@ -363,24 +373,46 @@ export default function BoutiquePlayer({ tracks, locale, moodFilters }: Props) {
         className="rounded-2xl border border-white/[0.08] overflow-hidden"
         style={{ background: "rgba(255,255,255,0.03)" }}
       >
-        <div className="px-5 py-3 border-b border-white/[0.06] flex items-center justify-between">
-          <h3 className="text-sm font-bold text-white/60">
-            {locale === "fr" ? "File d'attente" : "Queue"}
-            <span className="text-white/30 font-normal ml-2">({filteredTracks.length})</span>
+        <div className="px-5 py-3 border-b border-white/[0.06] flex items-center justify-between flex-wrap gap-2">
+          <h3 className="text-sm font-bold text-white/70 flex items-center gap-2">
+            {activePlaylistName ? (
+              <>
+                {activePlaylistEmoji && <span>{activePlaylistEmoji}</span>}
+                <span>{activePlaylistName}</span>
+              </>
+            ) : (
+              <span>{locale === "fr" ? "Tous les morceaux" : "All tracks"}</span>
+            )}
+            <span className="text-white/30 font-normal">({filteredTracks.length})</span>
           </h3>
-          {!nowPlaying && filteredTracks.length > 0 && (
-            <button
-              onClick={handlePlayAll}
-              className="text-xs font-semibold px-3 py-1.5 rounded-full cursor-pointer transition-all duration-200 hover:scale-[1.03]"
-              style={{
-                background: "var(--color-accent)",
-                color: "var(--color-accent-text)",
-                border: "none",
-              }}
-            >
-              {locale === "fr" ? "Tout lancer" : "Play all"}
-            </button>
-          )}
+          <div className="flex items-center gap-2">
+            {activePlaylistName && (
+              <button
+                onClick={() => setActivePlaylist(null)}
+                className="text-xs font-semibold px-3 py-1.5 rounded-full cursor-pointer transition-all duration-200 hover:scale-[1.03]"
+                style={{
+                  background: "rgba(255,255,255,0.08)",
+                  color: "rgba(255,255,255,0.7)",
+                  border: "1px solid rgba(255,255,255,0.12)",
+                }}
+              >
+                {locale === "fr" ? "← Tous les morceaux" : "← All tracks"}
+              </button>
+            )}
+            {!nowPlaying && filteredTracks.length > 0 && (
+              <button
+                onClick={handlePlayAll}
+                className="text-xs font-semibold px-3 py-1.5 rounded-full cursor-pointer transition-all duration-200 hover:scale-[1.03]"
+                style={{
+                  background: "var(--color-accent)",
+                  color: "var(--color-accent-text)",
+                  border: "none",
+                }}
+              >
+                {locale === "fr" ? "Tout lancer" : "Play all"}
+              </button>
+            )}
+          </div>
         </div>
 
         <div style={{ maxHeight: "clamp(250px, 50vh, 400px)", overflowY: "auto" }}>
