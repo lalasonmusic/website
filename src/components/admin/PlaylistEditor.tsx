@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
 type PlaylistData = {
@@ -48,6 +48,69 @@ export default function PlaylistEditor({ playlist: initialPlaylist, playlistTrac
   const [search, setSearch] = useState("");
   const [saving, setSaving] = useState(false);
   const [savedAt, setSavedAt] = useState<number | null>(null);
+
+  // Audio playback for previewing tracks
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const [playingId, setPlayingId] = useState<string | null>(null);
+  const [loadingTrackId, setLoadingTrackId] = useState<string | null>(null);
+  const urlCache = useRef<Map<string, string>>(new Map());
+
+  useEffect(() => {
+    if (!audioRef.current) {
+      audioRef.current = new Audio();
+      audioRef.current.preload = "none";
+    }
+    const audio = audioRef.current;
+    const handleEnded = () => setPlayingId(null);
+    audio.addEventListener("ended", handleEnded);
+    return () => {
+      audio.removeEventListener("ended", handleEnded);
+      audio.pause();
+    };
+  }, []);
+
+  async function togglePlay(trackId: string) {
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    // Already playing this track → pause
+    if (playingId === trackId) {
+      audio.pause();
+      setPlayingId(null);
+      return;
+    }
+
+    // Different track → load new one
+    setLoadingTrackId(trackId);
+    try {
+      let url = urlCache.current.get(trackId);
+      if (!url) {
+        const res = await fetch(`/api/admin/tracks/${trackId}/audio-url`);
+        if (!res.ok) {
+          setLoadingTrackId(null);
+          return;
+        }
+        const data = await res.json();
+        url = data.url;
+        if (url) urlCache.current.set(trackId, url);
+      }
+
+      if (!url) {
+        setLoadingTrackId(null);
+        return;
+      }
+
+      audio.pause();
+      audio.src = url;
+      audio.load();
+      await audio.play();
+      setPlayingId(trackId);
+    } catch {
+      // ignore
+    } finally {
+      setLoadingTrackId(null);
+    }
+  }
 
   const trackIdsInPlaylist = new Set(tracks.map((t) => t.id));
   const filteredAvailable = allTracks
@@ -319,43 +382,68 @@ export default function PlaylistEditor({ playlist: initialPlaylist, playlistTrac
             <p style={{ color: "var(--color-text-muted)", fontSize: "0.8125rem" }}>Aucun morceau</p>
           ) : (
             <div style={{ display: "flex", flexDirection: "column", gap: "0.375rem", maxHeight: 400, overflowY: "auto", marginBottom: "1.5rem" }}>
-              {tracks.map((t, i) => (
-                <div
-                  key={t.id}
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "0.5rem",
-                    padding: "0.5rem 0.75rem",
-                    borderRadius: 6,
-                    backgroundColor: "rgba(255,255,255,0.04)",
-                  }}
-                >
-                  <span style={{ fontSize: "0.6875rem", color: "var(--color-text-muted)", minWidth: 18, textAlign: "right" }}>
-                    {i + 1}
-                  </span>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <p style={{ fontSize: "0.8125rem", fontWeight: 600, margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                      {t.title}
-                    </p>
-                    <p style={{ fontSize: "0.6875rem", color: "var(--color-text-muted)", margin: 0 }}>{t.artistName}</p>
-                  </div>
-                  <button
-                    onClick={() => removeTrack(t.id)}
+              {tracks.map((t, i) => {
+                const isPlaying = playingId === t.id;
+                const isLoading = loadingTrackId === t.id;
+                return (
+                  <div
+                    key={t.id}
                     style={{
-                      background: "none",
-                      border: "none",
-                      color: "#ef4444",
-                      cursor: "pointer",
-                      fontSize: "0.75rem",
-                      fontWeight: 600,
-                      padding: "0.25rem 0.5rem",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "0.5rem",
+                      padding: "0.5rem 0.75rem",
+                      borderRadius: 6,
+                      backgroundColor: isPlaying ? "rgba(245,166,35,0.12)" : "rgba(255,255,255,0.04)",
                     }}
                   >
-                    Retirer
-                  </button>
-                </div>
-              ))}
+                    <button
+                      onClick={() => togglePlay(t.id)}
+                      disabled={isLoading}
+                      style={{
+                        width: 26,
+                        height: 26,
+                        borderRadius: "50%",
+                        border: "none",
+                        background: isPlaying ? "var(--color-accent)" : "rgba(255,255,255,0.1)",
+                        color: isPlaying ? "var(--color-accent-text)" : "white",
+                        cursor: isLoading ? "wait" : "pointer",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        flexShrink: 0,
+                        fontSize: "0.625rem",
+                      }}
+                      aria-label={isPlaying ? "Pause" : "Play"}
+                    >
+                      {isLoading ? "…" : isPlaying ? "⏸" : "▶"}
+                    </button>
+                    <span style={{ fontSize: "0.6875rem", color: "var(--color-text-muted)", minWidth: 18, textAlign: "right" }}>
+                      {i + 1}
+                    </span>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <p style={{ fontSize: "0.8125rem", fontWeight: 600, margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", color: isPlaying ? "var(--color-accent)" : "white" }}>
+                        {t.title}
+                      </p>
+                      <p style={{ fontSize: "0.6875rem", color: "var(--color-text-muted)", margin: 0 }}>{t.artistName}</p>
+                    </div>
+                    <button
+                      onClick={() => removeTrack(t.id)}
+                      style={{
+                        background: "none",
+                        border: "none",
+                        color: "#ef4444",
+                        cursor: "pointer",
+                        fontSize: "0.75rem",
+                        fontWeight: 600,
+                        padding: "0.25rem 0.5rem",
+                      }}
+                    >
+                      Retirer
+                    </button>
+                  </div>
+                );
+              })}
             </div>
           )}
 
@@ -371,33 +459,68 @@ export default function PlaylistEditor({ playlist: initialPlaylist, playlistTrac
             style={{ ...inputStyle, marginBottom: "0.5rem" }}
           />
           <div style={{ maxHeight: 300, overflowY: "auto", display: "flex", flexDirection: "column", gap: "0.25rem" }}>
-            {filteredAvailable.map((t) => (
-              <button
-                key={t.id}
-                onClick={() => addTrack(t)}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "0.5rem",
-                  padding: "0.5rem 0.75rem",
-                  borderRadius: 6,
-                  backgroundColor: "rgba(255,255,255,0.03)",
-                  border: "1px solid rgba(255,255,255,0.05)",
-                  cursor: "pointer",
-                  textAlign: "left",
-                  fontFamily: "inherit",
-                  color: "white",
-                }}
-              >
-                <span style={{ color: "#22c55e", fontSize: "1rem" }}>+</span>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <p style={{ fontSize: "0.75rem", fontWeight: 600, margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                    {t.title}
-                  </p>
-                  <p style={{ fontSize: "0.6875rem", color: "var(--color-text-muted)", margin: 0 }}>{t.artistName}</p>
+            {filteredAvailable.map((t) => {
+              const isPlaying = playingId === t.id;
+              const isLoading = loadingTrackId === t.id;
+              return (
+                <div
+                  key={t.id}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "0.5rem",
+                    padding: "0.5rem 0.75rem",
+                    borderRadius: 6,
+                    backgroundColor: isPlaying ? "rgba(245,166,35,0.12)" : "rgba(255,255,255,0.03)",
+                    border: "1px solid rgba(255,255,255,0.05)",
+                  }}
+                >
+                  <button
+                    onClick={() => togglePlay(t.id)}
+                    disabled={isLoading}
+                    style={{
+                      width: 26,
+                      height: 26,
+                      borderRadius: "50%",
+                      border: "none",
+                      background: isPlaying ? "var(--color-accent)" : "rgba(255,255,255,0.1)",
+                      color: isPlaying ? "var(--color-accent-text)" : "white",
+                      cursor: isLoading ? "wait" : "pointer",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      flexShrink: 0,
+                      fontSize: "0.625rem",
+                    }}
+                    aria-label={isPlaying ? "Pause" : "Play"}
+                  >
+                    {isLoading ? "…" : isPlaying ? "⏸" : "▶"}
+                  </button>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <p style={{ fontSize: "0.75rem", fontWeight: 600, margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", color: isPlaying ? "var(--color-accent)" : "white" }}>
+                      {t.title}
+                    </p>
+                    <p style={{ fontSize: "0.6875rem", color: "var(--color-text-muted)", margin: 0 }}>{t.artistName}</p>
+                  </div>
+                  <button
+                    onClick={() => addTrack(t)}
+                    style={{
+                      background: "rgba(34,197,94,0.12)",
+                      border: "1px solid rgba(34,197,94,0.25)",
+                      borderRadius: 6,
+                      color: "#22c55e",
+                      cursor: "pointer",
+                      fontSize: "0.6875rem",
+                      fontWeight: 700,
+                      padding: "0.25rem 0.625rem",
+                      fontFamily: "inherit",
+                    }}
+                  >
+                    + Ajouter
+                  </button>
                 </div>
-              </button>
-            ))}
+              );
+            })}
           </div>
         </div>
       </div>

@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { db } from "@/db";
 import { playlists, playlistTracks } from "@/db/schema";
-import { asc, count, eq } from "drizzle-orm";
+import { asc, count } from "drizzle-orm";
+import CreatePlaylistButton from "@/components/admin/CreatePlaylistButton";
 
 async function getPlaylists() {
   const all = await db.select().from(playlists).orderBy(asc(playlists.displayOrder));
@@ -32,6 +33,7 @@ export default async function PlaylistsAdminPage() {
             {allPlaylists.length} playlists d&apos;ambiance pour les abonnés Boutique
           </p>
         </div>
+        <CreatePlaylistButton />
       </div>
 
       {/* Grid of playlists */}
