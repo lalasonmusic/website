@@ -379,11 +379,11 @@ export default function BoutiquePlayer({ tracks, locale, moodFilters }: Props) {
               <>
                 {activePlaylistEmoji && <span>{activePlaylistEmoji}</span>}
                 <span>{activePlaylistName}</span>
+                <span className="text-white/30 font-normal">({filteredTracks.length})</span>
               </>
             ) : (
               <span>{locale === "fr" ? "Tous les morceaux" : "All tracks"}</span>
             )}
-            <span className="text-white/30 font-normal">({filteredTracks.length})</span>
           </h3>
           <div className="flex items-center gap-2">
             {activePlaylistName && (
