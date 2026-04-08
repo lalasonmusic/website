@@ -19,6 +19,9 @@ type Props = {
   params: Promise<{ locale: string }>;
 };
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 const PREVIEW_BASE = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/audio-previews`;
 
 function buildPreviewUrl(path: string | null) {
@@ -72,7 +75,7 @@ export default async function FavoritesPage({ params }: Props) {
       })
       .from(tracks)
       .innerJoin(artists, eq(artists.id, tracks.artistId))
-      .where(inArray(tracks.id, ids));
+      .where(and(inArray(tracks.id, ids), eq(tracks.isPublished, true)));
 
     // Fetch categories for these tracks
     const catRows = await db
