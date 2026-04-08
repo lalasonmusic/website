@@ -15,7 +15,9 @@ ffmpeg.setFfmpegPath(ffmpegPath as string);
 
 const anthropic = new Anthropic();
 
-// Convert an MP3 buffer to a WAV buffer using ffmpeg
+// Generous timeout — bulk processing can take a while
+export const maxDuration = 300; // seconds (5 min) — adjust per Vercel plan
+
 async function convertMp3ToWav(mp3Buffer: Buffer, slug: string): Promise<Buffer | null> {
   const tmpDir = join(tmpdir(), "lalason-bulk");
   if (!existsSync(tmpDir)) mkdirSync(tmpDir, { recursive: true });
@@ -37,8 +39,7 @@ async function convertMp3ToWav(mp3Buffer: Buffer, slug: string): Promise<Buffer 
         .save(tmpWav);
     });
 
-    const wavBuffer = readFileSync(tmpWav);
-    return wavBuffer;
+    return readFileSync(tmpWav);
   } catch (err) {
     console.error("[bulk-upload] WAV convert error:", err);
     return null;
@@ -48,7 +49,6 @@ async function convertMp3ToWav(mp3Buffer: Buffer, slug: string): Promise<Buffer 
   }
 }
 
-// Parse "Artist - Title.mp3" → { artist, title }
 function parseFilename(filename: string): { artist: string; title: string } | null {
   const clean = filename.replace(/\.mp3$/i, "").trim();
   const sep = clean.indexOf(" - ");
@@ -57,15 +57,6 @@ function parseFilename(filename: string): { artist: string; title: string } | nu
     artist: clean.substring(0, sep).trim(),
     title: clean.substring(sep + 3).trim(),
   };
-}
-
-function generateSlug(artist: string, title: string): string {
-  return `${artist}-${title}`
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/(^-|-$)/g, "");
 }
 
 async function aiCategorize(
@@ -116,30 +107,20 @@ Only use slugs from the list above. Pick 3-5 categories per track.`,
   }
 }
 
+type FinalizeItem = { filename: string; slug: string; path: string };
+
 export async function POST(req: NextRequest) {
   // Auth check
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) {
-    return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
-  }
+  if (!user) return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
 
   const [profile] = await db.select({ role: profiles.role }).from(profiles).where(eq(profiles.id, user.id)).limit(1);
-  if (profile?.role !== "admin") {
-    return new Response(JSON.stringify({ error: "Forbidden" }), { status: 403 });
-  }
+  if (profile?.role !== "admin") return new Response(JSON.stringify({ error: "Forbidden" }), { status: 403 });
 
-  const formData = await req.formData();
-  const files = formData.getAll("files") as File[];
-
-  if (files.length === 0) {
-    return new Response(JSON.stringify({ error: "No files" }), { status: 400 });
-  }
-
-  // Pre-read all file buffers BEFORE starting the stream — formData is tied to req lifecycle
-  const fileBuffers: { name: string; buffer: Buffer }[] = [];
-  for (const f of files) {
-    fileBuffers.push({ name: f.name, buffer: Buffer.from(await f.arrayBuffer()) });
+  const { items } = (await req.json()) as { items: FinalizeItem[] };
+  if (!Array.isArray(items) || items.length === 0) {
+    return new Response(JSON.stringify({ error: "No items" }), { status: 400 });
   }
 
   const encoder = new TextEncoder();
@@ -151,7 +132,6 @@ export async function POST(req: NextRequest) {
       };
 
       try {
-        // Get all artists and categories
         const [allArtists, allCategories] = await Promise.all([
           db.select({ id: artists.id, name: artists.name }).from(artists),
           db.select({ id: categories.id, slug: categories.slug, labelFr: categories.labelFr, type: categories.type }).from(categories),
@@ -164,18 +144,16 @@ export async function POST(req: NextRequest) {
         const tracksForAi: { index: number; title: string; artist: string }[] = [];
         const createdTrackIds: { index: number; trackId: string }[] = [];
 
-        send({ type: "start", total: fileBuffers.length });
+        send({ type: "start", total: items.length });
 
-        for (let i = 0; i < fileBuffers.length; i++) {
-          const file = fileBuffers[i];
+        for (let i = 0; i < items.length; i++) {
+          const item = items[i];
+          send({ type: "file-start", index: i, filename: item.filename });
 
-          send({ type: "file-start", index: i, filename: file.name });
-
-          const parsed = parseFilename(file.name);
-
+          const parsed = parseFilename(item.filename);
           if (!parsed) {
-            results.push({ filename: file.name, status: "error", error: "Format invalide. Utilisez: Artiste - Titre.mp3" });
-            send({ type: "file-done", index: i, filename: file.name, status: "error", error: "Format invalide" });
+            results.push({ filename: item.filename, status: "error", error: "Format invalide" });
+            send({ type: "file-done", index: i, filename: item.filename, status: "error", error: "Format invalide" });
             continue;
           }
 
@@ -205,35 +183,39 @@ export async function POST(req: NextRequest) {
           }
 
           if (!artistId) {
-            results.push({ filename: file.name, status: "error", error: "Artiste non trouvé" });
-            send({ type: "file-done", index: i, filename: file.name, status: "error", error: "Artiste non trouvé" });
+            results.push({ filename: item.filename, status: "error", error: "Artiste non trouvé" });
+            send({ type: "file-done", index: i, filename: item.filename, status: "error", error: "Artiste non trouvé" });
             continue;
           }
 
-          const slug = generateSlug(parsed.artist, parsed.title);
-          const fileName = `${slug}.mp3`;
-
           try {
-            const buffer = file.buffer;
-
-            // Upload MP3 (full + preview)
-            await supabaseAdmin.storage
+            // Download MP3 from audio-full (already uploaded by client)
+            const { data: mp3Blob, error: dlErr } = await supabaseAdmin.storage
               .from("audio-full")
-              .upload(fileName, buffer, { contentType: "audio/mpeg", upsert: true });
+              .download(item.path);
 
+            if (dlErr || !mp3Blob) {
+              results.push({ filename: item.filename, status: "error", error: `MP3 introuvable: ${dlErr?.message ?? "unknown"}` });
+              send({ type: "file-done", index: i, filename: item.filename, status: "error", error: "MP3 introuvable" });
+              continue;
+            }
+
+            const buffer = Buffer.from(await mp3Blob.arrayBuffer());
+
+            // Upload preview (same MP3 to preview bucket — true preview clip is a future improvement)
             const { error: prevErr } = await supabaseAdmin.storage
               .from("audio-previews")
-              .upload(fileName, buffer, { contentType: "audio/mpeg", upsert: true });
+              .upload(item.path, buffer, { contentType: "audio/mpeg", upsert: true });
 
             const previewUrl = !prevErr
-              ? supabaseAdmin.storage.from("audio-previews").getPublicUrl(fileName).data.publicUrl
+              ? supabaseAdmin.storage.from("audio-previews").getPublicUrl(item.path).data.publicUrl
               : null;
 
-            // Convert to WAV and upload (best-effort)
+            // Convert to WAV (best-effort)
             try {
-              const wavBuffer = await convertMp3ToWav(buffer, slug);
+              const wavBuffer = await convertMp3ToWav(buffer, item.slug);
               if (wavBuffer) {
-                const wavFileName = `${slug}.wav`;
+                const wavFileName = `${item.slug}.wav`;
                 await supabaseAdmin.storage
                   .from("audio-full")
                   .upload(wavFileName, wavBuffer, { contentType: "audio/wav", upsert: true });
@@ -242,16 +224,16 @@ export async function POST(req: NextRequest) {
               console.error("[bulk-upload] WAV upload error:", err);
             }
 
-            // Insert track
+            // Insert track row
             const [newTrack] = await db
               .insert(tracks)
               .values({
-                slug,
+                slug: item.slug,
                 title: parsed.title,
                 artistId,
-                fileFullPath: fileName,
+                fileFullPath: item.path,
                 filePreviewPath: previewUrl,
-                isPublished: false,
+                isPublished: true,
               })
               .onConflictDoNothing()
               .returning({ id: tracks.id });
@@ -259,15 +241,15 @@ export async function POST(req: NextRequest) {
             if (newTrack) {
               tracksForAi.push({ index: i, title: parsed.title, artist: parsed.artist });
               createdTrackIds.push({ index: i, trackId: newTrack.id });
-              results.push({ filename: file.name, status: "ok" });
-              send({ type: "file-done", index: i, filename: file.name, status: "ok" });
+              results.push({ filename: item.filename, status: "ok" });
+              send({ type: "file-done", index: i, filename: item.filename, status: "ok" });
             } else {
-              results.push({ filename: file.name, status: "skipped", error: "Morceau déjà existant" });
-              send({ type: "file-done", index: i, filename: file.name, status: "skipped", error: "Morceau déjà existant" });
+              results.push({ filename: item.filename, status: "skipped", error: "Morceau déjà existant" });
+              send({ type: "file-done", index: i, filename: item.filename, status: "skipped", error: "Morceau déjà existant" });
             }
           } catch (err) {
-            results.push({ filename: file.name, status: "error", error: String(err) });
-            send({ type: "file-done", index: i, filename: file.name, status: "error", error: String(err) });
+            results.push({ filename: item.filename, status: "error", error: String(err) });
+            send({ type: "file-done", index: i, filename: item.filename, status: "error", error: String(err) });
           }
         }
 
@@ -307,7 +289,7 @@ export async function POST(req: NextRequest) {
 
         send({
           type: "complete",
-          summary: { total: fileBuffers.length, ok: okCount, errors: errorCount, skipped: skippedCount },
+          summary: { total: items.length, ok: okCount, errors: errorCount, skipped: skippedCount },
           results,
         });
       } catch (err) {

@@ -2,6 +2,7 @@
 
 import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
 
 type UploadResult = {
   filename: string;
@@ -14,7 +15,15 @@ type UploadResponse = {
   results: UploadResult[];
 };
 
-type Phase = "idle" | "uploading" | "processing" | "ai" | "done";
+type Phase = "idle" | "signing" | "uploading" | "processing" | "ai" | "done";
+
+type SignedUpload = {
+  filename: string;
+  slug?: string;
+  path?: string;
+  token?: string;
+  error?: string;
+};
 
 export default function BulkUploadForm() {
   const [open, setOpen] = useState(false);
@@ -69,29 +78,91 @@ export default function BulkUploadForm() {
     setResponse(null);
     setProcessed(0);
     setTotal(files.length);
-    setPhase("uploading");
+    setPhase("signing");
+    setCurrentFile("");
 
     const start = Date.now();
     timerRef.current = setInterval(() => {
       setElapsedSec((Date.now() - start) / 1000);
     }, 500);
 
-    const formData = new FormData();
-    files.forEach((f) => formData.append("files", f));
-
     try {
-      const res = await fetch("/api/admin/tracks/bulk-upload", {
+      // === Phase 1: Get signed upload URLs from server ===
+      const signRes = await fetch("/api/admin/tracks/sign-uploads", {
         method: "POST",
-        body: formData,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ filenames: files.map((f) => f.name) }),
       });
 
-      if (!res.ok || !res.body) {
-        throw new Error(`HTTP ${res.status}`);
+      if (!signRes.ok) throw new Error(`Sign URLs failed: HTTP ${signRes.status}`);
+
+      const signData = (await signRes.json()) as { uploads: SignedUpload[] };
+      const uploads = signData.uploads;
+
+      // === Phase 2: Upload each file directly to Supabase Storage ===
+      setPhase("uploading");
+      const supabase = createClient();
+      const uploadedItems: { filename: string; slug: string; path: string }[] = [];
+      const uploadFailures: UploadResult[] = [];
+
+      for (let i = 0; i < uploads.length; i++) {
+        const u = uploads[i];
+        setCurrentFile(u.filename);
+
+        if (u.error || !u.path || !u.token || !u.slug) {
+          uploadFailures.push({ filename: u.filename, status: "error", error: u.error ?? "URL signée manquante" });
+          setProcessed((p) => p + 1);
+          continue;
+        }
+
+        const file = files.find((f) => f.name === u.filename);
+        if (!file) {
+          uploadFailures.push({ filename: u.filename, status: "error", error: "Fichier introuvable côté client" });
+          setProcessed((p) => p + 1);
+          continue;
+        }
+
+        const { error: upErr } = await supabase.storage
+          .from("audio-full")
+          .uploadToSignedUrl(u.path, u.token, file, { contentType: "audio/mpeg" });
+
+        if (upErr) {
+          uploadFailures.push({ filename: u.filename, status: "error", error: `Upload Supabase: ${upErr.message}` });
+        } else {
+          uploadedItems.push({ filename: u.filename, slug: u.slug, path: u.path });
+        }
+        setProcessed((p) => p + 1);
       }
 
-      const reader = res.body.getReader();
+      if (uploadedItems.length === 0) {
+        setResponse({
+          summary: { total: files.length, ok: 0, errors: uploadFailures.length, skipped: 0 },
+          results: uploadFailures,
+        });
+        setPhase("done");
+        return;
+      }
+
+      // === Phase 3: Finalize — server downloads, transcodes, inserts, AI tags ===
+      setProcessed(0);
+      setTotal(uploadedItems.length);
+      setPhase("processing");
+      setCurrentFile("");
+
+      const finalRes = await fetch("/api/admin/tracks/bulk-upload", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ items: uploadedItems }),
+      });
+
+      if (!finalRes.ok || !finalRes.body) {
+        throw new Error(`Finalize failed: HTTP ${finalRes.status}`);
+      }
+
+      const reader = finalRes.body.getReader();
       const decoder = new TextDecoder();
       let buffer = "";
+      let serverResponse: UploadResponse | null = null;
 
       while (true) {
         const { done, value } = await reader.read();
@@ -108,7 +179,6 @@ export default function BulkUploadForm() {
 
             if (event.type === "start") {
               setTotal(event.total);
-              setPhase("processing");
             } else if (event.type === "file-start") {
               setCurrentFile(event.filename);
             } else if (event.type === "file-done") {
@@ -116,11 +186,8 @@ export default function BulkUploadForm() {
             } else if (event.type === "ai-start") {
               setPhase("ai");
               setCurrentFile("");
-            } else if (event.type === "ai-done") {
-              // AI step finished
             } else if (event.type === "complete") {
-              setResponse({ summary: event.summary, results: event.results });
-              setPhase("done");
+              serverResponse = { summary: event.summary, results: event.results };
             } else if (event.type === "fatal") {
               setErrorMsg(event.error || "Erreur fatale");
             }
@@ -130,6 +197,21 @@ export default function BulkUploadForm() {
         }
       }
 
+      // Merge upload-phase failures into the final result
+      if (serverResponse) {
+        const merged: UploadResponse = {
+          summary: {
+            total: files.length,
+            ok: serverResponse.summary.ok,
+            errors: serverResponse.summary.errors + uploadFailures.length,
+            skipped: serverResponse.summary.skipped,
+          },
+          results: [...serverResponse.results, ...uploadFailures],
+        };
+        setResponse(merged);
+      }
+
+      setPhase("done");
       setFiles([]);
       router.refresh();
     } catch (err) {
@@ -266,7 +348,8 @@ export default function BulkUploadForm() {
           {/* Phase label */}
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.5rem" }}>
             <span style={{ fontSize: "0.875rem", color: "var(--color-accent)", fontWeight: 600 }}>
-              {phase === "uploading" && "Démarrage..."}
+              {phase === "signing" && "Préparation..."}
+              {phase === "uploading" && `Téléversement ${processed}/${total}`}
               {phase === "processing" && `Traitement ${processed}/${total}`}
               {phase === "ai" && "Catégorisation IA..."}
               {phase === "done" && "Terminé"}
@@ -306,7 +389,7 @@ export default function BulkUploadForm() {
             </span>
             <span style={{ fontVariantNumeric: "tabular-nums" }}>
               {formatTime(elapsedSec)}
-              {etaSec > 0 && phase === "processing" && ` · reste ~${formatTime(etaSec)}`}
+              {etaSec > 0 && (phase === "processing" || phase === "uploading") && ` · reste ~${formatTime(etaSec)}`}
             </span>
           </div>
         </div>
