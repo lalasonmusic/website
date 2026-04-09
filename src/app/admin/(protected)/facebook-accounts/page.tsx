@@ -1,27 +1,67 @@
+import { Suspense } from "react";
 import { db } from "@/db";
 import { facebookAccounts } from "@/db/schema";
 import { desc } from "drizzle-orm";
+import { supabaseAdmin } from "@/lib/supabase/admin";
 import MarkFacebookProcessedButton from "@/components/admin/MarkFacebookProcessedButton";
+import AdminSearch from "@/components/admin/AdminSearch";
 
-export default async function FacebookAccountsPage() {
-  const accounts = await db
-    .select()
-    .from(facebookAccounts)
-    .orderBy(desc(facebookAccounts.submittedAt));
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
+type Props = {
+  searchParams: Promise<{ q?: string }>;
+};
+
+export default async function FacebookAccountsPage({ searchParams }: Props) {
+  const { q } = await searchParams;
+
+  const [accounts, { data: authUsers }] = await Promise.all([
+    db.select().from(facebookAccounts).orderBy(desc(facebookAccounts.submittedAt)),
+    supabaseAdmin.auth.admin.listUsers({ perPage: 1000 }),
+  ]);
+
+  const emailMap = new Map(authUsers?.users?.map((u) => [u.id, u.email ?? "—"]) ?? []);
+
+  const accountsWithEmail = accounts.map((acc) => ({
+    ...acc,
+    email: emailMap.get(acc.userId) ?? "—",
+  }));
+
+  const filtered = q
+    ? accountsWithEmail.filter((acc) => {
+        const search = q.toLowerCase();
+        return (
+          acc.email.toLowerCase().includes(search) ||
+          acc.accountUrl.toLowerCase().includes(search)
+        );
+      })
+    : accountsWithEmail;
 
   return (
     <div>
-      <h1 style={{ fontWeight: 800, fontSize: "1.75rem", marginBottom: "2rem" }}>
+      <h1 style={{ fontWeight: 800, fontSize: "1.75rem", marginBottom: "0.5rem" }}>
         Comptes Facebook
       </h1>
-      {accounts.length === 0 ? (
-        <p style={{ color: "var(--color-text-muted)" }}>Aucun compte soumis.</p>
+      <p style={{ color: "var(--color-text-muted)", fontSize: "0.875rem", marginBottom: "1.5rem" }}>
+        {accounts.length} soumission{accounts.length !== 1 ? "s" : ""}
+        {q && ` · ${filtered.length} résultat${filtered.length !== 1 ? "s" : ""} pour "${q}"`}
+      </p>
+
+      <Suspense>
+        <AdminSearch basePath="/admin/facebook-accounts" placeholder="Rechercher par email ou URL Facebook..." />
+      </Suspense>
+
+      {filtered.length === 0 ? (
+        <p style={{ color: "var(--color-text-muted)" }}>
+          {q ? "Aucun résultat." : "Aucun compte soumis."}
+        </p>
       ) : (
         <div style={{ overflowX: "auto" }}>
           <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.9rem" }}>
             <thead>
               <tr style={{ borderBottom: "1px solid var(--color-border)" }}>
-                {["Utilisateur", "URL Facebook", "Statut", "Soumis le", "Action"].map((h) => (
+                {["Email", "URL Facebook", "Statut", "Soumis le", "Action"].map((h) => (
                   <th
                     key={h}
                     style={{
@@ -38,17 +78,16 @@ export default async function FacebookAccountsPage() {
               </tr>
             </thead>
             <tbody>
-              {accounts.map((acc) => (
+              {filtered.map((acc) => (
                 <tr key={acc.id} style={{ borderBottom: "1px solid var(--color-border)" }}>
                   <td
                     style={{
                       padding: "0.875rem 1rem",
-                      color: "var(--color-text-muted)",
-                      fontFamily: "monospace",
+                      color: "var(--color-text-primary)",
                       fontSize: "0.8125rem",
                     }}
                   >
-                    {acc.userId.slice(0, 8)}…
+                    {acc.email}
                   </td>
                   <td style={{ padding: "0.875rem 1rem", fontFamily: "monospace", fontSize: "0.8125rem" }}>
                     <a
