@@ -74,6 +74,7 @@ export default async function FavoritesPage({ params }: Props) {
         coverUrl: tracks.coverUrl,
         previewPath: tracks.filePreviewPath,
         fullPath: tracks.fileFullPath,
+        createdAt: tracks.createdAt,
       })
       .from(tracks)
       .innerJoin(artists, eq(artists.id, tracks.artistId))
@@ -104,6 +105,7 @@ export default async function FavoritesPage({ params }: Props) {
         {
           ...r,
           previewPath: buildPreviewUrl(r.previewPath),
+          createdAt: r.createdAt ? r.createdAt.toISOString() : null,
           categories: byTrackId[r.id] ?? [],
         } as TrackWithDetails,
       ])

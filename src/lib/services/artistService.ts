@@ -44,6 +44,7 @@ export const artistService = {
         coverUrl: tracks.coverUrl,
         previewPath: tracks.filePreviewPath,
         fullPath: tracks.fileFullPath,
+        createdAt: tracks.createdAt,
       })
       .from(tracks)
       .innerJoin(artists, eq(artists.id, tracks.artistId))
@@ -56,6 +57,7 @@ export const artistService = {
       ...r,
       coverUrl: buildCoverUrl(r.coverUrl),
       previewPath: buildPreviewUrl(r.previewPath),
+      createdAt: r.createdAt ? r.createdAt.toISOString() : null,
     }));
 
     // Enrich with categories

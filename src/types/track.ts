@@ -17,6 +17,8 @@ export type TrackWithDetails = {
   previewPath: string | null;
   fullPath: string | null;
   categories: TrackCategory[];
+  /** ISO string — kept JSON-serializable for the RSC boundary */
+  createdAt: string | null;
 };
 
 /** Track allégé pour le player Zustand */

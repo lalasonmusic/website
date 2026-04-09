@@ -198,6 +198,12 @@ export default function TrackCard({ track, queue, queueIndex, locale, isSubscrib
 
   const tags = track.categories.slice(0, 3);
 
+  // Track counts as "new" if uploaded in the last 14 days
+  const NEW_THRESHOLD_MS = 14 * 24 * 60 * 60 * 1000;
+  const isNew = track.createdAt
+    ? Date.now() - new Date(track.createdAt).getTime() < NEW_THRESHOLD_MS
+    : false;
+
   const baseBg = isCurrentTrack
     ? "rgba(245,166,35,0.06)"
     : isEven ? "rgba(0,0,0,0.02)" : "transparent";
@@ -277,17 +283,37 @@ export default function TrackCard({ track, queue, queueIndex, locale, isSubscrib
 
       {/* Track info: title + artist + tags */}
       <div style={{ flex: 1, minWidth: 0 }}>
-        <p style={{
-          margin: 0,
-          fontWeight: 600,
-          fontSize: "0.9375rem",
-          color: isCurrentTrack ? "var(--color-accent)" : "#1b3a4b",
-          whiteSpace: "nowrap",
-          overflow: "hidden",
-          textOverflow: "ellipsis",
-        }}>
-          {track.title}
-        </p>
+        <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", minWidth: 0 }}>
+          <p style={{
+            margin: 0,
+            fontWeight: 600,
+            fontSize: "0.9375rem",
+            color: isCurrentTrack ? "var(--color-accent)" : "#1b3a4b",
+            whiteSpace: "nowrap",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+          }}>
+            {track.title}
+          </p>
+          {isNew && (
+            <span
+              style={{
+                flexShrink: 0,
+                fontSize: "0.5625rem",
+                fontWeight: 800,
+                letterSpacing: "0.06em",
+                padding: "0.15rem 0.4rem",
+                borderRadius: 4,
+                backgroundColor: "var(--color-accent)",
+                color: "var(--color-accent-text)",
+                textTransform: "uppercase",
+                lineHeight: 1.2,
+              }}
+            >
+              NEW
+            </span>
+          )}
+        </div>
         <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginTop: "0.125rem" }}>
           <span style={{
             fontSize: "0.8125rem",

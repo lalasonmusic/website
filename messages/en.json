@@ -1,7 +1,6 @@
 {
   "nav": {
     "catalogue": "Catalogue",
-    "new": "New",
     "blog": "Blog",
     "artists": "Our artists",
     "pricing": "Pricing",
@@ -85,7 +84,9 @@
     "download": "Download",
     "subscribe": "Subscribe to download",
     "noResults": "No results for these filters.",
-    "noResultsSuggestion": "Try different combinations."
+    "noResultsSuggestion": "Try different combinations.",
+    "sortDiscover": "Discover",
+    "sortNew": "New releases"
   },
   "player": {
     "preview_ended": "This track continues...",

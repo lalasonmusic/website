@@ -8,6 +8,7 @@ import { eq, and } from "drizzle-orm";
 import { Suspense } from "react";
 import CatalogueFilters from "@/components/catalogue/CatalogueFilters";
 import TrackCard from "@/components/catalogue/TrackCard";
+import SortToggle from "@/components/catalogue/SortToggle";
 import SubscriptionPopup from "@/components/catalogue/SubscriptionPopup";
 import type { TrackCategory } from "@/types/track";
 import { buildMetadata } from "@/lib/seo";
@@ -225,6 +226,13 @@ export default async function CataloguePage({ params, searchParams }: Props) {
               darkMode
             />
           </Suspense>
+
+          {/* Sort toggle: Discover ↔ New */}
+          <div style={{ marginTop: "1.25rem", display: "flex", justifyContent: "center" }}>
+            <Suspense>
+              <SortToggle />
+            </Suspense>
+          </div>
         </div>
       </section>
 

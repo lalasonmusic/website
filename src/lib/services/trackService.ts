@@ -78,6 +78,7 @@ export const trackService = {
         coverUrl: tracks.coverUrl,
         previewPath: tracks.filePreviewPath,
         fullPath: tracks.fileFullPath,
+        createdAt: tracks.createdAt,
       })
       .from(tracks)
       .innerJoin(artists, eq(artists.id, tracks.artistId))
@@ -117,6 +118,7 @@ export const trackService = {
       ...r,
       coverUrl: buildCoverUrl(r.coverUrl),
       previewPath: buildPreviewUrl(r.previewPath),
+      createdAt: r.createdAt ? r.createdAt.toISOString() : null,
     }));
 
     const enriched = await enrichWithCategories(mapped);
@@ -139,6 +141,7 @@ export const trackService = {
         coverUrl: tracks.coverUrl,
         previewPath: tracks.filePreviewPath,
         fullPath: tracks.fileFullPath,
+        createdAt: tracks.createdAt,
       })
       .from(tracks)
       .innerJoin(artists, eq(artists.id, tracks.artistId))
@@ -151,6 +154,7 @@ export const trackService = {
       ...rows[0],
       coverUrl: buildCoverUrl(rows[0].coverUrl),
       previewPath: buildPreviewUrl(rows[0].previewPath),
+      createdAt: rows[0].createdAt ? rows[0].createdAt.toISOString() : null,
     };
 
     const [enriched] = await enrichWithCategories([row]);
