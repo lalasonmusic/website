@@ -2,12 +2,13 @@ import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
 import { db } from "@/db";
-import { subscriptions, downloads, tracks, artists, youtubeChannels, facebookAccounts } from "@/db/schema";
+import { subscriptions, downloads, tracks, artists, youtubeChannels, facebookAccounts, tiktokAccounts } from "@/db/schema";
 import { eq, and, desc, count } from "drizzle-orm";
 import ManageSubscriptionButton from "@/components/membre/ManageSubscriptionButton";
 import CancelSubscriptionModal from "@/components/membre/CancelSubscriptionModal";
 import YoutubeChannelForm from "@/components/membre/YoutubeChannelForm";
 import FacebookAccountForm from "@/components/membre/FacebookAccountForm";
+import TiktokAccountForm from "@/components/membre/TiktokAccountForm";
 import LicenceDownloadButton from "@/components/membre/LicenceDownloadButton";
 import LicenceInfoForm from "@/components/membre/LicenceInfoForm";
 import BillingInfoForm from "@/components/membre/BillingInfoForm";
@@ -93,6 +94,14 @@ export default async function MembrePage({ params }: Props) {
     .from(facebookAccounts)
     .where(eq(facebookAccounts.userId, user.id))
     .orderBy(desc(facebookAccounts.submittedAt))
+    .limit(1);
+
+  // Latest submitted TikTok account
+  const [latestTiktok] = await db
+    .select({ accountUrl: tiktokAccounts.accountUrl })
+    .from(tiktokAccounts)
+    .where(eq(tiktokAccounts.userId, user.id))
+    .orderBy(desc(tiktokAccounts.submittedAt))
     .limit(1);
 
   const planLabels: Record<string, string> = {
@@ -763,6 +772,31 @@ export default async function MembrePage({ params }: Props) {
                     save: t("facebookAccountSave"),
                     saved: t("facebookAccountSaved"),
                     placeholder: t("facebookAccountPlaceholder"),
+                  }}
+                />
+              </div>
+            )}
+
+            {/* ── TikTok Whitelist ── */}
+            {isCreatorsPlan && (
+              <div
+                className="rounded-2xl p-6 border border-white/[0.08]"
+                style={{ background: "rgba(255,255,255,0.03)" }}
+              >
+                <div className="flex items-center gap-2 mb-2">
+                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5.8 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z"/>
+                  </svg>
+                  <h2 className="text-base font-bold text-white">{t("tiktokAccount")}</h2>
+                </div>
+                <p className="text-sm text-white/40 mb-4">{t("tiktokAccountDesc")}</p>
+                <TiktokAccountForm
+                  existingAccountUrl={latestTiktok?.accountUrl}
+                  labels={{
+                    accountUrl: t("tiktokAccountUrl"),
+                    save: t("tiktokAccountSave"),
+                    saved: t("tiktokAccountSaved"),
+                    placeholder: t("tiktokAccountPlaceholder"),
                   }}
                 />
               </div>

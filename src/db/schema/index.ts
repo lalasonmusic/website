@@ -8,5 +8,6 @@ export * from "./subscriptions";
 export * from "./downloads";
 export * from "./youtube-channels";
 export * from "./facebook-accounts";
+export * from "./tiktok-accounts";
 export * from "./playlists";
 export * from "./track-favorites";

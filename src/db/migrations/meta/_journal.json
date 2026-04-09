@@ -15,6 +15,13 @@
       "when": 1775462551736,
       "tag": "0001_dizzy_wildside",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1775746584453,
+      "tag": "0002_curved_molecule_man",
+      "breakpoints": true
     }
   ]
 }
