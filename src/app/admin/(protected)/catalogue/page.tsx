@@ -1,11 +1,12 @@
 import { Suspense } from "react";
 import { db } from "@/db";
-import { tracks, artists, downloads, categories } from "@/db/schema";
+import { tracks, artists, downloads, categories, trackCategories } from "@/db/schema";
 import { count, eq, desc } from "drizzle-orm";
 import TogglePublishButton from "@/components/admin/TogglePublishButton";
 import AddTrackForm from "@/components/admin/AddTrackForm";
 import BulkUploadForm from "@/components/admin/BulkUploadForm";
 import CatalogueSearch from "@/components/admin/CatalogueSearch";
+import EditTagsButton from "@/components/admin/EditTagsButton";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -35,9 +36,27 @@ async function getTracks() {
 
   const dlMap = new Map(dlCounts.map((d) => [d.trackId, d.count]));
 
+  // Categories per track
+  const trackCatRows = await db
+    .select({
+      trackId: trackCategories.trackId,
+      categoryId: trackCategories.categoryId,
+      labelFr: categories.labelFr,
+      type: categories.type,
+    })
+    .from(trackCategories)
+    .innerJoin(categories, eq(categories.id, trackCategories.categoryId));
+
+  const catMap = new Map<string, { id: string; labelFr: string; type: string }[]>();
+  for (const row of trackCatRows) {
+    if (!catMap.has(row.trackId)) catMap.set(row.trackId, []);
+    catMap.get(row.trackId)!.push({ id: row.categoryId, labelFr: row.labelFr, type: row.type });
+  }
+
   return allTracks.map((t) => ({
     ...t,
     downloadCount: dlMap.get(t.id) ?? 0,
+    categories: catMap.get(t.id) ?? [],
   }));
 }
 
@@ -112,13 +131,13 @@ export default async function CataloguePage({ searchParams }: Props) {
         {/* Header */}
         <div style={{
           display: "grid",
-          gridTemplateColumns: "2.5fr 1.2fr 0.5fr 0.5fr 0.6fr 0.5fr 0.8fr",
+          gridTemplateColumns: "2fr 1fr 1.8fr 0.4fr 0.5fr 0.5fr 0.5fr 1.2fr",
           gap: "0.5rem",
           padding: "0.875rem 1.25rem",
           borderBottom: "1px solid var(--color-border)",
           backgroundColor: "rgba(255,255,255,0.03)",
         }}>
-          {["Titre", "Artiste", "BPM", "Durée", "DL", "Statut", "Action"].map((h) => (
+          {["Titre", "Artiste", "Tags", "BPM", "Durée", "DL", "Statut", "Actions"].map((h) => (
             <p key={h} style={{ fontSize: "0.6875rem", fontWeight: 700, color: "var(--color-text-muted)", textTransform: "uppercase", letterSpacing: "0.05em", margin: 0 }}>
               {h}
             </p>
@@ -131,7 +150,7 @@ export default async function CataloguePage({ searchParams }: Props) {
             key={track.id}
             style={{
               display: "grid",
-              gridTemplateColumns: "2.5fr 1.2fr 0.5fr 0.5fr 0.6fr 0.5fr 0.8fr",
+              gridTemplateColumns: "2fr 1fr 1.8fr 0.4fr 0.5fr 0.5fr 0.5fr 1.2fr",
               gap: "0.5rem",
               padding: "0.625rem 1.25rem",
               borderBottom: "1px solid var(--color-border)",
@@ -148,6 +167,43 @@ export default async function CataloguePage({ searchParams }: Props) {
             <p style={{ fontSize: "0.8125rem", color: "var(--color-text-secondary)", margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
               {track.artistName}
             </p>
+
+            {/* Tags */}
+            <div style={{ display: "flex", flexWrap: "wrap", gap: "0.25rem", overflow: "hidden" }}>
+              {track.categories.length === 0 ? (
+                <span style={{ fontSize: "0.6875rem", color: "var(--color-text-muted)", fontStyle: "italic" }}>—</span>
+              ) : (
+                track.categories.slice(0, 4).map((c) => {
+                  const colors: Record<string, { bg: string; text: string }> = {
+                    STYLE: { bg: "rgba(245,166,35,0.12)", text: "#f5a623" },
+                    THEME: { bg: "rgba(96,165,250,0.12)", text: "#60a5fa" },
+                    MOOD: { bg: "rgba(167,139,250,0.12)", text: "#a78bfa" },
+                  };
+                  const color = colors[c.type] ?? { bg: "rgba(255,255,255,0.06)", text: "var(--color-text-muted)" };
+                  return (
+                    <span
+                      key={c.id}
+                      style={{
+                        fontSize: "0.625rem",
+                        fontWeight: 600,
+                        padding: "0.15rem 0.45rem",
+                        borderRadius: 9999,
+                        backgroundColor: color.bg,
+                        color: color.text,
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {c.labelFr}
+                    </span>
+                  );
+                })
+              )}
+              {track.categories.length > 4 && (
+                <span style={{ fontSize: "0.625rem", color: "var(--color-text-muted)" }}>
+                  +{track.categories.length - 4}
+                </span>
+              )}
+            </div>
 
             {/* BPM */}
             <p style={{ fontSize: "0.8125rem", color: "var(--color-text-muted)", margin: 0 }}>
@@ -177,11 +233,19 @@ export default async function CataloguePage({ searchParams }: Props) {
               {track.isPublished ? "Publié" : "Brouillon"}
             </span>
 
-            {/* Toggle */}
-            <TogglePublishButton
-              trackId={track.id}
-              isPublished={track.isPublished}
-            />
+            {/* Actions */}
+            <div style={{ display: "flex", gap: "0.375rem", alignItems: "center" }}>
+              <EditTagsButton
+                trackId={track.id}
+                trackTitle={track.title}
+                allCategories={allCategories.map((c) => ({ id: c.id, labelFr: c.labelFr, type: c.type as "STYLE" | "THEME" | "MOOD" }))}
+                currentCategoryIds={track.categories.map((c) => c.id)}
+              />
+              <TogglePublishButton
+                trackId={track.id}
+                isPublished={track.isPublished}
+              />
+            </div>
           </div>
         ))}
       </div>

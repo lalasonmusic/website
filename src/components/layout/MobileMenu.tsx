@@ -17,6 +17,7 @@ export default function MobileMenu({ locale, isLoggedIn }: Props) {
 
   const navLinks = [
     { href: `/${locale}/catalogue`, label: t("catalogue") },
+    { href: `/${locale}/catalogue?sort=new`, label: t("new") },
     { href: `/${locale}/blog`, label: t("blog") },
     { href: `/${locale}/nos-artistes`, label: t("artists") },
     { href: `/${locale}/abonnements`, label: t("pricing") },

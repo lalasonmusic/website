@@ -14,7 +14,7 @@ import { buildMetadata } from "@/lib/seo";
 
 type Props = {
   params: Promise<{ locale: string }>;
-  searchParams: Promise<{ q?: string; style?: string; theme?: string; mood?: string; page?: string }>;
+  searchParams: Promise<{ q?: string; style?: string; theme?: string; mood?: string; page?: string; sort?: string }>;
 };
 
 // Always fetch fresh data — never serve a cached version of the catalogue
@@ -38,7 +38,7 @@ export async function generateMetadata({ params }: Pick<Props, "params">): Promi
 
 export default async function CataloguePage({ params, searchParams }: Props) {
   const { locale } = await params;
-  const { q, style, theme, mood, page: pageStr } = await searchParams;
+  const { q, style, theme, mood, page: pageStr, sort } = await searchParams;
   const t = await getTranslations("catalogue");
 
   const page = parseInt(pageStr ?? "1", 10);
@@ -89,7 +89,7 @@ export default async function CataloguePage({ params, searchParams }: Props) {
   let allCategories: Awaited<ReturnType<typeof trackService.getAllCategories>> = [];
 
   const [tracksResult, cats] = await Promise.all([
-    withRetry(() => trackService.getPublished({ page, limit: TRACKS_PER_PAGE, search: q, style, theme, mood })),
+    withRetry(() => trackService.getPublished({ page, limit: TRACKS_PER_PAGE, search: q, style, theme, mood, sort })),
     withRetry(() => trackService.getAllCategories()),
   ]);
 

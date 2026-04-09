@@ -25,6 +25,7 @@ type GetTracksParams = {
   theme?: string;
   mood?: string;
   search?: string;
+  sort?: string;
 };
 
 async function enrichWithCategories(
@@ -55,7 +56,7 @@ async function enrichWithCategories(
 }
 
 export const trackService = {
-  async getPublished({ page = 1, limit = 20, style, theme, mood, search }: GetTracksParams = {}): Promise<{
+  async getPublished({ page = 1, limit = 20, style, theme, mood, search, sort }: GetTracksParams = {}): Promise<{
     tracks: TrackWithDetails[];
     total: number;
   }> {
@@ -103,8 +104,9 @@ export const trackService = {
       }
     }
 
+    const shouldSortByDate = sort === "new" || !!search || activeFilters.length > 0;
     const [rows, countRows] = await Promise.all([
-      baseQuery.orderBy(search || activeFilters.length > 0 ? desc(tracks.createdAt) : sql`RANDOM()`).limit(limit).offset(offset),
+      baseQuery.orderBy(shouldSortByDate ? desc(tracks.createdAt) : sql`RANDOM()`).limit(limit).offset(offset),
       db
         .select({ count: sql<number>`count(*)` })
         .from(tracks)
