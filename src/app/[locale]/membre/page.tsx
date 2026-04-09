@@ -741,7 +741,12 @@ export default async function MembrePage({ params }: Props) {
                     saved: t("youtubeChannelSaved"),
                     placeholder: t("youtubeChannelPlaceholder"),
                     add: t("youtubeChannelAdd"),
-                    remaining: (n: number) => t("youtubeChannelRemaining", { count: n }),
+                    remainingByCount: {
+                      0: t("youtubeChannelRemaining", { count: 0 }),
+                      1: t("youtubeChannelRemaining", { count: 1 }),
+                      2: t("youtubeChannelRemaining", { count: 2 }),
+                      3: t("youtubeChannelRemaining", { count: 3 }),
+                    },
                     max: t("youtubeChannelMax"),
                     statusPending: t("youtubeChannelStatusPending"),
                     statusProcessed: t("youtubeChannelStatusProcessed"),

@@ -19,7 +19,7 @@ type Props = {
     saved: string;
     placeholder: string;
     add: string;
-    remaining: (n: number) => string;
+    remainingByCount: Record<number, string>;
     max: string;
     statusPending: string;
     statusProcessed: string;
@@ -164,7 +164,7 @@ export default function YoutubeChannelForm({ existingChannels, labels }: Props) 
           <span style={{ fontSize: "1rem", lineHeight: 1 }}>+</span>
           {labels.add}
           <span style={{ fontSize: "0.6875rem", fontWeight: 500, opacity: 0.7 }}>
-            ({labels.remaining(remaining)})
+            ({labels.remainingByCount[remaining] ?? `${remaining}`})
           </span>
         </button>
       )}
