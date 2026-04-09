@@ -76,13 +76,16 @@ export default async function MembrePage({ params }: Props) {
     .orderBy(desc(downloads.downloadedAt))
     .limit(20);
 
-  // Latest submitted YouTube channel
-  const [latestChannel] = await db
-    .select({ channelId: youtubeChannels.channelId })
+  // All submitted YouTube channels (max 3 enforced server-side)
+  const userYoutubeChannels = await db
+    .select({
+      id: youtubeChannels.id,
+      channelId: youtubeChannels.channelId,
+      status: youtubeChannels.status,
+    })
     .from(youtubeChannels)
     .where(eq(youtubeChannels.userId, user.id))
-    .orderBy(desc(youtubeChannels.submittedAt))
-    .limit(1);
+    .orderBy(desc(youtubeChannels.submittedAt));
 
   // Latest submitted Facebook account
   const [latestFacebook] = await db
@@ -722,12 +725,19 @@ export default async function MembrePage({ params }: Props) {
                 </div>
                 <p className="text-sm text-white/40 mb-4">{t("youtubeChannelDesc")}</p>
                 <YoutubeChannelForm
-                  existingChannelId={latestChannel?.channelId}
+                  existingChannels={userYoutubeChannels}
                   labels={{
                     channelId: t("youtubeChannelId"),
                     save: t("youtubeChannelSave"),
                     saved: t("youtubeChannelSaved"),
                     placeholder: t("youtubeChannelPlaceholder"),
+                    add: t("youtubeChannelAdd"),
+                    remaining: (n: number) => t("youtubeChannelRemaining", { count: n }),
+                    max: t("youtubeChannelMax"),
+                    statusPending: t("youtubeChannelStatusPending"),
+                    statusProcessed: t("youtubeChannelStatusProcessed"),
+                    remove: t("youtubeChannelRemove"),
+                    confirmRemove: t("youtubeChannelConfirmRemove"),
                   }}
                 />
               </div>
