@@ -318,7 +318,7 @@ export default function TrackCard({ track, queue, queueIndex, locale, isSubscrib
                 lineHeight: 1.2,
               }}
             >
-              NEW
+              {locale === "fr" ? "NOUVEAU" : "NEW"}
             </span>
           )}
         </div>
