@@ -287,6 +287,7 @@ export default async function CataloguePage({ params, searchParams }: Props) {
                   canDownload={canDownload}
                   canFavorite={canDownload}
                   isFavorite={favoriteIds.has(track.id)}
+                  activeFilterSlugs={[style, theme, mood].filter((s): s is string => !!s)}
                 />
               ))}
             </div>

@@ -16,6 +16,8 @@ type Props = {
   canDownload?: boolean;
   isFavorite?: boolean;
   canFavorite?: boolean;
+  /** Slugs of currently active filters — these tags are displayed first */
+  activeFilterSlugs?: string[];
 };
 
 function formatDuration(seconds: number | null) {
@@ -175,7 +177,7 @@ function DownloadButton({ trackId, trackTitle, artistName, locale }: { trackId: 
   );
 }
 
-export default function TrackCard({ track, queue, queueIndex, locale, isSubscribed, canDownload = isSubscribed, isFavorite = false, canFavorite = false }: Props) {
+export default function TrackCard({ track, queue, queueIndex, locale, isSubscribed, canDownload = isSubscribed, isFavorite = false, canFavorite = false, activeFilterSlugs = [] }: Props) {
   const { currentTrack, isPlaying, progress, duration, playTrack, togglePlay } = usePlayerStore();
   const isCurrentTrack = currentTrack?.id === track.id;
   const isActive = isCurrentTrack && (isPlaying || progress > 0);
@@ -196,7 +198,15 @@ export default function TrackCard({ track, queue, queueIndex, locale, isSubscrib
     }
   }
 
-  const tags = track.categories.slice(0, 3);
+  // Surface the categories that match an active filter first, so the user
+  // always sees why a track was returned even if it has 4+ tags.
+  const activeFilterSet = new Set(activeFilterSlugs);
+  const sortedCategories = [...track.categories].sort((a, b) => {
+    const aActive = activeFilterSet.has(a.slug) ? 0 : 1;
+    const bActive = activeFilterSet.has(b.slug) ? 0 : 1;
+    return aActive - bActive;
+  });
+  const tags = sortedCategories.slice(0, 3);
 
   // NEW badge is server-driven: only the top 20 most-recently-uploaded tracks
   // get isNew=true (computed in the catalogue page).
