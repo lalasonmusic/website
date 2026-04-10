@@ -175,7 +175,7 @@ export default function SubscriptionPopup({ locale }: Props) {
             </p>
             <p style={{ margin: 0 }}>
               <span style={{ fontSize: "0.75rem", color: "#6b7280", verticalAlign: "super" }}>€</span>
-              <span style={{ fontSize: "2.5rem", fontWeight: 800, color: "#1b3a4b", lineHeight: 1 }}>99</span>
+              <span style={{ fontSize: "2.5rem", fontWeight: 800, color: "#1b3a4b", lineHeight: 1 }}>{isFr ? "99,99" : "99.99"}</span>
             </p>
             <p style={{ fontSize: "0.75rem", color: "#9ca3af", margin: "0.25rem 0 1rem" }}>
               {isFr ? "/an" : "/year"}
