@@ -17,6 +17,7 @@ import LogoutButton from "@/components/membre/LogoutButton";
 import { trackService } from "@/lib/services/trackService";
 import BoutiquePlayer from "@/components/membre/BoutiquePlayer";
 import BoutiqueDashboardTabs from "@/components/membre/BoutiqueDashboardTabs";
+import UpsellSubscribeButton from "@/components/membre/UpsellSubscribeButton";
 
 type Props = {
   params: Promise<{ locale: string }>;
@@ -248,9 +249,7 @@ export default async function MembrePage({ params }: Props) {
                     <span className="text-white/40 text-sm ml-1.5">{p("perYear")}</span>
                   </div>
                   <p className="text-sm text-white/30 mb-6">{t("upsellOrMonthly", { price: p("creators.monthly_price") })}</p>
-                  <a href={`/${locale}/abonnements`} className="block w-full py-3.5 rounded-xl font-semibold text-base text-center transition-all duration-300 text-[var(--color-accent-text)] no-underline hover:scale-[1.02] active:scale-[0.98] mb-7" style={{ background: "linear-gradient(135deg, var(--color-accent) 0%, #e8961a 100%)", boxShadow: "0 4px 24px rgba(245,166,35,0.25)" }}>
-                    {t("upsellCta")}
-                  </a>
+                  <UpsellSubscribeButton planType="creators_annual" locale={locale} label={t("upsellCta")} variant="primary" />
                   <div className="h-px bg-white/10 mb-5" />
                   <ul className="space-y-3 mt-auto">
                     {creatorsFeatures.map((f) => (
@@ -274,9 +273,7 @@ export default async function MembrePage({ params }: Props) {
                   <span className="text-2xl md:text-4xl font-extrabold text-white tracking-tight">{p("boutique.annual_price")}</span>
                   <span className="text-white/40 text-sm ml-1.5">{p("perYear")}</span>
                 </div>
-                <a href={`/${locale}/abonnements`} className="block w-full py-3.5 rounded-xl font-semibold text-base text-center transition-all duration-300 text-white no-underline border border-white/[0.12] hover:border-white/[0.2] hover:scale-[1.02] active:scale-[0.98] mb-7" style={{ background: "rgba(255,255,255,0.06)" }}>
-                  {t("upsellCta")}
-                </a>
+                <UpsellSubscribeButton planType="boutique_annual" locale={locale} label={t("upsellCta")} variant="secondary" />
                 <div className="h-px bg-white/10 mb-5" />
                 <ul className="space-y-3 mt-auto">
                   {boutiqueFeatures.map((f) => (
