@@ -84,7 +84,12 @@ export default function PricingToggle({
     setLoadingPlan(null);
   }
 
-  const creatorsPlan: PlanType = isAnnual ? "creators_annual" : "creators_monthly";
+  // Read the current toggle state at click-time to avoid stale closure issues
+  // where a re-render between click and effect could send the wrong plan.
+  function handleSubscribeCreators() {
+    const planType: PlanType = isAnnual ? "creators_annual" : "creators_monthly";
+    handleSubscribe(planType);
+  }
 
   return (
     <div className="overflow-hidden">
@@ -176,7 +181,7 @@ export default function PricingToggle({
 
             {/* CTA */}
             <button
-              onClick={() => handleSubscribe(creatorsPlan)}
+              onClick={handleSubscribeCreators}
               disabled={loadingPlan !== null}
               className="w-full py-3.5 rounded-xl font-semibold text-base transition-all duration-300 cursor-pointer
                 text-[var(--color-accent-text)] border-0
@@ -188,7 +193,7 @@ export default function PricingToggle({
                 boxShadow: "0 4px 24px rgba(245,166,35,0.25)",
               }}
             >
-              {loadingPlan === creatorsPlan ? "..." : subscribeLabel}
+              {loadingPlan === "creators_monthly" || loadingPlan === "creators_annual" ? "..." : subscribeLabel}
             </button>
 
             {/* Divider */}
