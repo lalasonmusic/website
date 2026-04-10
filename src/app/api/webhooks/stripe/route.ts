@@ -19,9 +19,19 @@ async function upsertSubscription(sub: Stripe.Subscription) {
   const userId = sub.metadata?.userId;
   if (!userId) return;
 
-  const priceId = sub.items.data[0]?.price.id ?? "";
+  const item = sub.items.data[0];
+  const priceId = item?.price.id ?? "";
   const planType = toValidPlanType(sub.metadata?.planType ?? priceIdToPlanType(priceId));
-  const currentPeriodEnd = new Date((sub as unknown as { current_period_end: number }).current_period_end * 1000);
+  // In Stripe API 2026+ current_period_end lives on the item, not the subscription.
+  // Fall back to the subscription field for older API versions.
+  const periodEndUnix =
+    (item as unknown as { current_period_end?: number })?.current_period_end ??
+    (sub as unknown as { current_period_end?: number }).current_period_end;
+  if (!periodEndUnix) {
+    console.error("[Stripe webhook] No current_period_end found on subscription", sub.id);
+    return;
+  }
+  const currentPeriodEnd = new Date(periodEndUnix * 1000);
   const status = sub.status; // active | canceled | past_due | etc.
 
   // Map Stripe status to our enum
