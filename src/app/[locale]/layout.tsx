@@ -21,6 +21,14 @@ type Props = {
   params: Promise<{ locale: string }>;
 };
 
+// The layout reads the auth session via supabase.auth.getUser() and renders
+// the Header with the user's email. Without force-dynamic, Next.js can cache
+// a per-user version of this layout and leak it to other visitors — which
+// causes "Mon espace" to appear on a brand-new private window with the wrong
+// user logged in. Force dynamic rendering so the session is re-checked on
+// every request.
+export const dynamic = "force-dynamic";
+
 export default async function LocaleLayout({ children, params }: Props) {
   const { locale } = await params;
 
