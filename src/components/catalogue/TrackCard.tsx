@@ -198,11 +198,9 @@ export default function TrackCard({ track, queue, queueIndex, locale, isSubscrib
 
   const tags = track.categories.slice(0, 3);
 
-  // Track counts as "new" if uploaded in the last 14 days
-  const NEW_THRESHOLD_MS = 14 * 24 * 60 * 60 * 1000;
-  const isNew = track.createdAt
-    ? Date.now() - new Date(track.createdAt).getTime() < NEW_THRESHOLD_MS
-    : false;
+  // NEW badge is server-driven: only the top 20 most-recently-uploaded tracks
+  // get isNew=true (computed in the catalogue page).
+  const isNew = track.isNew === true;
 
   const baseBg = isCurrentTrack
     ? "rgba(245,166,35,0.06)"

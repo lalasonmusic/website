@@ -84,9 +84,7 @@
     "download": "Télécharger",
     "subscribe": "S'abonner pour télécharger",
     "noResults": "Aucun résultat pour ces filtres.",
-    "noResultsSuggestion": "Essayez d'autres combinaisons.",
-    "sortDiscover": "Découvrir",
-    "sortNew": "Nouveautés"
+    "noResultsSuggestion": "Essayez d'autres combinaisons."
   },
   "player": {
     "preview_ended": "Ce morceau continue...",

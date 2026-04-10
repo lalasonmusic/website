@@ -19,6 +19,8 @@ export type TrackWithDetails = {
   categories: TrackCategory[];
   /** ISO string — kept JSON-serializable for the RSC boundary */
   createdAt: string | null;
+  /** True if this track is in the top N most recently uploaded — set by the catalogue page */
+  isNew?: boolean;
 };
 
 /** Track allégé pour le player Zustand */

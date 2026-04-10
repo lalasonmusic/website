@@ -3,19 +3,18 @@ import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
 import { trackService } from "@/lib/services/trackService";
 import { db } from "@/db";
-import { subscriptions, trackFavorites } from "@/db/schema";
-import { eq, and } from "drizzle-orm";
+import { subscriptions, trackFavorites, tracks as tracksTable } from "@/db/schema";
+import { eq, and, desc } from "drizzle-orm";
 import { Suspense } from "react";
 import CatalogueFilters from "@/components/catalogue/CatalogueFilters";
 import TrackCard from "@/components/catalogue/TrackCard";
-import SortToggle from "@/components/catalogue/SortToggle";
 import SubscriptionPopup from "@/components/catalogue/SubscriptionPopup";
 import type { TrackCategory } from "@/types/track";
 import { buildMetadata } from "@/lib/seo";
 
 type Props = {
   params: Promise<{ locale: string }>;
-  searchParams: Promise<{ q?: string; style?: string; theme?: string; mood?: string; page?: string; sort?: string }>;
+  searchParams: Promise<{ q?: string; style?: string; theme?: string; mood?: string; page?: string }>;
 };
 
 // Always fetch fresh data — never serve a cached version of the catalogue
@@ -39,7 +38,7 @@ export async function generateMetadata({ params }: Pick<Props, "params">): Promi
 
 export default async function CataloguePage({ params, searchParams }: Props) {
   const { locale } = await params;
-  const { q, style, theme, mood, page: pageStr, sort } = await searchParams;
+  const { q, style, theme, mood, page: pageStr } = await searchParams;
   const t = await getTranslations("catalogue");
 
   const page = parseInt(pageStr ?? "1", 10);
@@ -90,7 +89,7 @@ export default async function CataloguePage({ params, searchParams }: Props) {
   let allCategories: Awaited<ReturnType<typeof trackService.getAllCategories>> = [];
 
   const [tracksResult, cats] = await Promise.all([
-    withRetry(() => trackService.getPublished({ page, limit: TRACKS_PER_PAGE, search: q, style, theme, mood, sort })),
+    withRetry(() => trackService.getPublished({ page, limit: TRACKS_PER_PAGE, search: q, style, theme, mood })),
     withRetry(() => trackService.getAllCategories()),
   ]);
 
@@ -113,6 +112,21 @@ export default async function CataloguePage({ params, searchParams }: Props) {
       isFallback = true;
     }
   }
+
+  // Mark the 20 most-recently-uploaded published tracks with isNew=true so the
+  // NEW badge is rank-based, not time-based. Once a 21st track lands, the
+  // oldest one quietly loses its badge.
+  const NEW_TOP_N = 20;
+  const newestIds = await withRetry(() =>
+    db
+      .select({ id: tracksTable.id })
+      .from(tracksTable)
+      .where(eq(tracksTable.isPublished, true))
+      .orderBy(desc(tracksTable.createdAt))
+      .limit(NEW_TOP_N)
+  );
+  const newIdSet = new Set((newestIds ?? []).map((r) => r.id));
+  tracks = tracks.map((t) => ({ ...t, isNew: newIdSet.has(t.id) }));
 
   const totalPages = isFallback ? 0 : Math.ceil(total / TRACKS_PER_PAGE);
 
@@ -226,13 +240,6 @@ export default async function CataloguePage({ params, searchParams }: Props) {
               darkMode
             />
           </Suspense>
-
-          {/* Sort toggle: Discover ↔ New */}
-          <div style={{ marginTop: "1.25rem", display: "flex", justifyContent: "center" }}>
-            <Suspense>
-              <SortToggle />
-            </Suspense>
-          </div>
         </div>
       </section>
 

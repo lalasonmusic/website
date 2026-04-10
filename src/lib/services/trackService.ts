@@ -105,9 +105,10 @@ export const trackService = {
       }
     }
 
-    const shouldSortByDate = sort === "new" || !!search || activeFilters.length > 0;
+    // Default order: newest first. The `sort` param is no longer needed but kept for callsite compat.
+    void sort;
     const [rows, countRows] = await Promise.all([
-      baseQuery.orderBy(shouldSortByDate ? desc(tracks.createdAt) : sql`RANDOM()`).limit(limit).offset(offset),
+      baseQuery.orderBy(desc(tracks.createdAt)).limit(limit).offset(offset),
       db
         .select({ count: sql<number>`count(*)` })
         .from(tracks)
