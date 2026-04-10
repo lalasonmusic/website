@@ -18,6 +18,7 @@ import { trackService } from "@/lib/services/trackService";
 import BoutiquePlayer from "@/components/membre/BoutiquePlayer";
 import BoutiqueDashboardTabs from "@/components/membre/BoutiqueDashboardTabs";
 import UpsellSubscribeButton from "@/components/membre/UpsellSubscribeButton";
+import UpsellCreatorsCard from "@/components/membre/UpsellCreatorsCard";
 
 type Props = {
   params: Promise<{ locale: string }>;
@@ -244,12 +245,17 @@ export default async function MembrePage({ params }: Props) {
                   </div>
                   <h3 className="text-2xl font-extrabold text-white mb-1.5">{p("creators.name")}</h3>
                   <p className="text-sm text-white/50 mb-6 leading-relaxed">{p("creators.description")}</p>
-                  <div className="mb-1">
-                    <span className="text-2xl md:text-4xl font-extrabold text-white tracking-tight">{p("creators.annual_price")}</span>
-                    <span className="text-white/40 text-sm ml-1.5">{p("perYear")}</span>
-                  </div>
-                  <p className="text-sm text-white/30 mb-6">{t("upsellOrMonthly", { price: p("creators.monthly_price") })}</p>
-                  <UpsellSubscribeButton planType="creators_annual" locale={locale} label={t("upsellCta")} variant="primary" />
+                  <UpsellCreatorsCard
+                    locale={locale}
+                    monthlyPrice={p("creators.monthly_price")}
+                    annualPrice={p("creators.annual_price")}
+                    monthlyLabel={p("monthly")}
+                    annualLabel={p("annual")}
+                    saveLabel={p("save", { percent: "38" })}
+                    perMonth={p("perMonth")}
+                    perYear={p("perYear")}
+                    ctaLabel={t("upsellCta")}
+                  />
                   <div className="h-px bg-white/10 mb-5" />
                   <ul className="space-y-3 mt-auto">
                     {creatorsFeatures.map((f) => (
