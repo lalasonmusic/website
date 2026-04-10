@@ -14,10 +14,12 @@ const planLabels: Record<string, { fr: string; en: string }> = {
   boutique_annual: { fr: "Boutique — Annuel", en: "Boutique — Annual" },
 };
 
-// Plan amounts in cents (TTC)
+// Fallback plan amounts in cents (TTC) — used in preview mode if Stripe lookup fails.
+// The real per-subscriber price is fetched from Stripe so grandfathered users see
+// their actual price (e.g. legacy creators_annual at 99 € rather than 99,99 €).
 const planAmounts: Record<string, number> = {
   creators_monthly: 1599,
-  creators_annual: 9900,
+  creators_annual: 9999,
   boutique_annual: 9999,
 };
 
@@ -76,7 +78,31 @@ export async function GET(request: NextRequest, context: RouteContext) {
       return new Response("No active subscription", { status: 403 });
     }
 
-    const amount = planAmounts[activeSub.planType] ?? 0;
+    // Fetch the real subscription amount from Stripe so grandfathered prices
+    // (e.g. existing 99 € creators_annual subscribers) show the correct value.
+    let amount = planAmounts[activeSub.planType] ?? 0;
+    try {
+      const [profileForStripe] = await db
+        .select({ stripeCustomerId: profiles.stripeCustomerId })
+        .from(profiles)
+        .where(eq(profiles.id, user.id))
+        .limit(1);
+
+      if (profileForStripe?.stripeCustomerId) {
+        const subs = await stripe.subscriptions.list({
+          customer: profileForStripe.stripeCustomerId,
+          status: "active",
+          limit: 1,
+        });
+        const realAmount = subs.data[0]?.items.data[0]?.price.unit_amount;
+        if (typeof realAmount === "number" && realAmount > 0) {
+          amount = realAmount;
+        }
+      }
+    } catch {
+      // Fall back to the hardcoded amount if Stripe is unreachable
+    }
+
     // VAT calculation: assume 20% TTC inclusive — split into HT + TVA
     // In production, Stripe Tax will compute the actual rate based on customer country
     const PREVIEW_VAT_RATE = 20;

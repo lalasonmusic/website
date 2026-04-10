@@ -128,7 +128,7 @@ export default async function AbonnementsPage({ params }: Props) {
                   url: `${BASE_URL}/${locale}/abonnements`,
                   offers: {
                     "@type": "Offer",
-                    price: "99.00",
+                    price: "99.99",
                     priceCurrency: "EUR",
                     availability: "https://schema.org/InStock",
                   },

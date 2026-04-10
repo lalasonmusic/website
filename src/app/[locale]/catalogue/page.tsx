@@ -220,7 +220,7 @@ export default async function CataloguePage({ params, searchParams }: Props) {
                   textDecoration: "none",
                 }}
               >
-                {locale === "fr" ? "Accès illimité dès 99\u00A0€/an" : "Unlimited access from €99/year"}
+                {locale === "fr" ? "Accès illimité dès 99,99\u00A0€/an" : "Unlimited access from €99.99/year"}
               </a>
             </p>
           )}

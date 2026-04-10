@@ -13,7 +13,7 @@ export default function CgvPage() {
 
       <h2 style={{ fontWeight: 700, color: "var(--color-text-primary)", marginTop: "1.5rem", marginBottom: "0.5rem" }}>Offres</h2>
       <p><strong>Créateurs Mensuel</strong>{" : 15,99 € / mois — licence YouTube, Instagram, podcasts, publicités."}</p>
-      <p><strong>Créateurs Annuel</strong>{" : 99 € / an — mêmes droits, facturation annuelle."}</p>
+      <p><strong>Créateurs Annuel</strong>{" : 99,99 € / an — mêmes droits, facturation annuelle."}</p>
       <p><strong>Boutique Annuel</strong>{" : 99,99 € / an — diffusion en lieu public (commerces, restaurants, hôtels)."}</p>
 
       <h2 style={{ fontWeight: 700, color: "var(--color-text-primary)", marginTop: "1.5rem", marginBottom: "0.5rem" }}>Paiement</h2>
