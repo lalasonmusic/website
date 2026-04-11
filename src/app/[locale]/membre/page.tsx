@@ -57,6 +57,22 @@ export default async function MembrePage({ params }: Props) {
     .orderBy(desc(subscriptions.createdAt))
     .limit(1);
 
+  // If no active sub, look up the most recent past sub so we can show a
+  // contextual "your subscription expired/payment failed" banner above the
+  // upsell instead of a generic pricing page.
+  const [lastSub] = !activeSub
+    ? await db
+        .select({
+          planType: subscriptions.planType,
+          currentPeriodEnd: subscriptions.currentPeriodEnd,
+          status: subscriptions.status,
+        })
+        .from(subscriptions)
+        .where(eq(subscriptions.userId, user.id))
+        .orderBy(desc(subscriptions.currentPeriodEnd))
+        .limit(1)
+    : [undefined];
+
   // Total download count
   const [{ downloadCount }] = await db
     .select({ downloadCount: count() })
@@ -211,6 +227,45 @@ export default async function MembrePage({ params }: Props) {
           />
 
           <div className="relative max-w-[840px] mx-auto">
+            {/* Contextual banner for users whose previous subscription ended */}
+            {lastSub && (lastSub.status === "canceled" || lastSub.status === "past_due" || lastSub.status === "unpaid") && (
+              <div
+                className="mb-10 rounded-2xl p-5 border flex items-start gap-4"
+                style={{
+                  background: lastSub.status === "past_due" || lastSub.status === "unpaid"
+                    ? "rgba(239,68,68,0.08)"
+                    : "rgba(245,166,35,0.08)",
+                  borderColor: lastSub.status === "past_due" || lastSub.status === "unpaid"
+                    ? "rgba(239,68,68,0.25)"
+                    : "rgba(245,166,35,0.25)",
+                }}
+              >
+                <svg
+                  className="w-5 h-5 shrink-0 mt-0.5"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke={lastSub.status === "past_due" || lastSub.status === "unpaid" ? "#ef4444" : "var(--color-accent)"}
+                  strokeWidth={2}
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <div className="flex-1">
+                  <p className="text-sm font-bold text-white mb-1">
+                    {lastSub.status === "past_due" || lastSub.status === "unpaid"
+                      ? t("expiredBannerPaymentTitle")
+                      : t("expiredBannerEndedTitle")}
+                  </p>
+                  <p className="text-sm text-white/60 leading-relaxed">
+                    {lastSub.status === "past_due" || lastSub.status === "unpaid"
+                      ? t("expiredBannerPaymentDesc")
+                      : t("expiredBannerEndedDesc", {
+                          date: lastSub.currentPeriodEnd.toLocaleDateString(dateLocale, dateOpts),
+                        })}
+                  </p>
+                </div>
+              </div>
+            )}
+
             {/* Hero CTA */}
             <div className="text-center mb-12">
               <div
