@@ -4,6 +4,13 @@ import createNextIntlPlugin from "next-intl/plugin";
 const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
 
 const nextConfig: NextConfig = {
+  // Keep packages that ship native binaries (ffmpeg, ffprobe) external to the
+  // Next.js server bundle so webpack doesn't try to parse their binary files.
+  serverExternalPackages: [
+    "fluent-ffmpeg",
+    "ffmpeg-static",
+    "@ffprobe-installer/ffprobe",
+  ],
   headers: async () => [
     {
       source: "/(.*)",

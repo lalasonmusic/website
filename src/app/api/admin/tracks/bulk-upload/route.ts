@@ -6,17 +6,43 @@ import { profiles, tracks, artists, trackCategories, categories } from "@/db/sch
 import { eq } from "drizzle-orm";
 import Anthropic from "@anthropic-ai/sdk";
 import ffmpegPath from "ffmpeg-static";
+import ffprobeInstaller from "@ffprobe-installer/ffprobe";
 import ffmpeg from "fluent-ffmpeg";
 import { writeFileSync, readFileSync, unlinkSync, mkdirSync, existsSync } from "fs";
 import { join } from "path";
 import { tmpdir } from "os";
 
 ffmpeg.setFfmpegPath(ffmpegPath as string);
+ffmpeg.setFfprobePath(ffprobeInstaller.path);
 
 const anthropic = new Anthropic();
 
 // Generous timeout — bulk processing can take a while
 export const maxDuration = 300; // seconds (5 min) — adjust per Vercel plan
+
+// Probe the duration of an MP3 buffer in seconds (rounded). Returns null on failure.
+async function probeDurationSeconds(mp3Buffer: Buffer, slug: string): Promise<number | null> {
+  const tmpDir = join(tmpdir(), "lalason-probe");
+  if (!existsSync(tmpDir)) mkdirSync(tmpDir, { recursive: true });
+  const tmpMp3 = join(tmpDir, `${slug}-${Date.now()}-probe.mp3`);
+  try {
+    writeFileSync(tmpMp3, mp3Buffer);
+    const duration = await new Promise<number>((resolve, reject) => {
+      ffmpeg.ffprobe(tmpMp3, (err, data) => {
+        if (err) return reject(err);
+        const d = data.format?.duration;
+        if (typeof d !== "number") return reject(new Error("No duration in ffprobe output"));
+        resolve(Math.round(d));
+      });
+    });
+    return duration;
+  } catch (err) {
+    console.error("[bulk-upload] probeDuration error:", err);
+    return null;
+  } finally {
+    try { unlinkSync(tmpMp3); } catch {}
+  }
+}
 
 async function convertMp3ToWav(mp3Buffer: Buffer, slug: string): Promise<Buffer | null> {
   const tmpDir = join(tmpdir(), "lalason-bulk");
@@ -202,6 +228,9 @@ export async function POST(req: NextRequest) {
 
             const buffer = Buffer.from(await mp3Blob.arrayBuffer());
 
+            // Probe duration from the MP3 — failures are non-fatal, we just store null
+            const durationSeconds = await probeDurationSeconds(buffer, item.slug);
+
             // Upload preview (same MP3 to preview bucket — true preview clip is a future improvement)
             const { error: prevErr } = await supabaseAdmin.storage
               .from("audio-previews")
@@ -232,6 +261,7 @@ export async function POST(req: NextRequest) {
                 artistId,
                 fileFullPath: item.path,
                 filePreviewPath: previewPathForDb,
+                durationSeconds,
                 isPublished: true,
               })
               .onConflictDoNothing()
