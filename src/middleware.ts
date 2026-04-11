@@ -6,6 +6,17 @@ import { routing } from "./i18n/routing";
 const intlMiddleware = createIntlMiddleware(routing);
 
 export async function middleware(request: NextRequest) {
+  const pathname = request.nextUrl.pathname;
+
+  // 0. Coming Soon gate — flip COMING_SOON_MODE=false pour désactiver
+  if (process.env.COMING_SOON_MODE === "true") {
+    const hasPreviewCookie =
+      request.cookies.get("lalason_preview")?.value === "1";
+    if (!hasPreviewCookie) {
+      return NextResponse.rewrite(new URL("/coming-soon", request.url));
+    }
+  }
+
   // 1. Appliquer le middleware next-intl (gestion des locales)
   const intlResponse = intlMiddleware(request);
   const response = intlResponse ?? NextResponse.next({ request });
@@ -35,8 +46,6 @@ export async function middleware(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const pathname = request.nextUrl.pathname;
-
   // 3. Proteger les routes /[locale]/membre/*
   const isMemberRoute = /^\/(fr|en)\/membre/.test(pathname);
   if (isMemberRoute && !user) {
@@ -56,8 +65,8 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    // Routes next-intl (toutes sauf _next, api, auth, admin, fichiers statiques)
-    "/((?!_next|api|auth|admin|.*\\..*).*)",
+    // Routes next-intl (toutes sauf _next, api, auth, admin, coming-soon, preview, fichiers statiques)
+    "/((?!_next|api|auth|admin|coming-soon|preview|.*\\..*).*)",
     "/",
   ],
 };
