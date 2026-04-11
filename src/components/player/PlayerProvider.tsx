@@ -2,7 +2,6 @@
 
 import { useEffect, useRef } from "react";
 import { usePlayerStore } from "@/store/playerStore";
-import { track } from "@/lib/analytics";
 import PlayerDesktop from "./PlayerDesktop";
 import PlayerMobileMini from "./PlayerMobileMini";
 
@@ -11,8 +10,6 @@ type Props = {
   isSubscribed: boolean;
   canDownload: boolean;
 };
-
-const PREVIEW_LIMIT_SECONDS = 30;
 
 export default function PlayerProvider({ isSubscribed, canDownload }: Props) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -29,7 +26,6 @@ export default function PlayerProvider({ isSubscribed, canDownload }: Props) {
     volume,
     setProgress,
     setDuration,
-    setShowSubscribeCta,
     setIsSubscribed,
     setCanDownload,
     next,
@@ -57,14 +53,6 @@ export default function PlayerProvider({ isSubscribed, canDownload }: Props) {
 
     const onTimeUpdate = () => {
       setProgress(audio.currentTime);
-
-      if (!subscribedRef.current && audio.currentTime >= PREVIEW_LIMIT_SECONDS) {
-        audio.pause();
-        setShowSubscribeCta(true);
-        usePlayerStore.setState({ isPlaying: false });
-        const { currentTrack: ct } = usePlayerStore.getState();
-        track("preview_ended", { trackId: ct?.id, trackTitle: ct?.title });
-      }
     };
 
     const onLoadedMetadata = () => setDuration(audio.duration);
@@ -79,7 +67,7 @@ export default function PlayerProvider({ isSubscribed, canDownload }: Props) {
       audio.removeEventListener("loadedmetadata", onLoadedMetadata);
       audio.removeEventListener("ended", onEnded);
     };
-  }, [setProgress, setDuration, setShowSubscribeCta, next]);
+  }, [setProgress, setDuration, next]);
 
   // React to currentTrack changes → load new audio + play immediately
   useEffect(() => {

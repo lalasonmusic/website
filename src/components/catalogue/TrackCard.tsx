@@ -182,7 +182,6 @@ export default function TrackCard({ track, queue, queueIndex, locale, isSubscrib
   const isCurrentTrack = currentTrack?.id === track.id;
   const isActive = isCurrentTrack && (isPlaying || progress > 0);
   const progressPercent = isCurrentTrack && duration > 0 ? (progress / duration) * 100 : 0;
-  const previewLimit = !isSubscribed ? 30 : null;
   const isEven = queueIndex % 2 === 0;
 
   function handlePlay() {
@@ -375,20 +374,8 @@ export default function TrackCard({ track, queue, queueIndex, locale, isSubscrib
               }} />
             </div>
             <span style={{ fontSize: "0.6875rem", color: "#9ca3af", flexShrink: 0, fontVariantNumeric: "tabular-nums" }}>
-              {formatDuration(Math.floor(progress))}{previewLimit ? ` / 0:${previewLimit}` : ""}
+              {formatDuration(Math.floor(progress))}
             </span>
-            {previewLimit && (
-              <span style={{
-                fontSize: "0.5625rem",
-                color: "var(--color-accent)",
-                fontWeight: 600,
-                textTransform: "uppercase",
-                letterSpacing: "0.03em",
-                flexShrink: 0,
-              }}>
-                {locale === "fr" ? "Extrait" : "Preview"}
-              </span>
-            )}
           </div>
         )}
       </div>
