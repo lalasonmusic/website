@@ -10,6 +10,7 @@ import TestimonialCarousel from "@/components/home/TestimonialCarousel";
 import { blogService } from "@/lib/services/blogService";
 import FaqAccordion from "@/components/home/FaqAccordion";
 import NewsletterForm from "@/components/layout/NewsletterForm";
+import { LiteYouTube } from "@/components/LiteYouTube";
 
 type Props = {
   params: Promise<{ locale: string }>;
@@ -80,7 +81,7 @@ export default async function HomePage({ params }: Props) {
           alignItems: "flex-start",
           justifyContent: "center",
           padding: "4rem 1.5rem",
-          backgroundImage: "url(/hero-bg.png)",
+          backgroundImage: "url(/hero-bg.webp)",
           backgroundSize: "cover",
           backgroundPosition: "center right",
         }}
@@ -309,17 +310,7 @@ export default async function HomePage({ params }: Props) {
             overflow: "hidden",
             boxShadow: "0 8px 32px rgba(0,0,0,0.3)",
           }}>
-            <iframe
-              src="https://www.youtube-nocookie.com/embed/PShwEajxAxk"
-              title="Lalason - Qui sommes-nous ?"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
-              style={{
-                width: "100%",
-                height: "100%",
-                border: "none",
-              }}
-            />
+            <LiteYouTube videoId="PShwEajxAxk" title="Lalason - Qui sommes-nous ?" />
           </div>
 
           {/* Text */}
@@ -383,13 +374,7 @@ export default async function HomePage({ params }: Props) {
                 overflow: "hidden",
                 boxShadow: "0 4px 16px rgba(0,0,0,0.1)",
               }}>
-                <iframe
-                  src={`https://www.youtube-nocookie.com/embed/${id}`}
-                  title="La Musique Libre"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                  style={{ width: "100%", height: "100%", border: "none" }}
-                />
+                <LiteYouTube videoId={id} title="La Musique Libre" />
               </div>
             ))}
           </div>
@@ -585,6 +570,8 @@ export default async function HomePage({ params }: Props) {
           muted
           loop
           playsInline
+          preload="none"
+          poster="/newsletter-poster.webp"
           style={{
             position: "absolute",
             inset: 0,
