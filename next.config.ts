@@ -11,6 +11,109 @@ const nextConfig: NextConfig = {
     "ffmpeg-static",
     "@ffprobe-installer/ffprobe",
   ],
+  redirects: async () => [
+    // ── Blog : ancien préfixe Wix → nouveau préfixe ──
+    {
+      source: "/blog-musique-libre-de-droits",
+      destination: "/fr/blog",
+      permanent: true,
+    },
+    {
+      source: "/blog-musique-libre-de-droits/:slug",
+      destination: "/fr/blog/:slug",
+      permanent: true,
+    },
+
+    // ── Pages statiques sans locale ──
+    {
+      source: "/abonnements",
+      destination: "/fr/abonnements",
+      permanent: true,
+    },
+    {
+      source: "/nos-artistes",
+      destination: "/fr/nos-artistes",
+      permanent: true,
+    },
+    {
+      source: "/contact",
+      destination: "/fr/contact",
+      permanent: true,
+    },
+    {
+      source: "/mentions-legales",
+      destination: "/fr/mentions-legales",
+      permanent: true,
+    },
+    {
+      source: "/politique-de-confidentialite",
+      destination: "/fr/politique-de-confidentialite",
+      permanent: true,
+    },
+
+    // ── Anciennes pages Wix dupliquées → abonnements ──
+    {
+      source: "/copie-de-nos-offres",
+      destination: "/fr/abonnements",
+      permanent: true,
+    },
+    {
+      source: "/copie-de-nos-offres-1",
+      destination: "/fr/abonnements",
+      permanent: true,
+    },
+    {
+      source: "/musique-pour-createur-de-contenus",
+      destination: "/fr/abonnements",
+      permanent: true,
+    },
+    {
+      source: "/abonnement-musiques-en-boutique",
+      destination: "/fr/abonnements",
+      permanent: true,
+    },
+
+    // ── Catalogue par style ──
+    {
+      source: "/par-style",
+      destination: "/fr/catalogue",
+      permanent: true,
+    },
+    {
+      source: "/par-style/:slug",
+      destination: "/fr/catalogue?style=:slug",
+      permanent: true,
+    },
+    {
+      source: "/pop-rock",
+      destination: "/fr/catalogue?style=pop-rock",
+      permanent: true,
+    },
+
+    // ── Catalogue par humeur ──
+    {
+      source: "/par-humeur",
+      destination: "/fr/catalogue",
+      permanent: true,
+    },
+    {
+      source: "/par-humeur/:slug",
+      destination: "/fr/catalogue?mood=:slug",
+      permanent: true,
+    },
+
+    // ── Catalogue par thème ──
+    {
+      source: "/par-theme",
+      destination: "/fr/catalogue",
+      permanent: true,
+    },
+    {
+      source: "/par-theme/:slug",
+      destination: "/fr/catalogue?theme=:slug",
+      permanent: true,
+    },
+  ],
   headers: async () => [
     {
       source: "/(.*)",
