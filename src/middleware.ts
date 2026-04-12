@@ -10,9 +10,10 @@ export async function middleware(request: NextRequest) {
 
   // 0. Coming Soon gate — flip COMING_SOON_MODE=false pour désactiver
   if (process.env.COMING_SOON_MODE === "true") {
+    const isAuthPage = /^\/(fr|en)\/(connexion|mot-de-passe-oublie)/.test(pathname);
     const hasPreviewCookie =
       request.cookies.get("lalason_preview")?.value === "1";
-    if (!hasPreviewCookie) {
+    if (!hasPreviewCookie && !isAuthPage) {
       return NextResponse.rewrite(new URL("/coming-soon", request.url));
     }
   }
