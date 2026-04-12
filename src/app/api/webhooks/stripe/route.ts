@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { stripe, priceIdToPlanType, type PlanType } from "@/lib/stripe";
 import { db } from "@/db";
-import { subscriptions, profiles } from "@/db/schema";
+import { subscriptions, profiles, webhookEvents } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
 import type Stripe from "stripe";
 
@@ -146,6 +146,14 @@ export async function POST(req: NextRequest) {
     event = stripe.webhooks.constructEvent(body, sig, process.env.STRIPE_WEBHOOK_SECRET!);
   } catch {
     return NextResponse.json({ error: "Invalid webhook signature" }, { status: 400 });
+  }
+
+  // Idempotency: Stripe may retry the same event. Skip if already processed.
+  try {
+    await db.insert(webhookEvents).values({ stripeEventId: event.id });
+  } catch {
+    // Unique constraint violation = event already processed
+    return NextResponse.json({ received: true, deduped: true });
   }
 
   try {

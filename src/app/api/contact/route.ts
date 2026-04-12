@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { sendAdminEmail } from "@/lib/services/emailService";
+import { rateLimit, getClientIp, rateLimitResponse } from "@/lib/rateLimit";
 
 const schema = z.object({
   name: z.string().min(2).max(100),
@@ -10,6 +11,10 @@ const schema = z.object({
 });
 
 export async function POST(req: NextRequest) {
+  const ip = getClientIp(req);
+  const limit = rateLimit(`contact:${ip}`, 3, 60_000);
+  if (!limit.allowed) return rateLimitResponse(limit.resetAt);
+
   const body = await req.json().catch(() => null);
   const parsed = schema.safeParse(body);
   if (!parsed.success) {

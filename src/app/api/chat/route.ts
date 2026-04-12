@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import faqData from "@/data/faq.json";
+import { rateLimit, getClientIp, rateLimitResponse } from "@/lib/rateLimit";
 
 const anthropic = new Anthropic();
 
@@ -75,6 +76,10 @@ Respond only with: "ESCALATE: I'm forwarding your request to our team. Please fi
 }
 
 export async function POST(req: NextRequest) {
+  const ip = getClientIp(req);
+  const limit = rateLimit(`chat:${ip}`, 20, 60_000);
+  if (!limit.allowed) return rateLimitResponse(limit.resetAt);
+
   try {
     const { message, sessionId, history, locale } = await req.json();
 
