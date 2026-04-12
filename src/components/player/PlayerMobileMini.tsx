@@ -58,7 +58,7 @@ export default function PlayerMobileMini() {
           flexShrink: 0,
         }}>
           {currentTrack.coverUrl ? (
-            <img src={currentTrack.coverUrl} alt="" width={34} height={34} style={{ objectFit: "cover" }} />
+            <img src={currentTrack.coverUrl} alt={currentTrack.title} width={34} height={34} style={{ objectFit: "cover" }} />
           ) : (
             <div style={{
               width: "100%",

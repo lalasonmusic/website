@@ -178,7 +178,7 @@ export default function PlayerDesktop() {
           flexShrink: 0,
         }}>
           {currentTrack.coverUrl ? (
-            <img src={currentTrack.coverUrl} alt="" width={36} height={36} style={{ objectFit: "cover" }} />
+            <img src={currentTrack.coverUrl} alt={currentTrack.title} width={36} height={36} style={{ objectFit: "cover" }} />
           ) : (
             <div style={{
               width: "100%",

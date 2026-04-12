@@ -439,7 +439,7 @@ export default async function HomePage({ params }: Props) {
                     <div style={{ aspectRatio: "16/9", overflow: "hidden" }}>
                       <img
                         src={post.coverUrl}
-                        alt=""
+                        alt={post.title}
                         style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
                       />
                     </div>

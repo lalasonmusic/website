@@ -76,7 +76,7 @@ export default function PlayerMobileExpanded() {
           {/* Cover */}
           <div style={{ width: "200px", height: "200px", borderRadius: "var(--radius-md)", overflow: "hidden", backgroundColor: "var(--color-bg-primary)" }}>
             {currentTrack.coverUrl ? (
-              <img src={currentTrack.coverUrl} alt="" width={200} height={200} style={{ objectFit: "cover" }} />
+              <img src={currentTrack.coverUrl} alt={currentTrack.title} width={200} height={200} style={{ objectFit: "cover" }} />
             ) : (
               <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100%", fontSize: "4rem" }}>🎵</div>
             )}

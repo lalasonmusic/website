@@ -143,7 +143,7 @@ export default function BoutiquePlayer({ tracks, locale, moodFilters }: Props) {
             }}
           >
             {nowPlaying?.coverUrl ? (
-              <img src={nowPlaying.coverUrl} alt="" className="w-full h-full object-cover" />
+              <img src={nowPlaying.coverUrl} alt={nowPlaying.title} className="w-full h-full object-cover" />
             ) : (
               <div className="text-center">
                 <p className="text-5xl font-extrabold text-white/20 mb-2">

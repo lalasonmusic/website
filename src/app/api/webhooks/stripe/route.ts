@@ -39,30 +39,31 @@ async function upsertSubscription(sub: Stripe.Subscription) {
     ? (status as "active" | "canceled" | "past_due" | "unpaid")
     : "canceled";
 
-  await db
-    .insert(subscriptions)
-    .values({
-      userId,
-      stripeSubscriptionId: sub.id,
-      stripePriceId: priceId,
-      planType,
-      status: dbStatus,
-      currentPeriodEnd,
-    })
-    .onConflictDoUpdate({
-      target: subscriptions.stripeSubscriptionId,
-      set: { status: dbStatus, currentPeriodEnd, stripePriceId: priceId, planType },
-    });
+  await db.transaction(async (tx) => {
+    await tx
+      .insert(subscriptions)
+      .values({
+        userId,
+        stripeSubscriptionId: sub.id,
+        stripePriceId: priceId,
+        planType,
+        status: dbStatus,
+        currentPeriodEnd,
+      })
+      .onConflictDoUpdate({
+        target: subscriptions.stripeSubscriptionId,
+        set: { status: dbStatus, currentPeriodEnd, stripePriceId: priceId, planType },
+      });
 
-  // Update profile subscription status
-  await db
-    .update(profiles)
-    .set({
-      subscriptionStatus: dbStatus === "active" ? "active" : dbStatus === "past_due" ? "past_due" : "canceled",
-      subscriptionEndDate: currentPeriodEnd,
-      updatedAt: new Date(),
-    })
-    .where(eq(profiles.id, userId));
+    await tx
+      .update(profiles)
+      .set({
+        subscriptionStatus: dbStatus === "active" ? "active" : dbStatus === "past_due" ? "past_due" : "canceled",
+        subscriptionEndDate: currentPeriodEnd,
+        updatedAt: new Date(),
+      })
+      .where(eq(profiles.id, userId));
+  });
 }
 
 async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
@@ -90,15 +91,17 @@ async function handleSubscriptionDeleted(sub: Stripe.Subscription) {
   const userId = sub.metadata?.userId;
   if (!userId) return;
 
-  await db
-    .update(subscriptions)
-    .set({ status: "canceled" })
-    .where(and(eq(subscriptions.stripeSubscriptionId, sub.id)));
+  await db.transaction(async (tx) => {
+    await tx
+      .update(subscriptions)
+      .set({ status: "canceled" })
+      .where(and(eq(subscriptions.stripeSubscriptionId, sub.id)));
 
-  await db
-    .update(profiles)
-    .set({ subscriptionStatus: "canceled", updatedAt: new Date() })
-    .where(eq(profiles.id, userId));
+    await tx
+      .update(profiles)
+      .set({ subscriptionStatus: "canceled", updatedAt: new Date() })
+      .where(eq(profiles.id, userId));
+  });
 }
 
 async function handlePaymentFailed(invoice: Stripe.Invoice) {
@@ -109,24 +112,25 @@ async function handlePaymentFailed(invoice: Stripe.Invoice) {
     raw.subscription ?? raw.parent?.subscription_details?.subscription;
   if (!subId) return;
 
-  await db
-    .update(subscriptions)
-    .set({ status: "past_due" })
-    .where(eq(subscriptions.stripeSubscriptionId, subId));
+  await db.transaction(async (tx) => {
+    await tx
+      .update(subscriptions)
+      .set({ status: "past_due" })
+      .where(eq(subscriptions.stripeSubscriptionId, subId));
 
-  // Find userId from subscriptions table
-  const [sub] = await db
-    .select({ userId: subscriptions.userId })
-    .from(subscriptions)
-    .where(eq(subscriptions.stripeSubscriptionId, subId))
-    .limit(1);
+    const [sub] = await tx
+      .select({ userId: subscriptions.userId })
+      .from(subscriptions)
+      .where(eq(subscriptions.stripeSubscriptionId, subId))
+      .limit(1);
 
-  if (sub) {
-    await db
-      .update(profiles)
-      .set({ subscriptionStatus: "past_due", updatedAt: new Date() })
-      .where(eq(profiles.id, sub.userId));
-  }
+    if (sub) {
+      await tx
+        .update(profiles)
+        .set({ subscriptionStatus: "past_due", updatedAt: new Date() })
+        .where(eq(profiles.id, sub.userId));
+    }
+  });
 }
 
 export async function POST(req: NextRequest) {
