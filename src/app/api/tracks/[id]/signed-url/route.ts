@@ -12,7 +12,11 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
-  const format = req.nextUrl.searchParams.get("format") === "wav" ? "wav" : "mp3";
+  const formatParam = req.nextUrl.searchParams.get("format");
+  // If format is present in query, caller is downloading a file.
+  // If absent, caller is streaming via the player — do NOT log a download.
+  const isDownload = formatParam !== null;
+  const format = formatParam === "wav" ? "wav" : "mp3";
 
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -60,19 +64,23 @@ export async function GET(
         .createSignedUrl(track.fileFullPath, SIGNED_URL_EXPIRY);
 
       if (fallback.data?.signedUrl) {
-        try {
-          await db.insert(downloads).values({ userId: user.id, trackId: id });
-        } catch {}
+        if (isDownload) {
+          try {
+            await db.insert(downloads).values({ userId: user.id, trackId: id });
+          } catch {}
+        }
         return NextResponse.json({ url: fallback.data.signedUrl, format: "mp3" });
       }
     }
     return NextResponse.json({ error: "Could not generate URL" }, { status: 500 });
   }
 
-  // Log download
-  try {
-    await db.insert(downloads).values({ userId: user.id, trackId: id });
-  } catch {}
+  // Log download only when caller is actually downloading (format param present)
+  if (isDownload) {
+    try {
+      await db.insert(downloads).values({ userId: user.id, trackId: id });
+    } catch {}
+  }
 
   return NextResponse.json({ url: data.signedUrl, format });
 }

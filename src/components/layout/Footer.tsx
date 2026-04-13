@@ -20,9 +20,10 @@ export default async function Footer({ locale }: Props) {
     { href: `/${locale}/blog`, label: isFr ? "Actus" : "News" },
     { href: `/${locale}/nos-artistes`, label: isFr ? "Nos artistes" : "Our artists" },
     { href: `/${locale}/abonnements`, label: isFr ? "Abonnements" : "Pricing" },
+    { href: `/${locale}/faq`, label: "FAQ" },
+    { href: `/${locale}/comparateur`, label: isFr ? "Comparateur" : "Comparison" },
     { href: `/${locale}/politique-de-confidentialite`, label: t("privacy") },
     { href: `/${locale}/mentions-legales`, label: t("legal") },
-    { href: `/${locale}/comparateur`, label: isFr ? "Comparateur" : "Comparison" },
   ];
 
   return (
@@ -107,7 +108,7 @@ export default async function Footer({ locale }: Props) {
             </a>
             {/* SoundCloud */}
             <a
-              href="https://soundcloud.com/lalasonmusic"
+              href="https://soundcloud.com/lalason"
               target="_blank"
               rel="noopener noreferrer"
               aria-label="SoundCloud"
@@ -119,7 +120,7 @@ export default async function Footer({ locale }: Props) {
             </a>
             {/* Spotify */}
             <a
-              href="https://open.spotify.com/artist/lalason"
+              href="https://open.spotify.com/playlist/0Wvf6yB4wW6xKsabkR6xIt"
               target="_blank"
               rel="noopener noreferrer"
               aria-label="Spotify"
