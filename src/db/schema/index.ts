@@ -12,3 +12,4 @@ export * from "./tiktok-accounts";
 export * from "./playlists";
 export * from "./track-favorites";
 export * from "./webhook-events";
+export * from "./newsletter-subscribers";

@@ -1,8 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
+import { db } from "@/db";
+import { newsletterSubscribers } from "@/db/schema";
 import { rateLimit, getClientIp, rateLimitResponse } from "@/lib/rateLimit";
 
-const schema = z.object({ email: z.string().email() });
+const schema = z.object({
+  email: z.string().email(),
+  locale: z.string().optional(),
+});
 
 export async function POST(req: NextRequest) {
   const ip = getClientIp(req);
@@ -15,23 +20,16 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Invalid email" }, { status: 400 });
   }
 
-  const apiKey = process.env.MAILER_LITE_API_KEY;
-  if (!apiKey) {
-    return NextResponse.json({ error: "Service unavailable" }, { status: 503 });
-  }
-
-  const res = await fetch("https://connect.mailerlite.com/api/subscribers", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${apiKey}`,
-    },
-    body: JSON.stringify({ email: parsed.data.email }),
-    signal: AbortSignal.timeout(8000),
-  });
-
-  // 409 = already subscribed — treat as success
-  if (!res.ok && res.status !== 409) {
+  try {
+    await db
+      .insert(newsletterSubscribers)
+      .values({
+        email: parsed.data.email.toLowerCase(),
+        locale: parsed.data.locale ?? null,
+      })
+      .onConflictDoNothing({ target: newsletterSubscribers.email });
+  } catch (err) {
+    console.error("[newsletter] insert error:", err);
     return NextResponse.json({ error: "Subscription failed" }, { status: 500 });
   }
 
