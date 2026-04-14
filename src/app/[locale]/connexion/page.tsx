@@ -42,12 +42,13 @@ export default function ConnexionPage() {
     });
   }
 
-  async function handleFacebook() {
-    await supabase.auth.signInWithOAuth({
-      provider: "facebook",
-      options: { redirectTo: `${window.location.origin}/auth/callback` },
-    });
-  }
+  // Facebook login temporairement désactivé — à réactiver après config Facebook Developer App
+  // async function handleFacebook() {
+  //   await supabase.auth.signInWithOAuth({
+  //     provider: "facebook",
+  //     options: { redirectTo: `${window.location.origin}/auth/callback` },
+  //   });
+  // }
 
   return (
     <div
@@ -103,9 +104,21 @@ export default function ConnexionPage() {
           </div>
 
           <div>
-            <label style={{ display: "block", marginBottom: "0.25rem", fontSize: "0.875rem" }}>
-              {t("password")}
-            </label>
+            <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", marginBottom: "0.25rem" }}>
+              <label style={{ fontSize: "0.875rem" }}>
+                {t("password")}
+              </label>
+              <a
+                href="../mot-de-passe-oublie"
+                style={{
+                  fontSize: "0.8125rem",
+                  color: "var(--color-accent)",
+                  textDecoration: "none",
+                }}
+              >
+                {t("forgotPassword")} ?
+              </a>
+            </div>
             <input
               type="password"
               value={password}
@@ -168,6 +181,7 @@ export default function ConnexionPage() {
           >
             {t("loginWithGoogle")}
           </button>
+          {/* Facebook login temporairement caché — à réactiver après config Facebook Developer App
           <button
             onClick={handleFacebook}
             style={{
@@ -184,6 +198,7 @@ export default function ConnexionPage() {
           >
             {t("loginWithFacebook")}
           </button>
+          */}
         </div>
 
         <p style={{ marginTop: "1.5rem", textAlign: "center", fontSize: "0.875rem", color: "var(--color-text-secondary)" }}>
