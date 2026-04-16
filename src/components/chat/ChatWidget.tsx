@@ -99,9 +99,9 @@ export default function ChatWidget() {
     }
   }, [open, messages.length, t.welcome]);
 
-  // Poll for admin messages when chat is open
+  // Poll for admin messages — always active (auto-opens widget when message arrives)
   useEffect(() => {
-    if (!open || isAdminPage) return;
+    if (isAdminPage) return;
 
     async function poll() {
       try {
@@ -127,6 +127,9 @@ export default function ChatWidget() {
           setMessages((prev) => [...prev, ...newMsgs]);
           const last = data.messages[data.messages.length - 1];
           lastPollRef.current = last.created_at;
+
+          // Auto-open the widget when admin sends a message
+          if (!open) setOpen(true);
         }
       } catch {
         // silent
@@ -137,7 +140,7 @@ export default function ChatWidget() {
     return () => {
       if (pollTimerRef.current) clearInterval(pollTimerRef.current);
     };
-  }, [open, isAdminPage, liveChat]);
+  }, [isAdminPage, liveChat, open]);
 
   // Don't show on admin pages
   if (isAdminPage) return null;
