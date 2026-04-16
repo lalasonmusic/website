@@ -82,6 +82,18 @@ export default function LiveChatPanel({ sessionId, visitorLabel, onClose }: Prop
     setTakeover(newState);
   }
 
+  function handleClose() {
+    // Release takeover so the bot resumes for this visitor
+    if (takeover) {
+      fetch("/api/admin/chat/takeover", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sessionId, active: false }),
+      });
+    }
+    onClose();
+  }
+
   function formatTime(dateStr: string) {
     return new Date(dateStr).toLocaleTimeString("fr-FR", {
       hour: "2-digit",
@@ -184,7 +196,7 @@ export default function LiveChatPanel({ sessionId, visitorLabel, onClose }: Prop
 
         {/* Close */}
         <button
-          onClick={onClose}
+          onClick={handleClose}
           style={{
             background: "none",
             border: "none",
