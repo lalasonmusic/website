@@ -13,7 +13,9 @@ import { count, eq, and, gte, lt, desc } from "drizzle-orm";
 import { stripe } from "@/lib/stripe";
 import SubscribersChart from "@/components/admin/charts/SubscribersChart";
 import DownloadsChart from "@/components/admin/charts/DownloadsChart";
+import VisitorsChart from "@/components/admin/charts/VisitorsChart";
 import PlanDistributionChart from "@/components/admin/charts/PlanDistributionChart";
+import { supabaseAdmin } from "@/lib/supabase/admin";
 
 async function getKpis() {
   const now = new Date();
@@ -68,6 +70,20 @@ async function getKpis() {
     downloadsByDay.push({ day: label, count: row.value });
   }
 
+  // Visitors by day (last 14 days) — count unique sessions per day
+  const visitorsByDay: { day: string; count: number }[] = [];
+  for (let i = 13; i >= 0; i--) {
+    const dayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() - i);
+    const dayEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate() - i + 1);
+    const { count: cnt } = await supabaseAdmin
+      .from("visitor_sessions")
+      .select("*", { count: "exact", head: true })
+      .gte("created_at", dayStart.toISOString())
+      .lt("created_at", dayEnd.toISOString());
+    const label = dayStart.toLocaleDateString("fr-FR", { day: "numeric", month: "short" });
+    visitorsByDay.push({ day: label, count: cnt ?? 0 });
+  }
+
   // Top 10 tracks
   const topTracks = await db
     .select({ trackTitle: tracks.title, artistName: artists.name, downloadCount: count() })
@@ -120,6 +136,7 @@ async function getKpis() {
     arr: (mrrCents * 12) / 100,
     subscribersByMonth,
     downloadsByDay,
+    visitorsByDay,
     topTracks,
     cancellationReasons,
   };
@@ -190,6 +207,14 @@ export default async function AdminPage() {
 
       {/* ── Row 2: Charts ── */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(400px, 100%), 1fr))", gap: "1rem", marginBottom: "1.5rem" }}>
+        {/* Visitors chart */}
+        <div style={cardStyle}>
+          <h2 style={{ fontSize: "0.875rem", fontWeight: 700, marginBottom: "1rem", color: "var(--color-text-secondary)" }}>
+            Visiteurs par jour (14 jours)
+          </h2>
+          <VisitorsChart data={kpis.visitorsByDay} />
+        </div>
+
         {/* Subscribers growth */}
         <div style={cardStyle}>
           <h2 style={{ fontSize: "0.875rem", fontWeight: 700, marginBottom: "1rem", color: "var(--color-text-secondary)" }}>
