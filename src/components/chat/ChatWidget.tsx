@@ -10,7 +10,8 @@ type Message = {
 };
 
 function getSessionId(): string {
-  const key = "lalason_chat_session";
+  // Use the same session ID as PresenceTracker so admin can chat with the right visitor
+  const key = "lalason_session_id";
   let id = sessionStorage.getItem(key);
   if (!id) {
     id = crypto.randomUUID();
