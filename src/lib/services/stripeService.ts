@@ -1,7 +1,7 @@
 import type Stripe from "stripe";
 import { stripe, PLAN_PRICE_MAP, type PlanType } from "@/lib/stripe";
 
-const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://lalason.com";
 
 type CreateCheckoutParams = {
   userId: string;
@@ -30,7 +30,7 @@ export const stripeService = {
     const params: Stripe.Checkout.SessionCreateParams = {
       mode: "subscription",
       line_items: [{ price: priceId, quantity: 1 }],
-      payment_method_types: ["card", "paypal"],
+      payment_method_types: ["card"],
       success_url: `${BASE_URL}/${locale}/abonnement/succes?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${BASE_URL}/${locale}/abonnement/annule`,
       customer_email: stripeCustomerId ? undefined : userEmail,

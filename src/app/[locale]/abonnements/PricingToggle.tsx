@@ -5,7 +5,11 @@ import { track } from "@/lib/analytics";
 
 type PlanType = "creators_monthly" | "creators_annual" | "boutique_annual";
 
-async function startCheckout(planType: PlanType, locale: string) {
+async function startCheckout(
+  planType: PlanType,
+  locale: string,
+  onError: (msg: string) => void,
+) {
   track("checkout_start", { planType });
   const res = await fetch("/api/checkout/create-session", {
     method: "POST",
@@ -21,7 +25,10 @@ async function startCheckout(planType: PlanType, locale: string) {
   const data = await res.json();
   if (data.url) {
     window.location.href = data.url;
+    return;
   }
+
+  onError(data.error ?? `Erreur inattendue (HTTP ${res.status})`);
 }
 
 type CreatorsData = {
@@ -77,10 +84,16 @@ export default function PricingToggle({
 }: Props) {
   const [isAnnual, setIsAnnual] = useState(false);
   const [loadingPlan, setLoadingPlan] = useState<PlanType | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   async function handleSubscribe(planType: PlanType) {
     setLoadingPlan(planType);
-    await startCheckout(planType, locale);
+    setError(null);
+    try {
+      await startCheckout(planType, locale, setError);
+    } catch {
+      setError("Erreur de connexion. Veuillez réessayer.");
+    }
     setLoadingPlan(null);
   }
 
@@ -132,6 +145,13 @@ export default function PricingToggle({
           </button>
         </div>
       </div>
+
+      {/* ── Error banner ── */}
+      {error && (
+        <p className="text-sm text-red-400 text-center mb-6" role="alert">
+          {error}
+        </p>
+      )}
 
       {/* ── Pricing cards ── */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-[920px] mx-auto">
