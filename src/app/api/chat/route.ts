@@ -89,6 +89,28 @@ export async function POST(req: NextRequest) {
 
     const normalizedLocale: "fr" | "en" = locale === "en" ? "en" : "fr";
 
+    // If admin has taken over, route visitor messages to live chat instead of bot
+    const { data: visitorSession } = await supabaseAdmin
+      .from("visitor_sessions")
+      .select("admin_takeover")
+      .eq("session_id", sessionId)
+      .single();
+
+    if (visitorSession?.admin_takeover) {
+      await supabaseAdmin.from("live_chat_messages").insert({
+        session_id: sessionId,
+        sender: "visitor",
+        message,
+      });
+
+      const answer =
+        normalizedLocale === "en"
+          ? "An agent is connected and will respond shortly."
+          : "Un agent est connecté et va vous répondre sous peu.";
+
+      return NextResponse.json({ answer, needsEscalation: false, liveChat: true });
+    }
+
     // Build conversation history for Claude
     const messages: { role: "user" | "assistant"; content: string }[] = [];
     if (Array.isArray(history)) {

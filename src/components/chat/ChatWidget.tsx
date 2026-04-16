@@ -74,6 +74,9 @@ export default function ChatWidget() {
   const [escalateDetail, setEscalateDetail] = useState("");
   const [escalateSending, setEscalateSending] = useState(false);
   const [escalateSent, setEscalateSent] = useState(false);
+  const [liveChat, setLiveChat] = useState(false);
+  const lastPollRef = useRef<string | null>(null);
+  const pollTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
   const isAdminPage = pathname.startsWith("/admin");
@@ -94,6 +97,46 @@ export default function ChatWidget() {
       ]);
     }
   }, [open, messages.length, t.welcome]);
+
+  // Poll for admin messages when chat is open
+  useEffect(() => {
+    if (!open || isAdminPage) return;
+
+    async function poll() {
+      try {
+        const sessionId = getSessionId();
+        const params = new URLSearchParams({ sessionId });
+        if (lastPollRef.current) params.set("after", lastPollRef.current);
+
+        const res = await fetch(`/api/chat/poll?${params}`);
+        if (!res.ok) return;
+        const data = await res.json();
+
+        if (data.adminTakeover && !liveChat) setLiveChat(true);
+        if (!data.adminTakeover && liveChat) setLiveChat(false);
+
+        if (data.messages?.length > 0) {
+          setLiveChat(true);
+          const newMsgs: Message[] = data.messages.map(
+            (m: { message: string; created_at: string }) => ({
+              role: "assistant" as const,
+              content: m.message,
+            }),
+          );
+          setMessages((prev) => [...prev, ...newMsgs]);
+          const last = data.messages[data.messages.length - 1];
+          lastPollRef.current = last.created_at;
+        }
+      } catch {
+        // silent
+      }
+    }
+
+    pollTimerRef.current = setInterval(poll, 5000);
+    return () => {
+      if (pollTimerRef.current) clearInterval(pollTimerRef.current);
+    };
+  }, [open, isAdminPage, liveChat]);
 
   // Don't show on admin pages
   if (isAdminPage) return null;
@@ -120,6 +163,7 @@ export default function ChatWidget() {
       });
 
       const data = await res.json();
+      if (data.liveChat) setLiveChat(true);
       setMessages([
         ...newMessages,
         {
@@ -249,8 +293,8 @@ export default function ChatWidget() {
                 {t.headerTitle}
               </p>
               <p style={{ fontSize: "0.6875rem", color: "rgba(255,255,255,0.5)", margin: 0, display: "flex", alignItems: "center", gap: 5 }}>
-                <span style={{ width: 6, height: 6, borderRadius: "50%", backgroundColor: "#22c55e", display: "inline-block" }} />
-                {t.online}
+                <span style={{ width: 6, height: 6, borderRadius: "50%", backgroundColor: liveChat ? "#3b82f6" : "#22c55e", display: "inline-block" }} />
+                {liveChat ? (locale === "en" ? "Agent connected" : "Agent connect\u00e9") : t.online}
               </p>
             </div>
             <button
