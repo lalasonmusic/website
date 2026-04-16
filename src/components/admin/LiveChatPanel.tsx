@@ -22,6 +22,25 @@ export default function LiveChatPanel({ sessionId, visitorLabel, onClose }: Prop
   const [loading, setLoading] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const takeoverRef = useRef(false);
+
+  // Keep ref in sync so cleanup always has latest value
+  useEffect(() => {
+    takeoverRef.current = takeover;
+  }, [takeover]);
+
+  // Release takeover on unmount (navigate away, switch visitor, etc.)
+  useEffect(() => {
+    return () => {
+      if (takeoverRef.current) {
+        fetch("/api/admin/chat/takeover", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ sessionId, active: false }),
+        });
+      }
+    };
+  }, [sessionId]);
 
   const fetchHistory = useCallback(async () => {
     try {
