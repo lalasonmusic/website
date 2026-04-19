@@ -217,7 +217,7 @@ export default async function ClientsPage({ searchParams }: Props) {
               }}>
                 {/* Licence PDF */}
                 <a
-                  href={`/api/licence/download?locale=fr`}
+                  href={`/api/licence/download?locale=fr&userId=${client.userId}`}
                   target="_blank"
                   rel="noopener"
                   style={{
@@ -239,7 +239,7 @@ export default async function ClientsPage({ searchParams }: Props) {
                     return (
                       <a
                         key={inv.id}
-                        href={`/api/membre/invoices/${inv.id}/download?locale=fr`}
+                        href={`/api/membre/invoices/${inv.id}/download?locale=fr&userId=${client.userId}`}
                         target="_blank"
                         rel="noopener"
                         style={{

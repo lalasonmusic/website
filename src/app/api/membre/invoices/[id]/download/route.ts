@@ -1,5 +1,6 @@
 import { NextRequest } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { supabaseAdmin } from "@/lib/supabase/admin";
 import { db } from "@/db";
 import { profiles, subscriptions } from "@/db/schema";
 import { eq, and, desc } from "drizzle-orm";
@@ -36,14 +37,45 @@ export async function GET(request: NextRequest, context: RouteContext) {
 
   const supabase = await createClient();
   const {
-    data: { user },
+    data: { user: authUser },
   } = await supabase.auth.getUser();
 
-  if (!user) {
+  if (!authUser) {
     return new Response("Unauthorized", { status: 401 });
   }
 
   const locale = request.nextUrl.searchParams.get("locale") === "en" ? "en" : "fr";
+  const targetUserIdParam = request.nextUrl.searchParams.get("userId");
+
+  // If admin is downloading for a specific client, resolve the target user
+  let targetUserId = authUser.id;
+  let user: { id: string; email: string | null; user_metadata: Record<string, unknown> } = {
+    id: authUser.id,
+    email: authUser.email ?? null,
+    user_metadata: authUser.user_metadata ?? {},
+  };
+
+  if (targetUserIdParam && targetUserIdParam !== authUser.id) {
+    const [callerProfile] = await db
+      .select({ role: profiles.role })
+      .from(profiles)
+      .where(eq(profiles.id, authUser.id))
+      .limit(1);
+    if (callerProfile?.role !== "admin") {
+      return new Response("Forbidden", { status: 403 });
+    }
+
+    const { data: targetUser } = await supabaseAdmin.auth.admin.getUserById(targetUserIdParam);
+    if (!targetUser?.user) {
+      return new Response("Client not found", { status: 404 });
+    }
+    targetUserId = targetUserIdParam;
+    user = {
+      id: targetUser.user.id,
+      email: targetUser.user.email ?? null,
+      user_metadata: targetUser.user.user_metadata ?? {},
+    };
+  }
   const dateLocale = locale === "fr" ? "fr-FR" : "en-GB";
   const dateOpts: Intl.DateTimeFormatOptions = { day: "numeric", month: "long", year: "numeric" };
 
@@ -70,7 +102,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
         currentPeriodEnd: subscriptions.currentPeriodEnd,
       })
       .from(subscriptions)
-      .where(and(eq(subscriptions.userId, user.id), eq(subscriptions.status, "active")))
+      .where(and(eq(subscriptions.userId, targetUserId), eq(subscriptions.status, "active")))
       .orderBy(desc(subscriptions.createdAt))
       .limit(1);
 
@@ -85,7 +117,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
       const [profileForStripe] = await db
         .select({ stripeCustomerId: profiles.stripeCustomerId })
         .from(profiles)
-        .where(eq(profiles.id, user.id))
+        .where(eq(profiles.id, targetUserId))
         .limit(1);
 
       if (profileForStripe?.stripeCustomerId) {
@@ -126,7 +158,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
     const [profile] = await db
       .select({ stripeCustomerId: profiles.stripeCustomerId })
       .from(profiles)
-      .where(eq(profiles.id, user.id))
+      .where(eq(profiles.id, targetUserId))
       .limit(1);
 
     if (!profile?.stripeCustomerId) {
