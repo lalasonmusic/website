@@ -3,14 +3,7 @@ import { stripe, priceIdToPlanType, type PlanType } from "@/lib/stripe";
 import { db } from "@/db";
 import { subscriptions, profiles, webhookEvents } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
-import { sendAdminEmail } from "@/lib/services/emailService";
 import type Stripe from "stripe";
-
-const PLAN_LABELS: Record<PlanType, string> = {
-  creators_monthly: "Créateurs — Mensuel",
-  creators_annual: "Créateurs — Annuel",
-  boutique_annual: "Boutique — Annuel",
-};
 
 // Disable body parsing — Stripe needs the raw body for signature verification
 export const config = { api: { bodyParser: false } };
@@ -88,42 +81,6 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
     expand: ["items.data.price"],
   });
   await upsertSubscription(sub);
-
-  // Notify admin by email
-  try {
-    const planType = toValidPlanType(sub.metadata?.planType);
-    const planLabel = PLAN_LABELS[planType];
-    const customerEmail = session.customer_details?.email ?? session.customer_email ?? "—";
-    const customerName = session.customer_details?.name ?? "—";
-    const amount = session.amount_total ?? 0;
-    const currency = (session.currency ?? "eur").toUpperCase();
-    const formattedAmount = new Intl.NumberFormat("fr-FR", {
-      style: "currency",
-      currency,
-    }).format(amount / 100);
-
-    const html = `
-      <div style="font-family: Arial, sans-serif; max-width: 600px;">
-        <h2 style="color: #1b3a4b;">Nouvel abonnement Lalason</h2>
-        <table style="border-collapse: collapse; width: 100%; margin-top: 16px;">
-          <tr><td style="padding: 8px 0; color: #64748b;">Client</td><td style="padding: 8px 0; font-weight: 600;">${customerName}</td></tr>
-          <tr><td style="padding: 8px 0; color: #64748b;">Email</td><td style="padding: 8px 0; font-weight: 600;">${customerEmail}</td></tr>
-          <tr><td style="padding: 8px 0; color: #64748b;">Formule</td><td style="padding: 8px 0; font-weight: 600;">${planLabel}</td></tr>
-          <tr><td style="padding: 8px 0; color: #64748b;">Montant</td><td style="padding: 8px 0; font-weight: 600; color: #22c55e;">${formattedAmount}</td></tr>
-        </table>
-        <p style="margin-top: 24px;">
-          <a href="https://lalason.com/admin/clients" style="background: #f5a623; color: #1b3a4b; padding: 10px 20px; text-decoration: none; border-radius: 8px; font-weight: 600;">Voir dans le dashboard</a>
-        </p>
-      </div>
-    `;
-
-    await sendAdminEmail({
-      subject: `Nouvel abonnement — ${planLabel} — ${customerEmail}`,
-      html,
-    });
-  } catch (err) {
-    console.error("[Stripe webhook] Failed to send admin notification email:", err);
-  }
 }
 
 async function handleSubscriptionUpdated(sub: Stripe.Subscription) {
