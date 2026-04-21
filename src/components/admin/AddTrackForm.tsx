@@ -165,11 +165,11 @@ export default function AddTrackForm({ artists, categories }: Props) {
           </div>
           <div>
             <label style={{ display: "block", fontSize: "0.75rem", color: "var(--color-text-muted)", marginBottom: "0.25rem", fontWeight: 600 }}>
-              Fichier MP3
+              Fichier MP3 ou WAV
             </label>
             <input
               type="file"
-              accept="audio/mpeg,audio/mp3"
+              accept="audio/mpeg,audio/mp3,audio/wav,audio/x-wav,audio/wave,.mp3,.wav"
               onChange={(e) => setAudioFile(e.target.files?.[0] ?? null)}
               style={{ ...inputStyle, padding: "0.5rem" }}
             />

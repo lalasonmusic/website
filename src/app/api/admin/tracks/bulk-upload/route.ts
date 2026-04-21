@@ -20,15 +20,15 @@ const anthropic = new Anthropic();
 // Generous timeout — bulk processing can take a while
 export const maxDuration = 300; // seconds (5 min) — adjust per Vercel plan
 
-// Probe the duration of an MP3 buffer in seconds (rounded). Returns null on failure.
-async function probeDurationSeconds(mp3Buffer: Buffer, slug: string): Promise<number | null> {
+// Probe the duration of an audio buffer in seconds (rounded). Returns null on failure.
+async function probeDurationSeconds(buffer: Buffer, slug: string, ext: "mp3" | "wav"): Promise<number | null> {
   const tmpDir = join(tmpdir(), "lalason-probe");
   if (!existsSync(tmpDir)) mkdirSync(tmpDir, { recursive: true });
-  const tmpMp3 = join(tmpDir, `${slug}-${Date.now()}-probe.mp3`);
+  const tmpFile = join(tmpDir, `${slug}-${Date.now()}-probe.${ext}`);
   try {
-    writeFileSync(tmpMp3, mp3Buffer);
+    writeFileSync(tmpFile, buffer);
     const duration = await new Promise<number>((resolve, reject) => {
-      ffmpeg.ffprobe(tmpMp3, (err, data) => {
+      ffmpeg.ffprobe(tmpFile, (err, data) => {
         if (err) return reject(err);
         const d = data.format?.duration;
         if (typeof d !== "number") return reject(new Error("No duration in ffprobe output"));
@@ -40,7 +40,7 @@ async function probeDurationSeconds(mp3Buffer: Buffer, slug: string): Promise<nu
     console.error("[bulk-upload] probeDuration error:", err);
     return null;
   } finally {
-    try { unlinkSync(tmpMp3); } catch {}
+    try { unlinkSync(tmpFile); } catch {}
   }
 }
 
@@ -75,8 +75,40 @@ async function convertMp3ToWav(mp3Buffer: Buffer, slug: string): Promise<Buffer 
   }
 }
 
+async function convertWavToMp3(wavBuffer: Buffer, slug: string): Promise<Buffer | null> {
+  const tmpDir = join(tmpdir(), "lalason-bulk");
+  if (!existsSync(tmpDir)) mkdirSync(tmpDir, { recursive: true });
+
+  const tmpWav = join(tmpDir, `${slug}-${Date.now()}.wav`);
+  const tmpMp3 = join(tmpDir, `${slug}-${Date.now()}.mp3`);
+
+  try {
+    writeFileSync(tmpWav, wavBuffer);
+
+    await new Promise<void>((resolve, reject) => {
+      ffmpeg(tmpWav)
+        .toFormat("mp3")
+        .audioCodec("libmp3lame")
+        .audioBitrate("320k")
+        .audioFrequency(44100)
+        .audioChannels(2)
+        .on("end", () => resolve())
+        .on("error", (err: Error) => reject(err))
+        .save(tmpMp3);
+    });
+
+    return readFileSync(tmpMp3);
+  } catch (err) {
+    console.error("[bulk-upload] MP3 convert error:", err);
+    return null;
+  } finally {
+    try { unlinkSync(tmpWav); } catch {}
+    try { unlinkSync(tmpMp3); } catch {}
+  }
+}
+
 function parseFilename(filename: string): { artist: string; title: string } | null {
-  const clean = filename.replace(/\.mp3$/i, "").trim();
+  const clean = filename.replace(/\.(mp3|wav)$/i, "").trim();
   const sep = clean.indexOf(" - ");
   if (sep === -1) return null;
   return {
@@ -215,51 +247,76 @@ export async function POST(req: NextRequest) {
           }
 
           try {
-            // Download MP3 from audio-full (already uploaded by client)
-            const { data: mp3Blob, error: dlErr } = await supabaseAdmin.storage
+            // Detect source format from uploaded path (.mp3 or .wav)
+            const sourceExt: "mp3" | "wav" = item.path.toLowerCase().endsWith(".wav") ? "wav" : "mp3";
+            const mp3Path = `${item.slug}.mp3`;
+            const wavPath = `${item.slug}.wav`;
+
+            // Download the source file (whatever the admin uploaded)
+            const { data: sourceBlob, error: dlErr } = await supabaseAdmin.storage
               .from("audio-full")
               .download(item.path);
 
-            if (dlErr || !mp3Blob) {
-              results.push({ filename: item.filename, status: "error", error: `MP3 introuvable: ${dlErr?.message ?? "unknown"}` });
-              send({ type: "file-done", index: i, filename: item.filename, status: "error", error: "MP3 introuvable" });
+            if (dlErr || !sourceBlob) {
+              results.push({ filename: item.filename, status: "error", error: `Fichier introuvable: ${dlErr?.message ?? "unknown"}` });
+              send({ type: "file-done", index: i, filename: item.filename, status: "error", error: "Fichier introuvable" });
               continue;
             }
 
-            const buffer = Buffer.from(await mp3Blob.arrayBuffer());
+            const sourceBuffer = Buffer.from(await sourceBlob.arrayBuffer());
 
-            // Probe duration from the MP3 — failures are non-fatal, we just store null
-            const durationSeconds = await probeDurationSeconds(buffer, item.slug);
+            // Probe duration from the source — failures are non-fatal
+            const durationSeconds = await probeDurationSeconds(sourceBuffer, item.slug, sourceExt);
 
-            // Upload preview (same MP3 to preview bucket — true preview clip is a future improvement)
-            const { error: prevErr } = await supabaseAdmin.storage
-              .from("audio-previews")
-              .upload(item.path, buffer, { contentType: "audio/mpeg", upsert: true });
-
-            // Store the bare filename in DB — buildPreviewUrl() in trackService prepends the base URL.
-            const previewPathForDb = !prevErr ? item.path : null;
-
-            // Convert to WAV (best-effort)
-            try {
-              const wavBuffer = await convertMp3ToWav(buffer, item.slug);
-              if (wavBuffer) {
-                const wavFileName = `${item.slug}.wav`;
-                await supabaseAdmin.storage
-                  .from("audio-full")
-                  .upload(wavFileName, wavBuffer, { contentType: "audio/wav", upsert: true });
+            // Ensure both MP3 and WAV are stored in audio-full
+            let mp3Buffer: Buffer;
+            if (sourceExt === "mp3") {
+              mp3Buffer = sourceBuffer;
+              // Convert MP3 → WAV (best-effort) and upload WAV
+              try {
+                const wavBuffer = await convertMp3ToWav(mp3Buffer, item.slug);
+                if (wavBuffer) {
+                  await supabaseAdmin.storage
+                    .from("audio-full")
+                    .upload(wavPath, wavBuffer, { contentType: "audio/wav", upsert: true });
+                }
+              } catch (err) {
+                console.error("[bulk-upload] WAV upload error:", err);
               }
-            } catch (err) {
-              console.error("[bulk-upload] WAV upload error:", err);
+            } else {
+              // WAV source → convert to MP3 and upload MP3 as canonical
+              const converted = await convertWavToMp3(sourceBuffer, item.slug);
+              if (!converted) {
+                results.push({ filename: item.filename, status: "error", error: "Conversion WAV→MP3 échouée" });
+                send({ type: "file-done", index: i, filename: item.filename, status: "error", error: "Conversion WAV→MP3 échouée" });
+                continue;
+              }
+              mp3Buffer = converted;
+              const { error: mp3UploadErr } = await supabaseAdmin.storage
+                .from("audio-full")
+                .upload(mp3Path, mp3Buffer, { contentType: "audio/mpeg", upsert: true });
+              if (mp3UploadErr) {
+                results.push({ filename: item.filename, status: "error", error: `MP3 upload: ${mp3UploadErr.message}` });
+                send({ type: "file-done", index: i, filename: item.filename, status: "error", error: "MP3 upload failed" });
+                continue;
+              }
             }
 
-            // Insert track row
+            // Upload preview (MP3) to preview bucket — canonical MP3 filename
+            const { error: prevErr } = await supabaseAdmin.storage
+              .from("audio-previews")
+              .upload(mp3Path, mp3Buffer, { contentType: "audio/mpeg", upsert: true });
+
+            const previewPathForDb = !prevErr ? mp3Path : null;
+
+            // Insert track row — fileFullPath is always canonical MP3
             const [newTrack] = await db
               .insert(tracks)
               .values({
                 slug: item.slug,
                 title: parsed.title,
                 artistId,
-                fileFullPath: item.path,
+                fileFullPath: mp3Path,
                 filePreviewPath: previewPathForDb,
                 durationSeconds,
                 isPublished: true,

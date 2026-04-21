@@ -42,8 +42,8 @@ export default function BulkUploadForm() {
 
   function handleFiles(fileList: FileList | null) {
     if (!fileList) return;
-    const mp3s = Array.from(fileList).filter((f) => f.name.toLowerCase().endsWith(".mp3"));
-    setFiles(mp3s);
+    const audios = Array.from(fileList).filter((f) => /\.(mp3|wav)$/i.test(f.name));
+    setFiles(audios);
     setResponse(null);
   }
 
@@ -122,9 +122,10 @@ export default function BulkUploadForm() {
           continue;
         }
 
+        const isWav = u.path.toLowerCase().endsWith(".wav");
         const { error: upErr } = await supabase.storage
           .from("audio-full")
-          .uploadToSignedUrl(u.path, u.token, file, { contentType: "audio/mpeg" });
+          .uploadToSignedUrl(u.path, u.token, file, { contentType: isWav ? "audio/wav" : "audio/mpeg" });
 
         if (upErr) {
           uploadFailures.push({ filename: u.filename, status: "error", error: `Upload Supabase: ${upErr.message}` });
@@ -264,7 +265,7 @@ export default function BulkUploadForm() {
         <div>
           <h2 style={{ fontSize: "1rem", fontWeight: 700, margin: "0 0 0.25rem" }}>Import en masse</h2>
           <p style={{ fontSize: "0.75rem", color: "var(--color-text-muted)", margin: 0 }}>
-            {"Nommez vos fichiers : "}<strong>Artiste - Titre.mp3</strong>{" — l'IA taggue automatiquement"}
+            {"Nommez vos fichiers : "}<strong>Artiste - Titre.mp3</strong>{" ou "}<strong>.wav</strong>{" — l'IA taggue automatiquement"}
           </p>
         </div>
         <button
@@ -294,7 +295,7 @@ export default function BulkUploadForm() {
           <input
             ref={fileInputRef}
             type="file"
-            accept="audio/mpeg,audio/mp3"
+            accept="audio/mpeg,audio/mp3,audio/wav,audio/x-wav,audio/wave,.mp3,.wav"
             multiple
             onChange={(e) => handleFiles(e.target.files)}
             style={{ display: "none" }}
@@ -303,7 +304,7 @@ export default function BulkUploadForm() {
             <>
               <p style={{ fontSize: "1.5rem", margin: "0 0 0.5rem" }}>📁</p>
               <p style={{ fontSize: "0.875rem", color: "var(--color-text-muted)", margin: 0 }}>
-                Glissez vos fichiers MP3 ici ou cliquez pour sélectionner
+                Glissez vos fichiers MP3 ou WAV ici ou cliquez pour sélectionner
               </p>
             </>
           ) : (

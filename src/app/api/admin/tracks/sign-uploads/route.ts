@@ -5,13 +5,19 @@ import { db } from "@/db";
 import { profiles } from "@/db/schema";
 import { eq } from "drizzle-orm";
 
-function parseFilename(filename: string): { artist: string; title: string } | null {
-  const clean = filename.replace(/\.mp3$/i, "").trim();
+const ACCEPTED_EXT = /\.(mp3|wav)$/i;
+
+function parseFilename(filename: string): { artist: string; title: string; ext: "mp3" | "wav" } | null {
+  const match = filename.match(/\.(mp3|wav)$/i);
+  if (!match) return null;
+  const ext = match[1].toLowerCase() as "mp3" | "wav";
+  const clean = filename.replace(ACCEPTED_EXT, "").trim();
   const sep = clean.indexOf(" - ");
   if (sep === -1) return null;
   return {
     artist: clean.substring(0, sep).trim(),
     title: clean.substring(sep + 3).trim(),
+    ext,
   };
 }
 
@@ -29,6 +35,7 @@ type SignedUpload = {
   slug?: string;
   path?: string;
   token?: string;
+  ext?: "mp3" | "wav";
   error?: string;
 };
 
@@ -55,16 +62,16 @@ export async function POST(req: NextRequest) {
   for (const filename of filenames) {
     const parsed = parseFilename(filename);
     if (!parsed) {
-      uploads.push({ filename, error: "Format invalide. Utilisez: Artiste - Titre.mp3" });
+      uploads.push({ filename, error: "Format invalide. Utilisez: Artiste - Titre.mp3 ou .wav" });
       continue;
     }
 
     const slug = generateSlug(parsed.artist, parsed.title);
-    const path = `${slug}.mp3`;
+    const path = `${slug}.${parsed.ext}`;
 
-    // Remove existing file first so signed URL upload doesn't 409 (createSignedUploadUrl
-    // doesn't support upsert; we emulate it by deleting any prior copy).
-    await supabaseAdmin.storage.from("audio-full").remove([path]);
+    // Remove any existing files (both mp3 and wav) to avoid stale versions and 409 conflicts.
+    // createSignedUploadUrl doesn't support upsert, so we clear both companions.
+    await supabaseAdmin.storage.from("audio-full").remove([`${slug}.mp3`, `${slug}.wav`]);
 
     const { data, error } = await supabaseAdmin.storage
       .from("audio-full")
@@ -75,7 +82,7 @@ export async function POST(req: NextRequest) {
       continue;
     }
 
-    uploads.push({ filename, slug, path: data.path, token: data.token });
+    uploads.push({ filename, slug, path: data.path, token: data.token, ext: parsed.ext });
   }
 
   return NextResponse.json({ uploads });

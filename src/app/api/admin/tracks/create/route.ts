@@ -4,6 +4,47 @@ import { supabaseAdmin } from "@/lib/supabase/admin";
 import { db } from "@/db";
 import { profiles, tracks, artists, trackCategories } from "@/db/schema";
 import { eq } from "drizzle-orm";
+import ffmpegPath from "ffmpeg-static";
+import ffmpeg from "fluent-ffmpeg";
+import { writeFileSync, readFileSync, unlinkSync, mkdirSync, existsSync } from "fs";
+import { join } from "path";
+import { tmpdir } from "os";
+
+ffmpeg.setFfmpegPath(ffmpegPath as string);
+
+async function convertBuffer(
+  inputBuffer: Buffer,
+  slug: string,
+  from: "mp3" | "wav",
+  to: "mp3" | "wav",
+): Promise<Buffer | null> {
+  const tmpDir = join(tmpdir(), "lalason-create");
+  if (!existsSync(tmpDir)) mkdirSync(tmpDir, { recursive: true });
+  const tmpIn = join(tmpDir, `${slug}-${Date.now()}.${from}`);
+  const tmpOut = join(tmpDir, `${slug}-${Date.now()}.${to}`);
+  try {
+    writeFileSync(tmpIn, inputBuffer);
+    await new Promise<void>((resolve, reject) => {
+      const cmd = ffmpeg(tmpIn).toFormat(to).audioFrequency(44100).audioChannels(2);
+      if (to === "wav") {
+        cmd.audioCodec("pcm_s16le");
+      } else {
+        cmd.audioCodec("libmp3lame").audioBitrate("320k");
+      }
+      cmd
+        .on("end", () => resolve())
+        .on("error", (err: Error) => reject(err))
+        .save(tmpOut);
+    });
+    return readFileSync(tmpOut);
+  } catch (err) {
+    console.error(`[create] convert ${from}->${to} error:`, err);
+    return null;
+  } finally {
+    try { unlinkSync(tmpIn); } catch {}
+    try { unlinkSync(tmpOut); } catch {}
+  }
+}
 
 export async function POST(req: NextRequest) {
   // Auth check
@@ -41,28 +82,54 @@ export async function POST(req: NextRequest) {
   let filePreviewPath: string | null = null;
   const durationSeconds: number | null = null;
 
-  // Upload audio file
+  // Upload audio file — accept MP3 or WAV, always store both
   if (audioFile) {
-    const fileName = `${slug}.mp3`;
+    const inputName = audioFile.name.toLowerCase();
+    const sourceExt: "mp3" | "wav" = inputName.endsWith(".wav") ? "wav" : "mp3";
 
-    // Upload to audio-full (private bucket)
-    const fullBuffer = Buffer.from(await audioFile.arrayBuffer());
-    const { error: fullErr } = await supabaseAdmin.storage
-      .from("audio-full")
-      .upload(fileName, fullBuffer, { contentType: "audio/mpeg", upsert: true });
+    const mp3FileName = `${slug}.mp3`;
+    const wavFileName = `${slug}.wav`;
 
-    if (fullErr) {
-      return NextResponse.json({ error: `Upload failed: ${fullErr.message}` }, { status: 500 });
+    const sourceBuffer = Buffer.from(await audioFile.arrayBuffer());
+
+    let mp3Buffer: Buffer;
+    let wavBuffer: Buffer | null;
+
+    if (sourceExt === "mp3") {
+      mp3Buffer = sourceBuffer;
+      wavBuffer = await convertBuffer(mp3Buffer, slug, "mp3", "wav");
+    } else {
+      const converted = await convertBuffer(sourceBuffer, slug, "wav", "mp3");
+      if (!converted) {
+        return NextResponse.json({ error: "Conversion WAV→MP3 échouée" }, { status: 500 });
+      }
+      mp3Buffer = converted;
+      wavBuffer = sourceBuffer;
     }
-    fileFullPath = fileName;
 
-    // Also upload to audio-previews (public bucket) — same file for now
+    // Upload MP3 (canonical)
+    const { error: mp3Err } = await supabaseAdmin.storage
+      .from("audio-full")
+      .upload(mp3FileName, mp3Buffer, { contentType: "audio/mpeg", upsert: true });
+    if (mp3Err) {
+      return NextResponse.json({ error: `Upload MP3 failed: ${mp3Err.message}` }, { status: 500 });
+    }
+    fileFullPath = mp3FileName;
+
+    // Upload WAV (best-effort)
+    if (wavBuffer) {
+      await supabaseAdmin.storage
+        .from("audio-full")
+        .upload(wavFileName, wavBuffer, { contentType: "audio/wav", upsert: true });
+    }
+
+    // Upload preview (public bucket) — MP3
     const { error: prevErr } = await supabaseAdmin.storage
       .from("audio-previews")
-      .upload(fileName, fullBuffer, { contentType: "audio/mpeg", upsert: true });
+      .upload(mp3FileName, mp3Buffer, { contentType: "audio/mpeg", upsert: true });
 
     if (!prevErr) {
-      const { data: pubUrl } = supabaseAdmin.storage.from("audio-previews").getPublicUrl(fileName);
+      const { data: pubUrl } = supabaseAdmin.storage.from("audio-previews").getPublicUrl(mp3FileName);
       filePreviewPath = pubUrl.publicUrl;
     }
   }
