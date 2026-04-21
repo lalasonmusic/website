@@ -5,15 +5,32 @@ import { db } from "@/db";
 import { profiles, tracks, artists, trackCategories, categories } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import Anthropic from "@anthropic-ai/sdk";
-import ffmpegPath from "ffmpeg-static";
-import ffprobeInstaller from "@ffprobe-installer/ffprobe";
 import ffmpeg from "fluent-ffmpeg";
 import { writeFileSync, readFileSync, unlinkSync, mkdirSync, existsSync } from "fs";
 import { join } from "path";
 import { tmpdir } from "os";
 
-ffmpeg.setFfmpegPath(ffmpegPath as string);
-ffmpeg.setFfprobePath(ffprobeInstaller.path);
+// Lazy init: @ffprobe-installer throws synchronously at import time if its
+// platform-specific binary isn't present in the lambda. Defer the import so
+// a missing binary surfaces as a JSON error instead of a platform-level 500.
+let ffmpegReady: { ok: true } | { ok: false; error: string } | null = null;
+async function ensureFfmpeg(): Promise<{ ok: true } | { ok: false; error: string }> {
+  if (ffmpegReady) return ffmpegReady;
+  try {
+    const ffmpegMod = await import("ffmpeg-static");
+    const ffprobeMod = await import("@ffprobe-installer/ffprobe");
+    const ffmpegPath = (ffmpegMod as unknown as { default?: string }).default ?? (ffmpegMod as unknown as string);
+    const ffprobePath = ffprobeMod.path ?? (ffprobeMod as unknown as { default?: { path: string } }).default?.path;
+    if (!ffmpegPath) throw new Error("ffmpeg-static returned no path");
+    if (!ffprobePath) throw new Error("ffprobe-installer returned no path");
+    ffmpeg.setFfmpegPath(ffmpegPath);
+    ffmpeg.setFfprobePath(ffprobePath);
+    ffmpegReady = { ok: true };
+  } catch (err) {
+    ffmpegReady = { ok: false, error: err instanceof Error ? err.message : String(err) };
+  }
+  return ffmpegReady;
+}
 
 const anthropic = new Anthropic();
 
@@ -170,6 +187,15 @@ type FinalizeItem = { filename: string; slug: string; path: string };
 export async function POST(req: NextRequest) {
   let items: FinalizeItem[];
   try {
+    const ff = await ensureFfmpeg();
+    if (!ff.ok) {
+      console.error("[bulk-upload] ffmpeg init failed:", ff.error);
+      return new Response(
+        JSON.stringify({ error: "ffmpeg unavailable", detail: ff.error }),
+        { status: 500, headers: { "Content-Type": "application/json" } },
+      );
+    }
+
     // Auth check
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
@@ -187,7 +213,7 @@ export async function POST(req: NextRequest) {
     console.error("[bulk-upload] init error:", err);
     return new Response(
       JSON.stringify({ error: "Init failed", detail: err instanceof Error ? err.message : String(err) }),
-      { status: 500 },
+      { status: 500, headers: { "Content-Type": "application/json" } },
     );
   }
 

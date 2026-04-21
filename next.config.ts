@@ -11,6 +11,16 @@ const nextConfig: NextConfig = {
     "ffmpeg-static",
     "@ffprobe-installer/ffprobe",
   ],
+  // Force Vercel's file tracer to include native binaries that are loaded via
+  // dynamic `require.resolve` (platform-specific). Without this, @ffprobe-installer
+  // throws at module import on Vercel because the binary file isn't in the lambda.
+  outputFileTracingIncludes: {
+    "/api/admin/tracks/bulk-upload": [
+      "./node_modules/@ffprobe-installer/**/*",
+      "./node_modules/ffmpeg-static/ffmpeg",
+      "./node_modules/ffmpeg-static/ffmpeg.exe",
+    ],
+  },
   redirects: async () => [
     // ── Blog : ancien préfixe Wix → nouveau préfixe ──
     {

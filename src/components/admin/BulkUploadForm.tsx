@@ -158,10 +158,14 @@ export default function BulkUploadForm() {
 
       if (!finalRes.ok || !finalRes.body) {
         let detail = "";
+        const raw = await finalRes.text().catch(() => "");
         try {
-          const errJson = await finalRes.json();
+          const errJson = JSON.parse(raw);
           detail = errJson.detail || errJson.error || "";
-        } catch {}
+        } catch {
+          // Not JSON — keep a snippet of the raw response so the real error is visible
+          detail = raw ? raw.replace(/<[^>]+>/g, "").trim().slice(0, 300) : "";
+        }
         throw new Error(`Finalize failed: HTTP ${finalRes.status}${detail ? ` — ${detail}` : ""}`);
       }
 
