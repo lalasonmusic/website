@@ -30,7 +30,7 @@ export const stripeService = {
     const params: Stripe.Checkout.SessionCreateParams = {
       mode: "subscription",
       line_items: [{ price: priceId, quantity: 1 }],
-      payment_method_types: ["card"],
+      payment_method_types: ["card", "paypal"],
       success_url: `${BASE_URL}/${locale}/abonnement/succes?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${BASE_URL}/${locale}/abonnement/annule`,
       customer_email: stripeCustomerId ? undefined : userEmail,
