@@ -168,17 +168,27 @@ Only use slugs from the list above. Pick 3-5 categories per track.`,
 type FinalizeItem = { filename: string; slug: string; path: string };
 
 export async function POST(req: NextRequest) {
-  // Auth check
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
+  let items: FinalizeItem[];
+  try {
+    // Auth check
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
 
-  const [profile] = await db.select({ role: profiles.role }).from(profiles).where(eq(profiles.id, user.id)).limit(1);
-  if (profile?.role !== "admin") return new Response(JSON.stringify({ error: "Forbidden" }), { status: 403 });
+    const [profile] = await db.select({ role: profiles.role }).from(profiles).where(eq(profiles.id, user.id)).limit(1);
+    if (profile?.role !== "admin") return new Response(JSON.stringify({ error: "Forbidden" }), { status: 403 });
 
-  const { items } = (await req.json()) as { items: FinalizeItem[] };
-  if (!Array.isArray(items) || items.length === 0) {
-    return new Response(JSON.stringify({ error: "No items" }), { status: 400 });
+    const body = (await req.json()) as { items: FinalizeItem[] };
+    items = body.items;
+    if (!Array.isArray(items) || items.length === 0) {
+      return new Response(JSON.stringify({ error: "No items" }), { status: 400 });
+    }
+  } catch (err) {
+    console.error("[bulk-upload] init error:", err);
+    return new Response(
+      JSON.stringify({ error: "Init failed", detail: err instanceof Error ? err.message : String(err) }),
+      { status: 500 },
+    );
   }
 
   const encoder = new TextEncoder();

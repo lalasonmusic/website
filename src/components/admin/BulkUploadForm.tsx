@@ -157,7 +157,12 @@ export default function BulkUploadForm() {
       });
 
       if (!finalRes.ok || !finalRes.body) {
-        throw new Error(`Finalize failed: HTTP ${finalRes.status}`);
+        let detail = "";
+        try {
+          const errJson = await finalRes.json();
+          detail = errJson.detail || errJson.error || "";
+        } catch {}
+        throw new Error(`Finalize failed: HTTP ${finalRes.status}${detail ? ` — ${detail}` : ""}`);
       }
 
       const reader = finalRes.body.getReader();

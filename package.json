@@ -51,5 +51,8 @@
     "playwright": "^1.58.2",
     "tailwindcss": "^4",
     "typescript": "^5"
+  },
+  "optionalDependencies": {
+    "@ffprobe-installer/linux-x64": "^5.2.0"
   }
 }
