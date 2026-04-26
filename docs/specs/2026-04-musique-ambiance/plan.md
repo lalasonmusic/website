@@ -658,33 +658,33 @@ WHERE is_demo = true;
 **Objectif** : Ajouter les flags pour gérer la limite preview.
 
 **Tasks** :
-- [ ] 6.1.1 Étendre l'interface `PlayerState` avec : `previewLimitSec: number | null`, `isPreviewEnded: boolean`, `hasBoutiqueAccess: boolean`, `activePlaylistAudience: "creator" | "boutique" | null`
-- [ ] 6.1.2 Étendre `PlayerActions` avec setters correspondants
-- [ ] 6.1.3 Initialiser les valeurs par défaut (null, false, false, null)
-- [ ] 6.1.4 Étendre le type `PlayerTrack` (dans `src/types/track.ts`) avec `isDemo?: boolean`
-- [ ] 6.1.5 Modifier `playTrack(track, queue?, index?)` pour reset `isPreviewEnded` à false à chaque nouveau play
-- [ ] 6.1.6 Au stop / pause, ne pas reset `isPreviewEnded` (le toast doit rester visible)
+- [x] 6.1.1 Interface `PlayerState` étendue : `previewLimitSec`, `isPreviewEnded`, `hasBoutiqueAccess`, `activePlaylistAudience`
+- [x] 6.1.2 `PlayerActions` étendu : `setPreviewLimitSec`, `setIsPreviewEnded`, `setHasBoutiqueAccess`, `setActivePlaylistAudience`
+- [x] 6.1.3 Valeurs par défaut initialisées (null, false, false, null)
+- [x] 6.1.4 `PlayerTrack` étendu avec `isDemo?: boolean` (optional, default implicite false)
+- [x] 6.1.5 `playTrack` reset `isPreviewEnded: false` à chaque nouveau play
+- [x] 6.1.6 `togglePlay`/`stop`/`seek` ne touchent pas `isPreviewEnded` (toast persistant après pause). Pas de reset systématique dans `next()`/`prev()` car en mode boutique l'auto-chaînage est désactivé (Story 6.2.6)
 
 #### Story 6.2 : Hook timer dans le lecteur
 **Objectif** : Couper l'audio à 30s si conditions remplies.
 
 **Tasks** :
-- [ ] 6.2.1 Inspecter `src/components/player/PlayerDesktop.tsx` et `PlayerMobileMini.tsx` pour identifier où l'élément `<audio>` est créé / référencé
-- [ ] 6.2.2 Ajouter un `useEffect` qui attache un listener `timeupdate` sur l'élément audio
-- [ ] 6.2.3 Logique : `if (previewLimitSec && !hasBoutiqueAccess && !currentTrack.isDemo && audio.currentTime >= previewLimitSec) { audio.pause(); setIsPreviewEnded(true); }`
-- [ ] 6.2.4 Cleanup : retirer le listener au unmount
-- [ ] 6.2.5 Si le code audio est partagé (hook ou wrapper component), faire la modif au seul endroit centralisé
-- [ ] 6.2.6 Désactiver l'auto-chaînage : à la fin d'un morceau (event `ended`), ne pas appeler `next()` automatiquement quand `activePlaylistAudience === "boutique"`
+- [x] 6.2.1 L'élément `<audio>` HTML est centralisé dans `PlayerProvider.tsx` (créé via `new Audio()` dans `useEffect` une seule fois, partagé entre PlayerDesktop et PlayerMobileMini)
+- [x] 6.2.2 Le listener `timeupdate` existait déjà (pour `setProgress`) — j'y ai ajouté la logique de coupure
+- [x] 6.2.3 Logique de coupure ajoutée avec lecture du store via `usePlayerStore.getState()` (évite re-attachement du listener à chaque change)
+- [x] 6.2.4 Cleanup déjà géré (le `removeEventListener` existant nettoie aussi notre logique additionnée)
+- [x] 6.2.5 Modif faite au SEUL endroit centralisé (PlayerProvider) — pas de duplication entre PlayerDesktop/PlayerMobileMini
+- [x] 6.2.6 Auto-chaînage désactivé en mode boutique : event `ended` check `activePlaylistAudience === "boutique"` → `setIsPlaying(false)` au lieu d'appeler `next()`
 
 #### Story 6.3 : `PlayerContextInit`
 **Objectif** : Composant client qui pose les flags du store au mount des pages boutique.
 
 **Tasks** :
-- [ ] 6.3.1 Créer `src/components/boutique/PlayerContextInit.tsx`
-- [ ] 6.3.2 Recevoir `hasBoutiqueAccess` en prop
-- [ ] 6.3.3 Au mount : `setHasBoutiqueAccess(hasBoutiqueAccess)`, `setPreviewLimitSec(hasBoutiqueAccess ? null : 30)`, `setActivePlaylistAudience("boutique")`
-- [ ] 6.3.4 Au unmount : reset (`setPreviewLimitSec(null)`, `setActivePlaylistAudience(null)`, `setIsPreviewEnded(false)`)
-- [ ] 6.3.5 Render `null` (composant headless)
+- [x] 6.3.1 `src/components/boutique/PlayerContextInit.tsx` créé
+- [x] 6.3.2 Reçoit `hasBoutiqueAccess: boolean` en prop (calculé serveur, jamais fetched client)
+- [x] 6.3.3 Au mount : pose les 3 flags du store
+- [x] 6.3.4 Au unmount : reset (sauf `hasBoutiqueAccess` qui reflète le user actuel — pas un flag de contexte)
+- [x] 6.3.5 Render `null` (composant headless)
 
 **Estimation Epic 6** : L
 **Dépendances** : Story 5.4 (toast)
@@ -818,7 +818,7 @@ WHERE is_demo = true;
 | 3. i18n + routing | 13 / 13 ✓ |
 | 4. Pages publiques | 0 / 24 |
 | 5. Composants UI boutique | 0 / 17 |
-| 6. Lecteur audio + 30s | 0 / 17 |
+| 6. Lecteur audio + 30s | 17 / 17 ✓ |
 | 7. Popup | 0 / 12 |
 | 8. Admin extensions | 0 / 9 |
 | 9. Navigation menu | 0 / 5 |
