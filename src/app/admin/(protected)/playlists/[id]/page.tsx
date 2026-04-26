@@ -19,6 +19,7 @@ export default async function EditPlaylistPage({ params }: Props) {
       id: tracks.id,
       title: tracks.title,
       artistName: artists.name,
+      isDemo: playlistTracks.isDemo,
     })
     .from(playlistTracks)
     .innerJoin(tracks, eq(playlistTracks.trackId, tracks.id))

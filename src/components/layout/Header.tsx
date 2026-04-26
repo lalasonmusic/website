@@ -13,8 +13,11 @@ export default async function Header({ locale }: Props) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
+  const ambientPath = locale === "en" ? "/ambient-music" : "/musique-ambiance";
+
   const navLinks = [
     { href: `/${locale}/catalogue`, label: t("catalogue") },
+    { href: `/${locale}${ambientPath}`, label: t("ambient") },
     { href: `/${locale}/blog`, label: t("blog") },
     { href: `/${locale}/nos-artistes`, label: t("artists") },
     { href: `/${locale}/abonnements`, label: t("pricing") },

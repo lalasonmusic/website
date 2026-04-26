@@ -24,6 +24,13 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   for (const key of ["slug", "nameFr", "nameEn", "descriptionFr", "descriptionEn", "gradient", "emoji", "isPublished", "displayOrder"]) {
     if (body[key] !== undefined) updateData[key] = body[key];
   }
+  // audience: validate against the enum to reject malformed payloads
+  if (body.audience !== undefined) {
+    if (body.audience !== "creator" && body.audience !== "boutique") {
+      return NextResponse.json({ error: "Invalid audience value" }, { status: 400 });
+    }
+    updateData.audience = body.audience;
+  }
 
   await db.update(playlists).set(updateData).where(eq(playlists.id, id));
   return NextResponse.json({ success: true });

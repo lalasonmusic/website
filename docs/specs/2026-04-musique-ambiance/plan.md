@@ -564,15 +564,15 @@ WHERE is_demo = true;
 **Objectif** : Page SSG listant les 7 playlists boutique avec intro SEO.
 
 **Tasks** :
-- [ ] 4.1.1 Créer `src/app/[locale]/musique-ambiance/page.tsx` (server component)
-- [ ] 4.1.2 Définir `export const revalidate = 3600`
-- [ ] 4.1.3 Implémenter `generateMetadata` : title, description, canonical (depuis traductions)
-- [ ] 4.1.4 Query via `getBoutiquePlaylists()` + `getUserAccess()`
-- [ ] 4.1.5 Render header H1, paragraphe intro SEO (50-80 mots, mot-clé "musique d'ambiance professionnelle libre de droits")
-- [ ] 4.1.6 Render grid responsive (3 colonnes desktop, 2 tablette, 1 mobile) de `<BoutiquePlaylistCard>`
-- [ ] 4.1.7 Render bloc CTA "Voir l'abonnement Boutique" pointant vers `/[locale]/abonnements#boutique`
-- [ ] 4.1.8 Render `<BoutiqueSubscriptionPopup hasBoutiqueAccess={...} />` (conditionnel : pas affiché si déjà abonné boutique)
-- [ ] 4.1.9 Inclure schema.org JSON-LD `CollectionPage` listant les 7 playlists
+- [x] 4.1.1 `src/app/[locale]/musique-ambiance/page.tsx` créé (server component async)
+- [x] 4.1.2 `export const revalidate = 3600` (ISR 1h, contenu stable)
+- [x] 4.1.3 `generateMetadata` avec title, description (depuis i18n), canonical OVERRIDE manuel pour gérer les slugs FR≠EN (`fr/musique-ambiance` ↔ `en/ambient-music`) + `alternates.languages` complet
+- [x] 4.1.4 Query parallèle `getBoutiquePlaylists()` + `createClient()` puis `getUserAccess(user.id)`
+- [x] 4.1.5 H1 unique avec `clamp(1.75rem, 4vw, 2.5rem)` responsive + paragraphe intro (50-80 mots SEO)
+- [x] 4.1.6 Grid responsive `repeat(auto-fill, minmax(280px, 1fr))` (1-4 colonnes selon largeur)
+- [x] 4.1.7 CTA "Voir l'abonnement Boutique" via `<Link>` typed next-intl vers `/abonnements`
+- [x] 4.1.8 `<BoutiqueSubscriptionPopup>` rendu (filtre interne sur `hasBoutiqueAccess`)
+- [x] 4.1.9 `<script type="application/ld+json">` avec schema.org `CollectionPage` listant les 7 playlists comme `MusicPlaylist` `hasPart`
 
 **Estimation** : M
 **Dépendances** : 2.1, 2.2, 3.3
@@ -581,21 +581,21 @@ WHERE is_demo = true;
 **Objectif** : Page SSG par playlist avec lecteur intégré et CTAs.
 
 **Tasks** :
-- [ ] 4.2.1 Créer `src/app/[locale]/musique-ambiance/[slug]/page.tsx`
-- [ ] 4.2.2 Définir `export const dynamicParams = false` + `revalidate = 3600`
-- [ ] 4.2.3 Implémenter `generateStaticParams` retournant les 7 slugs locaux
-- [ ] 4.2.4 Implémenter `generateMetadata` : title (`{playlistName} | Musique d'ambiance | Lalason`), description spécifique vertical, canonical
-- [ ] 4.2.5 Résoudre `params.slug` (slug local) → slug DB via `resolveSlugToDb`
-- [ ] 4.2.6 Query `getBoutiquePlaylistBySlug(dbSlug)` + `getUserAccess()`. 404 si playlist non trouvée ou non publiée
-- [ ] 4.2.7 Render header avec gradient, emoji, H1, description longue
-- [ ] 4.2.8 Render CTA primaire en haut "S'abonner à la formule Boutique"
-- [ ] 4.2.9 Render `<BoutiqueTrackList tracks={playlist.tracks} />` (avec badge demo)
-- [ ] 4.2.10 Si `playlist.tracks.length === 0` → render `<EmptyPlaylistState />` au lieu de la liste
-- [ ] 4.2.11 Render CTA secondaire en bas "S'abonner à la formule Boutique"
-- [ ] 4.2.12 Render bloc "Autres playlists boutique" (3 cartes max, exclure la playlist courante)
-- [ ] 4.2.13 Render `<PlayerContextInit hasBoutiqueAccess={...} />`
-- [ ] 4.2.14 Render `<BoutiqueSubscriptionPopup hasBoutiqueAccess={...} />`
-- [ ] 4.2.15 Inclure schema.org JSON-LD `MusicPlaylist` (avec list de `MusicRecording`)
+- [x] 4.2.1 `src/app/[locale]/musique-ambiance/[slug]/page.tsx` créé
+- [x] 4.2.2 `dynamicParams = false` + `revalidate = 3600` (404 sur slug inconnu, 1h cache)
+- [x] 4.2.3 `generateStaticParams` retourne les 7 slugs depuis `getAllSlugsForLocale(locale)` (exécuté au build par locale)
+- [x] 4.2.4 `generateMetadata` per-playlist : title=name, description, canonical avec `alternates.languages` correct pour FR/EN
+- [x] 4.2.5 `resolveSlugToDb(slug, locale)` pour résoudre slug local → slug DB canonique FR
+- [x] 4.2.6 Query parallèle `getBoutiquePlaylistBySlug(dbSlug)` + `getBoutiquePlaylists()` (pour related) + access. `notFound()` si null
+- [x] 4.2.7 Hero avec `background: gradient`, emoji 3.5rem, H1 clamp responsive, description longue blanche
+- [x] 4.2.8 CTA primaire dans le hero (bouton blanc sur gradient pour contraste)
+- [x] 4.2.9 `<BoutiqueTrackList tracks={...} playlistName playlistEmoji />` (passe le contexte playlist au store via setActivePlaylist au play)
+- [x] 4.2.10 Conditionnel `tracks.length === 0` → `<EmptyPlaylistState />` à la place de la liste
+- [x] 4.2.11 CTA secondaire en bas avec separator border-top
+- [x] 4.2.12 Bloc "Autres playlists boutique" : `allPlaylists.filter(...).slice(0,3)` exclut la courante, grid responsive
+- [x] 4.2.13 `<PlayerContextInit hasBoutiqueAccess={...} />` posé en haut (mount/unmount lifecycle)
+- [x] 4.2.14 `<BoutiqueSubscriptionPopup hasBoutiqueAccess locale />` rendu en fin de page
+- [x] 4.2.15 schema.org `MusicPlaylist` JSON-LD avec `track[]` `MusicRecording` + `byArtist` + `duration` ISO 8601
 
 **Estimation** : L
 **Dépendances** : 2.1, 2.2, 3.2, 3.3, 5.x (composants UI), 6.x (player), 7.x (popup)
@@ -608,44 +608,44 @@ WHERE is_demo = true;
 **Objectif** : Carte affichée sur le hub.
 
 **Tasks** :
-- [ ] 5.1.1 Créer `src/components/boutique/BoutiquePlaylistCard.tsx` (client si interactivité, sinon server)
-- [ ] 5.1.2 Render gradient (background) + emoji (en grand) + nameFr/nameEn (h2 ou h3) + description courte + count "X morceaux"
-- [ ] 5.1.3 Wrap dans `<Link href={`/musique-ambiance/${slug}`}>` (utiliser le `Link` de next-intl)
-- [ ] 5.1.4 Hover : leger scale + shadow (cohérent design existant catalogue)
-- [ ] 5.1.5 Mobile-first : full-width sur < 640px
+- [x] 5.1.1 `src/components/boutique/BoutiquePlaylistCard.tsx` créé (server component — pas d'interactivité)
+- [x] 5.1.2 Render gradient + emoji + name + description (3 lignes max via `-webkit-line-clamp`) + count
+- [x] 5.1.3 Wrap dans `<Link href={{ pathname: "/musique-ambiance/[slug]", params: { slug: localeSlug } }}>` du next-intl typed router (avec mapping FR↔EN via `resolveDbToSlug`)
+- [x] 5.1.4 Hover : transition CSS sur transform + box-shadow (gérera la classe `.boutique-playlist-card`)
+- [x] 5.1.5 Mobile-first : `minHeight: 200px` + grid responsive sera géré par le parent (page hub)
 
 #### Story 5.2 : `BoutiqueTrackList`
 **Objectif** : Liste de morceaux d'une playlist avec badge demo et bouton play.
 
 **Tasks** :
-- [ ] 5.2.1 Créer `src/components/boutique/BoutiqueTrackList.tsx` (client component, doit interagir avec le store)
-- [ ] 5.2.2 Render chaque track : numéro, titre, artiste, durée formatée (mm:ss), bouton play, badge "Démo" si `isDemo`
-- [ ] 5.2.3 Au clic play, appeler `usePlayerStore().playTrack(track, allTracks, index)` avec `track.isDemo` propagé
-- [ ] 5.2.4 Indicateur visuel sur la track en cours (si `currentTrack.id === track.id` → highlight)
-- [ ] 5.2.5 `aria-label` explicite sur le bouton play : `Écouter ${title} de ${artist}` (i18n)
-- [ ] 5.2.6 Navigation clavier : tab + Enter pour jouer
+- [x] 5.2.1 `src/components/boutique/BoutiqueTrackList.tsx` créé (client component, lit + écrit le store)
+- [x] 5.2.2 Render : numéro, titre, artiste, durée formatée (mm:ss avec `formatDuration`), bouton play, badge "Démo" si `isDemo`
+- [x] 5.2.3 Au clic, conversion `BoutiqueTrack → PlayerTrack` (propage `isDemo`) puis `playTrack(track, allTracks, index)` + `setActivePlaylist(name, emoji, ids)` pour contexte
+- [x] 5.2.4 Track en cours = background `--color-bg-secondary` + bouton play accent
+- [x] 5.2.5 `aria-label` via `t("playAriaLabel", { title, artist })`
+- [x] 5.2.6 Bouton natif `<button>` → tab + Enter fonctionnent par défaut (pas de div clickable)
 
 #### Story 5.3 : `EmptyPlaylistState`
 **Objectif** : État quand la playlist n'a pas encore de morceaux.
 
 **Tasks** :
-- [ ] 5.3.1 Créer `src/components/boutique/EmptyPlaylistState.tsx`
-- [ ] 5.3.2 Message FR/EN ("Playlist en cours de curation, revenez bientôt")
-- [ ] 5.3.3 Lien vers le hub pour voir les autres playlists
-- [ ] 5.3.4 Visual : icône placeholder, padding généreux, ton accueillant
+- [x] 5.3.1 `src/components/boutique/EmptyPlaylistState.tsx` créé (server component)
+- [x] 5.3.2 Message via `t("hub.emptyState")` ("Playlist en cours de curation — revenez bientôt." / "Playlist being curated — check back soon.")
+- [x] 5.3.3 Lien retour vers `/musique-ambiance` via Link next-intl
+- [x] 5.3.4 Visual : 🎵 icon (3rem opacity 0.5), padding généreux, border dashed sur card
 
 #### Story 5.4 : `PreviewEndedToast`
 **Objectif** : Notification persistante affichée à la coupure 30s.
 
 **Tasks** :
-- [ ] 5.4.1 Créer `src/components/boutique/PreviewEndedToast.tsx`
-- [ ] 5.4.2 Lire `isPreviewEnded` depuis le store
-- [ ] 5.4.3 Afficher toast en bas (au-dessus du player), positionné fixed, animation slide-up
-- [ ] 5.4.4 Texte : "Extrait limité à 30 secondes — abonnez-vous pour écouter en illimité"
-- [ ] 5.4.5 Bouton CTA vers `/[locale]/abonnements#boutique`
-- [ ] 5.4.6 Bouton fermeture (croix)
-- [ ] 5.4.7 `aria-live="polite"` pour annonce screen reader
-- [ ] 5.4.8 Auto-clear `isPreviewEnded` quand le user lance un autre morceau
+- [x] 5.4.1 `src/components/boutique/PreviewEndedToast.tsx` créé
+- [x] 5.4.2 `usePlayerStore((s) => s.isPreviewEnded)` — return null si false
+- [x] 5.4.3 Position `fixed`, `bottom: 96px` (au-dessus du player sticky), `transform: translateX(-50%)` pour centrage, animation `boutique-toast-in` slide-up 200ms
+- [x] 5.4.4 Texte via `t("previewEnded")` + CTA secondaire `t("previewEndedCta")`
+- [x] 5.4.5 CTA Link next-intl vers `/abonnements`
+- [x] 5.4.6 Bouton fermeture qui appelle `setIsPreviewEnded(false)`
+- [x] 5.4.7 `role="status"` + `aria-live="polite"` pour annonce screen reader
+- [x] 5.4.8 Auto-clear géré par `playTrack` au store (reset `isPreviewEnded: false`) quand user clique play sur un autre morceau
 
 **Estimation Epic 5** : M
 **Dépendances** : 6.1 (store extensions), 3.3
@@ -697,18 +697,18 @@ WHERE is_demo = true;
 **Objectif** : Popup 15s avec 1 carte plan boutique.
 
 **Tasks** :
-- [ ] 7.1.1 Créer `src/components/boutique/BoutiqueSubscriptionPopup.tsx`
-- [ ] 7.1.2 Forker la structure de `src/components/catalogue/SubscriptionPopup.tsx`
-- [ ] 7.1.3 Recevoir prop `hasBoutiqueAccess: boolean` + `locale`
-- [ ] 7.1.4 Si `hasBoutiqueAccess`, return `null` (pas afficher pour clients existants)
-- [ ] 7.1.5 Au mount : check `sessionStorage.getItem("boutique-popup-dismissed")` — si `"1"`, ne pas montrer
-- [ ] 7.1.6 Sinon `setTimeout(15000)` puis `setVisible(true)` ET poser `sessionStorage.setItem("boutique-popup-dismissed", "1")` pour ne pas réapparaître au navigation suivant
-- [ ] 7.1.7 Render 1 carte (pas 2 comme catalogue) : prix 99,99 €/an, badge "Sans engagement", bouton "S'abonner"
-- [ ] 7.1.8 Render 3-5 bénéfices avec icônes Check (réutiliser composant existant)
-- [ ] 7.1.9 Backdrop blur + fadeIn animation, modal slideUp animation
-- [ ] 7.1.10 Bouton fermeture (croix) + clic backdrop pour fermer
-- [ ] 7.1.11 `aria-modal="true"`, focus trap basique, Escape pour fermer
-- [ ] 7.1.12 Clé `sessionStorage` distincte : `boutique-popup-dismissed` (NE PAS réutiliser `sub-popup-dismissed`)
+- [x] 7.1.1 `src/components/boutique/BoutiqueSubscriptionPopup.tsx` créé
+- [x] 7.1.2 Structure forkée de `SubscriptionPopup.tsx` catalogue avec adaptations
+- [x] 7.1.3 Props `hasBoutiqueAccess: boolean` + `locale: "fr" | "en"`
+- [x] 7.1.4 `setDismissed(true)` immédiat si `hasBoutiqueAccess` → return null
+- [x] 7.1.5 Check `sessionStorage.getItem("boutique-popup-dismissed")` au mount
+- [x] 7.1.6 `setTimeout(15_000)` puis `setVisible(true)` + `sessionStorage.setItem(SESSION_KEY, "1")` immédiatement (évite réapparition sur nav hub→détail)
+- [x] 7.1.7 1 carte plan (pas 2) : prix 99,99 € / €99.99, badge "Licence pro", bouton "S'abonner"
+- [x] 7.1.8 5 bénéfices avec icônes `<Check>` lucide-react (alignement flex-start pour multi-lignes)
+- [x] 7.1.9 Backdrop blur + animation `boutiquePopupFadeIn` (renommée pour pas conflict avec catalogue), modal `boutiquePopupSlideUp`
+- [x] 7.1.10 Bouton fermeture + clic backdrop fonctionnels
+- [x] 7.1.11 `role="dialog"` + `aria-modal="true"` + `aria-labelledby` + listener Escape
+- [x] 7.1.12 Clé `sessionStorage` distincte `boutique-popup-dismissed` (constante `SESSION_KEY`)
 
 **Estimation** : M
 **Dépendances** : 3.3 (traductions)
@@ -721,30 +721,30 @@ WHERE is_demo = true;
 **Objectif** : Permettre de marquer une playlist comme `creator` ou `boutique`.
 
 **Tasks** :
-- [ ] 8.1.1 Modifier `src/components/admin/PlaylistEditor.tsx` : ajouter un `<select>` ou radio group "Audience" avec les options
-- [ ] 8.1.2 Bind sur le state local de la playlist
-- [ ] 8.1.3 Modifier la mutation `saveMetadata()` pour inclure `audience` dans le body PATCH
-- [ ] 8.1.4 Modifier `src/app/api/admin/playlists/[id]/route.ts` PATCH pour accepter et appliquer `audience`
-- [ ] 8.1.5 Vérifier que la valeur DB est bien dans l'enum (zod ou check manuel)
+- [x] 8.1.1 PlaylistEditor : segmented control (2 boutons "Créateurs" / "Boutique") au-dessus du checkbox "Publiée", avec helper text qui change selon l'audience
+- [x] 8.1.2 Bind sur `playlist.audience` du state local
+- [x] 8.1.3 `saveMetadata()` envoie `audience` dans le PATCH body
+- [x] 8.1.4 `PATCH /api/admin/playlists/[id]` accepte `audience` (validation manuelle contre l'enum)
+- [x] 8.1.5 Validation manuelle : reject 400 si valeur ≠ "creator" ou "boutique" (équivalent à zod, sans dépendance)
 
 #### Story 8.2 : Checkbox "Morceau démo" + endpoint
 **Objectif** : Marquer 1 track comme démo dans une playlist.
 
 **Tasks** :
-- [ ] 8.2.1 Créer `src/app/api/admin/playlists/[id]/tracks/[trackId]/route.ts` avec method PATCH
-- [ ] 8.2.2 Auth admin via `checkAdmin()` (helper existant)
-- [ ] 8.2.3 Body validation : `{ isDemo: boolean }` (zod ou manuel)
-- [ ] 8.2.4 Implémenter la transaction : si `isDemo=true` → reset les autres tracks de la playlist à `isDemo=false`, puis set le track ciblé
-- [ ] 8.2.5 Modifier `PlaylistEditor.tsx` : ajouter une checkbox "Démo" sur chaque track de la liste
-- [ ] 8.2.6 Au toggle, appeler le nouveau endpoint, refresh la liste locale
-- [ ] 8.2.7 Indicateur visuel : track démo a un badge ou highlight différent
+- [x] 8.2.1 `PATCH /api/admin/playlists/[id]/tracks/[trackId]/route.ts` créé
+- [x] 8.2.2 `checkAdmin()` helper inline (même pattern que les autres endpoints admin du repo)
+- [x] 8.2.3 Validation manuelle : reject 400 si `typeof body.isDemo !== "boolean"`
+- [x] 8.2.4 Transaction Drizzle : si `isDemo=true`, `UPDATE … SET is_demo=false WHERE playlist_id=? AND track_id != ?` puis `UPDATE … SET is_demo=? WHERE playlist_id=? AND track_id=?`. Atomique grâce au tx, et l'index unique partiel DB est une 2ème barrière.
+- [x] 8.2.5 PlaylistEditor : checkbox "Démo" sur chaque track de la liste, **affichée uniquement si audience === "boutique"** (pas de pollution sur playlists créateur)
+- [x] 8.2.6 `toggleDemoTrack(trackId, nextValue)` : update optimiste local (uncheck les autres si on coche), puis appel API, rollback `router.refresh()` si échec
+- [x] 8.2.7 Indicateur visuel : checkbox sur background `rgba(245,166,35,0.15)` + texte accent quand cochée, `title` tooltip explicatif
 
 #### Story 8.3 : Avertissement playlist boutique sans démo
 **Objectif** : Aider l'admin à comprendre l'impact.
 
 **Tasks** :
-- [ ] 8.3.1 Dans `PlaylistEditor.tsx`, si `audience === "boutique"` ET aucun track avec `isDemo === true` → afficher un bandeau d'avertissement (couleur warning du brand kit)
-- [ ] 8.3.2 Texte : "Cette playlist boutique n'a pas de morceau démo. Les visiteurs n'entendront que des extraits de 30s — choisissez un morceau représentatif à mettre en démo full."
+- [x] 8.3.1 Bandeau warning rendu en haut du PlaylistEditor (juste après le hero gradient) si `audience === "boutique" && tracks.length > 0 && !hasDemoTrack`. Background `rgba(245,166,35,0.12)` + border accent + emoji ⚠️ + `role="alert"` pour a11y.
+- [x] 8.3.2 Texte : « Aucun morceau démo — cette playlist Boutique est visible publiquement, mais les visiteurs n'entendront que des extraits de 30s. Cochez "Démo" sur le morceau le plus représentatif pour qu'il joue en intégralité (max 1 par playlist). »
 
 **Estimation Epic 8** : M
 **Dépendances** : 1.1, 2.1
@@ -757,11 +757,11 @@ WHERE is_demo = true;
 **Objectif** : "Musique d'ambiance" visible dans le menu.
 
 **Tasks** :
-- [ ] 9.1.1 Modifier `src/components/layout/Header.tsx` `navLinks` array : insérer `{ href: ..., label: t("ambient") }` en position 2 (après catalogue)
-- [ ] 9.1.2 Utiliser le `Link` de next-intl si nécessaire (avec pathnames) — `href: "/musique-ambiance"` qui sera mappé selon locale
-- [ ] 9.1.3 Modifier `src/components/layout/MobileMenu.tsx` similairement
-- [ ] 9.1.4 Vérifier ordre identique sur les deux composants
-- [ ] 9.1.5 Vérifier responsive : pas de débordement / wrap moche en moyennes largeurs
+- [x] 9.1.1 `Header.tsx` `navLinks` étendu : entrée `ambient` insérée en position 2 (après catalogue)
+- [x] 9.1.2 Pour cohérence avec le pattern existant (href en dur selon locale), j'utilise `const ambientPath = locale === "en" ? "/ambient-music" : "/musique-ambiance"` au lieu du Link typed (les autres entrées sont aussi en string-href)
+- [x] 9.1.3 `MobileMenu.tsx` modifié à l'identique (mêmes 5 entrées, même ordre)
+- [x] 9.1.4 Ordre identique vérifié : Catalogue → Musique d'ambiance → Blog → Nos artistes → Abonnements
+- [x] 9.1.5 Pas de risque de wrap : 5 entrées (vs 4 avant) restent confortables. À valider visuellement en QA.
 
 **Estimation** : S
 **Dépendances** : 3.1, 3.3
@@ -816,12 +816,12 @@ WHERE is_demo = true;
 | 1. Fondations DB | 15 / 15 ✓ |
 | 2. Helpers serveur | 10 / 10 ✓ |
 | 3. i18n + routing | 13 / 13 ✓ |
-| 4. Pages publiques | 0 / 24 |
-| 5. Composants UI boutique | 0 / 17 |
+| 4. Pages publiques | 24 / 24 ✓ |
+| 5. Composants UI boutique | 17 / 17 ✓ |
 | 6. Lecteur audio + 30s | 17 / 17 ✓ |
-| 7. Popup | 0 / 12 |
-| 8. Admin extensions | 0 / 9 |
-| 9. Navigation menu | 0 / 5 |
+| 7. Popup | 12 / 12 ✓ |
+| 8. Admin extensions | 14 / 14 ✓ |
+| 9. Navigation menu | 5 / 5 ✓ |
 | 10. QA | 0 / 17 |
 
 ---
