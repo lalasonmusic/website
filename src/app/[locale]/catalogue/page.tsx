@@ -3,8 +3,9 @@ import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
 import { trackService } from "@/lib/services/trackService";
 import { db } from "@/db";
-import { subscriptions, trackFavorites, tracks as tracksTable } from "@/db/schema";
-import { eq, and, desc } from "drizzle-orm";
+import { trackFavorites, tracks as tracksTable } from "@/db/schema";
+import { eq, desc } from "drizzle-orm";
+import { getUserAccess } from "@/lib/subscriptions/access";
 import { Suspense } from "react";
 import CatalogueFilters from "@/components/catalogue/CatalogueFilters";
 import TrackCard from "@/components/catalogue/TrackCard";
@@ -51,16 +52,10 @@ export default async function CataloguePage({ params, searchParams }: Props) {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (user) {
-      const [sub] = await db
-        .select({ id: subscriptions.id, planType: subscriptions.planType })
-        .from(subscriptions)
-        .where(and(eq(subscriptions.userId, user.id), eq(subscriptions.status, "active")))
-        .limit(1);
-      isSubscribed = !!sub;
-      // Only Creators plans can download — Boutique is play-only
-      canDownload = sub?.planType === "creators_monthly" || sub?.planType === "creators_annual";
+      const access = await getUserAccess(user.id);
+      isSubscribed = access.isSubscribed;
+      canDownload = access.hasCreatorAccess;
 
-      // Fetch favorites for Creators
       if (canDownload) {
         const favs = await db
           .select({ trackId: trackFavorites.trackId })
