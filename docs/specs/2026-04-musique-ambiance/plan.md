@@ -774,31 +774,31 @@ WHERE is_demo = true;
 **Objectif** : Cocher tous les AC de la PRD §8.
 
 **Tasks** :
-- [ ] 10.1.1 Lancer le serveur dev local, parcourir tous les AC navigation et menu
-- [ ] 10.1.2 Vérifier toutes les routes (FR + EN, hub + 7 détails) → 200
-- [ ] 10.1.3 Vérifier h1 unique + meta title/description sur chaque page (Inspect HTML)
-- [ ] 10.1.4 Vérifier presence schema.org JSON-LD valide (Google Rich Results Test)
-- [ ] 10.1.5 Vérifier coupure 30s pile (chronométrer ±0.5s) sur 2-3 morceaux
-- [ ] 10.1.6 Vérifier le morceau démo joue en intégralité
-- [ ] 10.1.7 Vérifier abonné boutique (créer un compte test) joue en intégralité
-- [ ] 10.1.8 Vérifier popup à 15s exactement, fermeture, sessionStorage
-- [ ] 10.1.9 Vérifier admin : audience selector, checkbox demo, warning visuel
+- [ ] 10.1.1 ⚠️ EMIL — parcours nav/menu visuel (mobile + desktop)
+- [x] 10.1.2 Routes 200 vérifiées via curl avec cookie preview : `/fr/musique-ambiance`, `/en/ambient-music`, `/fr/musique-ambiance/salon-coiffure`, `/en/ambient-music/hair-salon`. `/fr/musique-ambiance/inexistant` → **404** (notFound() OK).
+- [x] 10.1.3 h1 unique vérifié + title (`{nameFr/En} | Lalason`) + description (boutique.hub.intro / nameFr per playlist) + canonical (`https://lalason.com/{locale}/{path}`)
+- [x] 10.1.4 schema.org JSON-LD présent : `CollectionPage` sur hub avec liste de `MusicPlaylist`, `MusicPlaylist` sur détail avec `track[]` `MusicRecording`. ⚠️ EMIL — valider via Google Rich Results Test une fois en prod
+- [ ] 10.1.5 ⚠️ EMIL — chrono coupure 30s sur 2-3 morceaux non-démo
+- [ ] 10.1.6 ⚠️ EMIL — vérifier morceau démo joue en intégralité (nécessite avoir coché un démo dans l'admin)
+- [ ] 10.1.7 ⚠️ EMIL — créer compte test boutique + vérifier bypass coupure
+- [ ] 10.1.8 ⚠️ EMIL — popup à 15s exactement, fermeture, sessionStorage
+- [ ] 10.1.9 ⚠️ EMIL — admin : audience selector + checkbox demo + warning
 
 #### Story 10.2 : Responsive + Accessibilité
 **Tasks** :
-- [ ] 10.2.1 Tester mobile (360px, 414px, 768px) sur hub + détail + popup → pas de scroll horizontal
-- [ ] 10.2.2 Tester navigation clavier sur la liste de tracks (tab + Enter pour jouer)
-- [ ] 10.2.3 Vérifier `aria-label` boutons play, `aria-live` toast, `aria-modal` popup
-- [ ] 10.2.4 Vérifier contraste WCAG AA sur les cartes à gradient (outil : Lighthouse ou axe DevTools)
+- [ ] 10.2.1 ⚠️ EMIL — mobile 360/414/768px sur hub + détail + popup
+- [ ] 10.2.2 ⚠️ EMIL — navigation clavier (tab + Enter pour jouer)
+- [x] 10.2.3 `aria-label` play (i18n key `playAriaLabel`), `role="status" aria-live="polite"` toast, `role="dialog" aria-modal="true" aria-labelledby` popup → vérifiés dans le code
+- [ ] 10.2.4 ⚠️ EMIL — Lighthouse / axe DevTools sur les cartes à gradient
 
 #### Story 10.3 : Non-régression
 **Tasks** :
-- [ ] 10.3.1 Naviguer sur toutes les routes existantes (catalogue, blog, abonnements, nos-artistes, mentions-legales, etc.) en FR et EN — vérifier 200
-- [ ] 10.3.2 Tester le player audio sur `/fr/catalogue` (PAS de coupure 30s)
-- [ ] 10.3.3 Tester l'admin pour les playlists existantes (rétrocompatibilité — toutes doivent avoir `audience='creator'` par défaut)
-- [ ] 10.3.4 Run `npx tsc --noEmit` (zéro erreur de type)
-- [ ] 10.3.5 Run `npm run lint` (zéro nouvelle warning)
-- [ ] 10.3.6 Build prod local (`npm run build`) → succès
+- [x] 10.3.1 Routes existantes testées via curl (FR + EN) : /fr, /fr/catalogue, /en/catalogue, /fr/blog, /fr/abonnements, /fr/nos-artistes → tous 200
+- [ ] 10.3.2 ⚠️ EMIL — player sur /fr/catalogue (vérifier PAS de coupure 30s)
+- [ ] 10.3.3 ⚠️ EMIL — admin playlists existantes (les 8 ont `audience='creator'` par défaut grâce au DB default — rétrocompat OK)
+- [x] 10.3.4 `npx tsc --noEmit` ✓ zéro erreur (run multiple fois pendant le dev)
+- [x] 10.3.5 `npm run lint` ✓ zéro warning sur les fichiers de la feature (les 2 eslint-disable inutiles ont été retirés)
+- [x] 10.3.6 `npm run build` ✓ succès, `/musique-ambiance/[slug]` prerendered SSG (14 pages = 7 slugs × 2 locales)
 
 **Estimation Epic 10** : M
 **Dépendances** : toutes les autres
@@ -822,7 +822,7 @@ WHERE is_demo = true;
 | 7. Popup | 12 / 12 ✓ |
 | 8. Admin extensions | 14 / 14 ✓ |
 | 9. Navigation menu | 5 / 5 ✓ |
-| 10. QA | 0 / 17 |
+| 10. QA | 8 / 17 (reste = QA visuelle/manuelle Emil) |
 
 ---
 

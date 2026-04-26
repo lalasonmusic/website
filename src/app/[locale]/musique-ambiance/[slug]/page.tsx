@@ -109,7 +109,6 @@ export default async function MusiqueAmbianceDetailPage({ params }: Props) {
     <main style={{ maxWidth: 960, margin: "0 auto", padding: "0 0 4rem" }}>
       <script
         type="application/ld+json"
-        // eslint-disable-next-line react/no-danger
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
 
