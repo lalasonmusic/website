@@ -1,6 +1,7 @@
 {
   "nav": {
     "catalogue": "Catalogue",
+    "ambient": "Ambient Music",
     "blog": "Blog",
     "artists": "Our artists",
     "pricing": "Pricing",
@@ -324,6 +325,43 @@
     "send": "Send",
     "successMessage": "Message sent! We'll reply within 48 hours.",
     "error": "An error occurred. Please try again."
+  },
+  "boutique": {
+    "hub": {
+      "title": "Ambient music for your venue",
+      "intro": "Discover our professional ambient playlists, royalty-free and curated by industry: salons, beauty studios, spas, medical practices. A single licence covers the entire catalogue for public broadcasting — no rights organisations, no royalty fees. Listen to a demo track per playlist to feel the atmosphere before subscribing.",
+      "cta": "See Boutique plan",
+      "emptyState": "Playlist being curated — check back soon."
+    },
+    "playlist": {
+      "backToHub": "All playlists",
+      "demoBadge": "Demo",
+      "demoBadgeFull": "Full demo track",
+      "previewEnded": "Preview limited to 30 seconds",
+      "previewEndedCta": "Subscribe for unlimited listening",
+      "ctaPrimary": "Subscribe to Boutique plan",
+      "ctaSecondary": "Subscribe for unlimited listening",
+      "relatedTitle": "Other boutique playlists",
+      "trackCount": "{count} tracks",
+      "trackCountSingular": "1 track",
+      "trackCountEmpty": "No tracks yet",
+      "playAriaLabel": "Play {title} by {artist}"
+    },
+    "popup": {
+      "title": "Stream Lalason in your venue",
+      "subtitle": "Enjoy the full catalogue with continuous streaming, no cuts and no ads.",
+      "planName": "Boutique Annual",
+      "planPrice": "€99.99",
+      "planPeriod": "/year",
+      "planBadge": "Pro licence",
+      "feature1": "Full catalogue without cuts",
+      "feature2": "Public broadcasting licence included",
+      "feature3": "No rights royalties to pay",
+      "feature4": "Ad-free, uninterrupted",
+      "feature5": "Priority email support",
+      "ctaSubscribe": "Subscribe",
+      "closeAriaLabel": "Close"
+    }
   },
   "errors": {
     "generic": "An error occurred. Please try again.",

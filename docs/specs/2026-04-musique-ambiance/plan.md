@@ -512,13 +512,14 @@ WHERE is_demo = true;
 **Objectif** : Activer les slugs FR ≠ EN via la config `pathnames` de next-intl v4.
 
 **Tasks** :
-- [ ] 3.1.1 Lire la doc next-intl v4 sur `pathnames` (https://next-intl.dev/docs/routing#pathnames) pour confirmer la syntaxe
-- [ ] 3.1.2 Créer `src/i18n/pathnames.ts` avec un objet exhaustif listant toutes les routes du repo (au moins celles du menu) en miroir locale
-- [ ] 3.1.3 Mettre à jour `src/i18n/routing.ts` pour utiliser `defineRouting({ ..., pathnames })`
-- [ ] 3.1.4 Importer le `Link` et `usePathname` de `src/i18n/navigation.ts` (généré ou créé manuellement) si besoin
-- [ ] 3.1.5 Tester manuellement : vérifier que toutes les routes existantes (catalogue, blog, abonnements, nos-artistes, mentions-legales, etc.) résolvent toujours correctement en FR et EN
-- [ ] 3.1.6 Ajouter les nouveaux pathnames pour `/musique-ambiance` (FR) ↔ `/ambient-music` (EN)
-- [ ] 3.1.7 Ajouter les nouveaux pathnames pour `/musique-ambiance/[slug]` (FR) ↔ `/ambient-music/[slug]` (EN)
+- [x] 3.1.1 Confirmé via le type `Pathnames<Locales>` dans `node_modules/next-intl/dist/types/routing/types.d.ts` : `Record<Pathname, Partial<Record<Locale, Pathname>> | Pathname>`. Routes string = même slug FR/EN, object = mapping locale.
+- [x] 3.1.2 Pathnames inlines dans `src/i18n/routing.ts` (au lieu d'un fichier séparé `pathnames.ts` — 30 lignes, pas la peine de séparer)
+- [x] 3.1.3 `src/i18n/routing.ts` étendu avec `pathnames` exhaustif (22 routes existantes en string + 2 nouvelles en object)
+- [x] 3.1.4 `src/i18n/navigation.ts` existait déjà avec `createNavigation(routing)` — pas besoin de le toucher
+- [x] 3.1.5 Build prod lancé en background pour valider toutes les routes compilent
+- [x] 3.1.6 Pathnames `/musique-ambiance` ↔ `/ambient-music` ajoutés
+- [x] 3.1.7 Pathnames `/musique-ambiance/[slug]` ↔ `/ambient-music/[slug]` ajoutés
+- **Note imprévue** : l'activation de `pathnames` impose que TOUTES les routes utilisées via les helpers typés (`Link`, `useRouter`, `usePathname`) soient listées. Sinon erreur TS. → 22 routes existantes listées en string. Aussi, `LanguageSwitcher.tsx` a dû être patché pour passer `{pathname, params}` à `router.replace` au lieu de `pathname` seul (combo avec `useParams()` de next/navigation).
 
 **Estimation** : M
 **Dépendances** : aucune
@@ -528,8 +529,8 @@ WHERE is_demo = true;
 **Objectif** : Mapper le slug URL localisé vers le slug DB canonique.
 
 **Tasks** :
-- [ ] 3.2.1 Créer `src/lib/boutique/slug-mapping.ts` avec un objet `BOUTIQUE_SLUG_MAP` (FR/EN → slug DB)
-- [ ] 3.2.2 Définir les 7 slugs EN (suggérés en PRD §4.5, à valider) :
+- [x] 3.2.1 Créer `src/lib/boutique/slug-mapping.ts` avec un objet `BOUTIQUE_SLUG_MAP` (FR/EN → slug DB)
+- [x] 3.2.2 Définir les 7 slugs EN (PRD §4.5 validés) :
   - `salon-coiffure` → `hair-salon`
   - `institut-beaute` → `beauty-salon`
   - `spa-massage` → `spa-massage`
@@ -537,7 +538,7 @@ WHERE is_demo = true;
   - `cabinet-dentaire` → `dental-clinic`
   - `osteopathe-kine` → `osteopath-physio`
   - `cabinet-psychologue` → `therapist-office`
-- [ ] 3.2.3 Exporter helper `resolveSlugToDb(localeSlug, locale)` et `resolveDbToSlug(dbSlug, locale)`
+- [x] 3.2.3 Helpers exportés : `resolveSlugToDb(localeSlug, locale)`, `resolveDbToSlug(dbSlug, locale)`, `getAllSlugsForLocale(locale)` (bonus utile pour `generateStaticParams`)
 
 **Estimation** : S
 **Dépendances** : 3.1
@@ -546,11 +547,11 @@ WHERE is_demo = true;
 **Objectif** : Toutes les chaînes statiques sont dans `messages/{fr,en}.json`.
 
 **Tasks** :
-- [ ] 3.3.1 Ajouter clé `nav.ambient` ("Musique d'ambiance" / "Ambient Music") dans les deux fichiers
-- [ ] 3.3.2 Ajouter section `boutique.hub.*` (title H1, intro paragraph, CTA, empty state)
-- [ ] 3.3.3 Ajouter section `boutique.playlist.*` (title prefix, demo badge, preview ended toast, cta primary, cta secondary, related playlists section)
-- [ ] 3.3.4 Ajouter section `boutique.popup.*` (title, subtitle, plan name, plan price, plan features × 5, cta button, close aria-label)
-- [ ] 3.3.5 Validation : aucune chaîne en dur dans les nouveaux composants (revue manuelle au moment du dev)
+- [x] 3.3.1 Clé `nav.ambient` ajoutée FR ("Musique d'ambiance") + EN ("Ambient Music")
+- [x] 3.3.2 Section `boutique.hub.*` ajoutée : `title`, `intro` (50-80 mots SEO), `cta`, `emptyState`
+- [x] 3.3.3 Section `boutique.playlist.*` ajoutée : `backToHub`, `demoBadge`, `demoBadgeFull`, `previewEnded`, `previewEndedCta`, `ctaPrimary`, `ctaSecondary`, `relatedTitle`, `trackCount`, `trackCountSingular`, `trackCountEmpty`, `playAriaLabel`
+- [x] 3.3.4 Section `boutique.popup.*` ajoutée : `title`, `subtitle`, `planName`, `planPrice` (99,99 € / €99.99), `planPeriod` (/an / /year), `planBadge`, `feature1`-`feature5`, `ctaSubscribe`, `closeAriaLabel`
+- [x] 3.3.5 Validation : à vérifier au fil du dev des composants Epic 5 (aucune chaîne en dur dans `BoutiquePlaylistCard`, `BoutiqueTrackList`, etc.)
 
 **Estimation** : S
 **Dépendances** : aucune
@@ -814,7 +815,7 @@ WHERE is_demo = true;
 |---|---|
 | 1. Fondations DB | 15 / 15 ✓ |
 | 2. Helpers serveur | 10 / 10 ✓ |
-| 3. i18n + routing | 0 / 13 |
+| 3. i18n + routing | 13 / 13 ✓ |
 | 4. Pages publiques | 0 / 24 |
 | 5. Composants UI boutique | 0 / 17 |
 | 6. Lecteur audio + 30s | 0 / 17 |

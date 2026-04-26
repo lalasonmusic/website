@@ -1,6 +1,7 @@
 {
   "nav": {
     "catalogue": "Catalogue",
+    "ambient": "Musique d'ambiance",
     "blog": "Blog",
     "artists": "Nos artistes",
     "pricing": "Abonnements",
@@ -324,6 +325,43 @@
     "send": "Envoyer",
     "successMessage": "Message envoyé ! Nous vous répondrons dans les 48h.",
     "error": "Une erreur est survenue. Veuillez réessayer."
+  },
+  "boutique": {
+    "hub": {
+      "title": "Musique d'ambiance pour votre établissement",
+      "intro": "Découvrez nos playlists d'ambiance professionnelle libres de droits, curées par métier : salons, instituts, spas, cabinets médicaux. Une licence unique couvre l'intégralité du répertoire pour la diffusion publique, sans déclaration SACEM ni redevance externe. Écoutez un morceau démo par playlist pour ressentir l'ambiance avant de vous abonner.",
+      "cta": "Voir l'abonnement Boutique",
+      "emptyState": "Playlist en cours de curation — revenez bientôt."
+    },
+    "playlist": {
+      "backToHub": "Toutes les playlists",
+      "demoBadge": "Démo",
+      "demoBadgeFull": "Démo écoute complète",
+      "previewEnded": "Extrait limité à 30 secondes",
+      "previewEndedCta": "S'abonner pour écouter en illimité",
+      "ctaPrimary": "S'abonner à la formule Boutique",
+      "ctaSecondary": "S'abonner pour écouter en illimité",
+      "relatedTitle": "Autres playlists boutique",
+      "trackCount": "{count} morceaux",
+      "trackCountSingular": "1 morceau",
+      "trackCountEmpty": "Aucun morceau",
+      "playAriaLabel": "Écouter {title} de {artist}"
+    },
+    "popup": {
+      "title": "Diffusez Lalason dans votre établissement",
+      "subtitle": "Profitez de tout le catalogue en streaming continu, sans coupure ni publicité.",
+      "planName": "Boutique Annuel",
+      "planPrice": "99,99 €",
+      "planPeriod": "/an",
+      "planBadge": "Licence pro",
+      "feature1": "Catalogue complet sans coupure",
+      "feature2": "Licence diffusion publique incluse",
+      "feature3": "Pas de droits SACEM à payer",
+      "feature4": "Sans publicité, sans interruption",
+      "feature5": "Support email prioritaire",
+      "ctaSubscribe": "S'abonner",
+      "closeAriaLabel": "Fermer"
+    }
   },
   "errors": {
     "generic": "Une erreur est survenue. Veuillez réessayer.",
