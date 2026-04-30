@@ -5,6 +5,7 @@ import { getBoutiquePlaylists } from "@/lib/playlists/queries";
 import { getUserAccess } from "@/lib/subscriptions/access";
 import { resolveDbToSlug } from "@/lib/boutique/slug-mapping";
 import BoutiquePlaylistCard from "@/components/boutique/BoutiquePlaylistCard";
+import BoutiqueCarousel from "@/components/boutique/BoutiqueCarousel";
 import BoutiqueSubscriptionPopup from "@/components/boutique/BoutiqueSubscriptionPopup";
 import { Link } from "@/i18n/navigation";
 import { BASE_URL } from "@/lib/seo";
@@ -133,27 +134,19 @@ export default async function MusiqueAmbianceHubPage({ params }: Props) {
         </Link>
       </header>
 
-      {/* Grid of 7 playlists */}
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
-          gap: "1.25rem",
-        }}
-      >
+      {/* 7 playlists in a horizontal carousel: ~3-4 visible + edge peek to signal more */}
+      <BoutiqueCarousel>
         {playlists.map((p) => (
           <BoutiquePlaylistCard
             key={p.id}
             dbSlug={p.slug}
             name={localeTyped === "en" ? p.nameEn : p.nameFr}
-            description={localeTyped === "en" ? p.descriptionEn : p.descriptionFr}
             gradient={p.gradient}
-            emoji={p.emoji}
             trackCount={p.trackCount}
             locale={localeTyped}
           />
         ))}
-      </div>
+      </BoutiqueCarousel>
 
       <BoutiqueSubscriptionPopup
         hasBoutiqueAccess={access.hasBoutiqueAccess}

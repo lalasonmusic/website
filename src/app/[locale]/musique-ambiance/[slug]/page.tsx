@@ -6,6 +6,7 @@ import { getBoutiquePlaylists, getBoutiquePlaylistBySlug } from "@/lib/playlists
 import { getUserAccess } from "@/lib/subscriptions/access";
 import { resolveSlugToDb, resolveDbToSlug, getAllSlugsForLocale } from "@/lib/boutique/slug-mapping";
 import BoutiquePlaylistCard from "@/components/boutique/BoutiquePlaylistCard";
+import { getBoutiqueIcon } from "@/components/boutique/playlist-icons";
 import BoutiqueTrackList from "@/components/boutique/BoutiqueTrackList";
 import EmptyPlaylistState from "@/components/boutique/EmptyPlaylistState";
 import PreviewEndedToast from "@/components/boutique/PreviewEndedToast";
@@ -136,9 +137,23 @@ export default async function MusiqueAmbianceDetailPage({ params }: Props) {
         >
           ← {t("playlist.backToHub")}
         </Link>
-        {playlist.emoji && (
-          <div style={{ fontSize: "3.5rem", lineHeight: 1, marginBottom: "1rem" }}>
-            {playlist.emoji}
+        {getBoutiqueIcon(dbSlug) && (
+          <div
+            style={{
+              width: 72,
+              height: 72,
+              borderRadius: "50%",
+              backgroundColor: "rgba(255,255,255,0.18)",
+              backdropFilter: "blur(8px)",
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              marginBottom: "1.25rem",
+              color: "white",
+              boxShadow: "0 4px 16px rgba(0,0,0,0.2)",
+            }}
+          >
+            {getBoutiqueIcon(dbSlug)}
           </div>
         )}
         <h1
@@ -233,13 +248,7 @@ export default async function MusiqueAmbianceDetailPage({ params }: Props) {
           >
             {t("playlist.relatedTitle")}
           </h2>
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))",
-              gap: "1rem",
-            }}
-          >
+          <div className="boutique-playlist-grid">
             {otherPlaylists.map((p) => (
               <BoutiquePlaylistCard
                 key={p.id}
@@ -247,7 +256,6 @@ export default async function MusiqueAmbianceDetailPage({ params }: Props) {
                 name={localeTyped === "en" ? p.nameEn : p.nameFr}
                 description={localeTyped === "en" ? p.descriptionEn : p.descriptionFr}
                 gradient={p.gradient}
-                emoji={p.emoji}
                 trackCount={p.trackCount}
                 locale={localeTyped}
               />
