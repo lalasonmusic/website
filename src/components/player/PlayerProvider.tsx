@@ -53,10 +53,35 @@ export default function PlayerProvider({ isSubscribed, canDownload }: Props) {
 
     const onTimeUpdate = () => {
       setProgress(audio.currentTime);
+      // Boutique preview cut: stop playback at the configured limit when the
+      // user has no boutique access AND the current track is not the demo.
+      // Reads store via getState() so the latest values are used without
+      // needing to re-attach the listener on every store change.
+      const { previewLimitSec, hasBoutiqueAccess, currentTrack: ct, isPreviewEnded } = usePlayerStore.getState();
+      if (
+        previewLimitSec != null &&
+        !hasBoutiqueAccess &&
+        ct &&
+        !ct.isDemo &&
+        audio.currentTime >= previewLimitSec &&
+        !isPreviewEnded
+      ) {
+        audio.pause();
+        usePlayerStore.setState({ isPlaying: false, isPreviewEnded: true });
+      }
     };
 
     const onLoadedMetadata = () => setDuration(audio.duration);
-    const onEnded = () => next();
+    const onEnded = () => {
+      // Disable auto-chain when playing inside a boutique playlist context
+      // (PRD §3 / Story 3 — manual track-by-track listening only).
+      const { activePlaylistAudience } = usePlayerStore.getState();
+      if (activePlaylistAudience === "boutique") {
+        usePlayerStore.setState({ isPlaying: false });
+        return;
+      }
+      next();
+    };
 
     audio.addEventListener("timeupdate", onTimeUpdate);
     audio.addEventListener("loadedmetadata", onLoadedMetadata);

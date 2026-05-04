@@ -33,4 +33,6 @@ export type PlayerTrack = {
   coverUrl: string | null;
   previewPath: string | null;
   fullPath: string | null;
+  /** Boutique playlists: marque le morceau comme "démo full" — joué en intégralité même pour les non-abonnés boutique */
+  isDemo?: boolean;
 };

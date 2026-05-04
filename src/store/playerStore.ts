@@ -21,6 +21,13 @@ interface PlayerState {
   activePlaylistName: string | null;
   activePlaylistEmoji: string | null;
   activePlaylistTrackIds: string[] | null;
+  // Boutique preview gating: posé par <PlayerContextInit> sur les pages musique-ambiance.
+  // Quand previewLimitSec != null, la lecture s'arrête à cette valeur sauf si hasBoutiqueAccess
+  // OU si le morceau est marqué isDemo. Reset à null en dehors de la section musique-ambiance.
+  previewLimitSec: number | null;
+  isPreviewEnded: boolean;
+  hasBoutiqueAccess: boolean;
+  activePlaylistAudience: "creator" | "boutique" | null;
 }
 
 interface PlayerActions {
@@ -39,6 +46,10 @@ interface PlayerActions {
   toggleRepeat: () => void;
   setHasEmbeddedPlayer: (v: boolean) => void;
   setActivePlaylist: (name: string | null, emoji?: string | null, trackIds?: string[] | null) => void;
+  setPreviewLimitSec: (v: number | null) => void;
+  setIsPreviewEnded: (v: boolean) => void;
+  setHasBoutiqueAccess: (v: boolean) => void;
+  setActivePlaylistAudience: (v: "creator" | "boutique" | null) => void;
   stop: () => void;
 }
 
@@ -59,6 +70,10 @@ export const usePlayerStore = create<PlayerState & PlayerActions>((set, get) => 
   activePlaylistName: null,
   activePlaylistEmoji: null,
   activePlaylistTrackIds: null,
+  previewLimitSec: null,
+  isPreviewEnded: false,
+  hasBoutiqueAccess: false,
+  activePlaylistAudience: null,
 
   playTrack: (track, queue, index = 0) => {
     set({
@@ -68,6 +83,7 @@ export const usePlayerStore = create<PlayerState & PlayerActions>((set, get) => 
       isPlaying: true,
       progress: 0,
       showSubscribeCta: false,
+      isPreviewEnded: false,
     });
   },
 
@@ -135,6 +151,10 @@ export const usePlayerStore = create<PlayerState & PlayerActions>((set, get) => 
   setHasEmbeddedPlayer: (v) => set({ hasEmbeddedPlayer: v }),
   setActivePlaylist: (name, emoji = null, trackIds = null) =>
     set({ activePlaylistName: name, activePlaylistEmoji: emoji, activePlaylistTrackIds: trackIds }),
+  setPreviewLimitSec: (v) => set({ previewLimitSec: v }),
+  setIsPreviewEnded: (v) => set({ isPreviewEnded: v }),
+  setHasBoutiqueAccess: (v) => set({ hasBoutiqueAccess: v }),
+  setActivePlaylistAudience: (v) => set({ activePlaylistAudience: v }),
 
   stop: () => set({ isPlaying: false, currentTrack: null, progress: 0, showSubscribeCta: false }),
 }));

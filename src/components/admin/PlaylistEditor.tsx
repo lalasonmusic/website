@@ -14,12 +14,14 @@ type PlaylistData = {
   emoji: string | null;
   isPublished: boolean;
   displayOrder: number;
+  audience: "creator" | "boutique";
 };
 
 type Track = {
   id: string;
   title: string;
   artistName: string;
+  isDemo?: boolean;
 };
 
 type Props = {
@@ -136,6 +138,7 @@ export default function PlaylistEditor({ playlist: initialPlaylist, playlistTrac
         gradient: playlist.gradient,
         emoji: playlist.emoji,
         isPublished: playlist.isPublished,
+        audience: playlist.audience,
       }),
     });
     setSaving(false);
@@ -161,6 +164,29 @@ export default function PlaylistEditor({ playlist: initialPlaylist, playlistTrac
     });
     setTracks(tracks.filter((t) => t.id !== trackId));
   }
+
+  async function toggleDemoTrack(trackId: string, nextValue: boolean) {
+    // Optimistic UI: when setting demo=true, immediately uncheck the others
+    setTracks((prev) =>
+      prev.map((t) => ({
+        ...t,
+        isDemo: t.id === trackId ? nextValue : nextValue ? false : t.isDemo,
+      })),
+    );
+    const res = await fetch(`/api/admin/playlists/${playlist.id}/tracks/${trackId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ isDemo: nextValue }),
+    });
+    if (!res.ok) {
+      // Rollback on failure
+      router.refresh();
+    }
+  }
+
+  const audience = playlist.audience;
+  const hasDemoTrack = tracks.some((t) => t.isDemo);
+  const showBoutiqueWarning = audience === "boutique" && tracks.length > 0 && !hasDemoTrack;
 
   async function deletePlaylist() {
     if (!confirm("Supprimer définitivement cette playlist ?")) return;
@@ -225,6 +251,31 @@ export default function PlaylistEditor({ playlist: initialPlaylist, playlistTrac
           Supprimer
         </button>
       </div>
+
+      {showBoutiqueWarning && (
+        <div
+          role="alert"
+          style={{
+            backgroundColor: "rgba(245,166,35,0.12)",
+            border: "1px solid rgba(245,166,35,0.4)",
+            borderRadius: 12,
+            padding: "0.875rem 1rem",
+            marginBottom: "1.5rem",
+            fontSize: "0.8125rem",
+            color: "var(--color-accent)",
+            display: "flex",
+            alignItems: "flex-start",
+            gap: "0.75rem",
+          }}
+        >
+          <span style={{ fontSize: "1.125rem", lineHeight: 1 }}>⚠️</span>
+          <div>
+            <strong>Aucun morceau démo</strong> — cette playlist Boutique est visible publiquement, mais
+            les visiteurs n&apos;entendront que des extraits de 30s. Cochez « Démo » sur le morceau le plus
+            représentatif pour qu&apos;il joue en intégralité (max 1 par playlist).
+          </div>
+        </div>
+      )}
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(380px, 100%), 1fr))", gap: "1.5rem" }}>
         {/* ── METADATA ── */}
@@ -335,6 +386,40 @@ export default function PlaylistEditor({ playlist: initialPlaylist, playlistTrac
               </div>
             </div>
 
+            <div>
+              <label style={{ display: "block", fontSize: "0.75rem", color: "var(--color-text-muted)", marginBottom: "0.375rem" }}>
+                Audience
+              </label>
+              <div style={{ display: "flex", gap: "0.5rem" }}>
+                {(["creator", "boutique"] as const).map((aud) => (
+                  <button
+                    key={aud}
+                    type="button"
+                    onClick={() => setPlaylist({ ...playlist, audience: aud })}
+                    style={{
+                      flex: 1,
+                      padding: "0.625rem 0.75rem",
+                      fontSize: "0.8125rem",
+                      fontWeight: 600,
+                      borderRadius: 8,
+                      border: playlist.audience === aud ? "2px solid var(--color-accent)" : "1px solid rgba(255,255,255,0.1)",
+                      backgroundColor: playlist.audience === aud ? "rgba(245,166,35,0.12)" : "rgba(255,255,255,0.04)",
+                      color: playlist.audience === aud ? "var(--color-accent)" : "white",
+                      cursor: "pointer",
+                      fontFamily: "inherit",
+                    }}
+                  >
+                    {aud === "creator" ? "Créateurs" : "Boutique"}
+                  </button>
+                ))}
+              </div>
+              <p style={{ fontSize: "0.6875rem", color: "var(--color-text-muted)", margin: "0.375rem 0 0" }}>
+                {audience === "boutique"
+                  ? "Visible dans la section publique « Musique d'ambiance »."
+                  : "Playlist standard, accessible aux abonnés Créateurs."}
+              </p>
+            </div>
+
             <label style={{ display: "flex", alignItems: "center", gap: "0.5rem", fontSize: "0.875rem", cursor: "pointer" }}>
               <input
                 type="checkbox"
@@ -427,6 +512,31 @@ export default function PlaylistEditor({ playlist: initialPlaylist, playlistTrac
                       </p>
                       <p style={{ fontSize: "0.6875rem", color: "var(--color-text-muted)", margin: 0 }}>{t.artistName}</p>
                     </div>
+                    {audience === "boutique" && (
+                      <label
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "0.25rem",
+                          fontSize: "0.6875rem",
+                          fontWeight: 600,
+                          color: t.isDemo ? "var(--color-accent)" : "var(--color-text-muted)",
+                          cursor: "pointer",
+                          padding: "0.125rem 0.375rem",
+                          borderRadius: 4,
+                          backgroundColor: t.isDemo ? "rgba(245,166,35,0.15)" : "transparent",
+                        }}
+                        title="Morceau démo — joué en intégralité publiquement (max 1 par playlist)"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={!!t.isDemo}
+                          onChange={(e) => toggleDemoTrack(t.id, e.target.checked)}
+                          style={{ accentColor: "var(--color-accent)", margin: 0 }}
+                        />
+                        Démo
+                      </label>
+                    )}
                     <button
                       onClick={() => removeTrack(t.id)}
                       style={{

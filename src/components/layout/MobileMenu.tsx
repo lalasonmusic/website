@@ -15,8 +15,11 @@ export default function MobileMenu({ locale, isLoggedIn }: Props) {
   const t = useTranslations("nav");
   const [open, setOpen] = useState(false);
 
+  const ambientPath = locale === "en" ? "/ambient-music" : "/musique-ambiance";
+
   const navLinks = [
     { href: `/${locale}/catalogue`, label: t("catalogue") },
+    { href: `/${locale}${ambientPath}`, label: t("ambient") },
     { href: `/${locale}/blog`, label: t("blog") },
     { href: `/${locale}/nos-artistes`, label: t("artists") },
     { href: `/${locale}/abonnements`, label: t("pricing") },
