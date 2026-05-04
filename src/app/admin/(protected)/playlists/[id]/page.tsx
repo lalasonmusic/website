@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { db } from "@/db";
 import { playlists, playlistTracks, tracks, artists } from "@/db/schema";
-import { eq, asc } from "drizzle-orm";
+import { eq, asc, desc } from "drizzle-orm";
 import PlaylistEditor from "@/components/admin/PlaylistEditor";
 
 type Props = {
@@ -36,7 +36,9 @@ export default async function EditPlaylistPage({ params }: Props) {
     .from(tracks)
     .innerJoin(artists, eq(tracks.artistId, artists.id))
     .where(eq(tracks.isPublished, true))
-    .orderBy(asc(tracks.title));
+    // Most-recently uploaded first so admin sees fresh tracks at the top.
+    // Tie-break alphabetically for stable order across same-second uploads.
+    .orderBy(desc(tracks.createdAt), asc(tracks.title));
 
   return (
     <PlaylistEditor
