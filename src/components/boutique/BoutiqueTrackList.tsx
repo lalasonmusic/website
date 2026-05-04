@@ -99,7 +99,8 @@ export default function BoutiqueTrackList({ tracks, playlistName, playlistEmoji,
                 padding: 0,
               }}
             >
-              {/* Subtle dark overlay on hover/active to host the play icon */}
+              {/* Always-visible dark overlay so the play icon is immediately
+                  legible. Background is set via CSS class — see globals.css. */}
               <span
                 aria-hidden="true"
                 className="boutique-track-cover-overlay"
@@ -109,7 +110,6 @@ export default function BoutiqueTrackList({ tracks, playlistName, playlistEmoji,
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  background: isCurrent ? "rgba(0,0,0,0.45)" : "rgba(0,0,0,0)",
                   transition: "background 200ms ease",
                   color: "white",
                 }}
