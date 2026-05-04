@@ -466,20 +466,25 @@ body {
   background-color: rgba(255, 255, 255, 0.04);
 }
 
-/* Reveal play overlay on cover hover/focus, or always when row hovered */
+/* Cover always shows a subtle dark overlay + play icon so the affordance is
+   obvious from a glance; hover deepens the overlay and bumps the icon. */
 .boutique-track-cover-btn:focus-visible {
   outline: 2px solid var(--color-accent);
   outline-offset: 2px;
 }
-.boutique-track-row:hover .boutique-track-cover-overlay {
-  background: rgba(0, 0, 0, 0.45);
+.boutique-track-cover-overlay {
+  background: rgba(0, 0, 0, 0.3);
+}
+.boutique-track-row:hover .boutique-track-cover-overlay,
+.boutique-track-cover-btn:hover .boutique-track-cover-overlay {
+  background: rgba(0, 0, 0, 0.5);
 }
 .boutique-track-play-icon {
-  opacity: 0;
+  opacity: 0.95;
   transition: opacity 150ms ease, transform 150ms ease;
 }
 .boutique-track-row:hover .boutique-track-play-icon {
-  opacity: 1;
+  transform: scale(1.05);
 }
 
 /* "Now playing" 3-bar equaliser */
