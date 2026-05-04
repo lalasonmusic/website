@@ -1,6 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
+import { Play } from "lucide-react";
 import { usePlayerStore } from "@/store/playerStore";
 import type { BoutiqueTrack } from "@/lib/playlists/queries";
 import type { PlayerTrack } from "@/types/track";
@@ -9,6 +10,7 @@ type Props = {
   tracks: BoutiqueTrack[];
   playlistName: string;
   playlistEmoji: string | null;
+  playlistGradient: string;
 };
 
 function formatDuration(seconds: number | null): string {
@@ -32,7 +34,7 @@ function toPlayerTrack(t: BoutiqueTrack): PlayerTrack {
   };
 }
 
-export default function BoutiqueTrackList({ tracks, playlistName, playlistEmoji }: Props) {
+export default function BoutiqueTrackList({ tracks, playlistName, playlistEmoji, playlistGradient }: Props) {
   const t = useTranslations("boutique.playlist");
   const playTrack = usePlayerStore((s) => s.playTrack);
   const setActivePlaylist = usePlayerStore((s) => s.setActivePlaylist);
@@ -48,15 +50,7 @@ export default function BoutiqueTrackList({ tracks, playlistName, playlistEmoji 
   }
 
   return (
-    <ol
-      style={{
-        listStyle: "none",
-        padding: 0,
-        margin: 0,
-        display: "flex",
-        flexDirection: "column",
-      }}
-    >
+    <ol className="boutique-track-list" style={{ listStyle: "none", padding: 0, margin: 0 }}>
       {tracks.map((track, index) => {
         const isCurrent = currentTrackId === track.id;
         const isCurrentlyPlaying = isCurrent && isPlaying;
@@ -64,39 +58,70 @@ export default function BoutiqueTrackList({ tracks, playlistName, playlistEmoji 
         return (
           <li
             key={track.id}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "1rem",
-              padding: "0.875rem 1rem",
-              borderBottom: "1px solid var(--color-border)",
-              backgroundColor: isCurrent ? "var(--color-bg-secondary)" : "transparent",
-              transition: "background-color 150ms ease",
-            }}
+            className={isCurrent ? "boutique-track-row boutique-track-row-active" : "boutique-track-row"}
+            style={{ position: "relative" }}
           >
-            {/* Position / play button */}
+            {/* Active accent bar (left edge) */}
+            {isCurrent && (
+              <span
+                aria-hidden="true"
+                style={{
+                  position: "absolute",
+                  left: 0,
+                  top: "50%",
+                  transform: "translateY(-50%)",
+                  width: 3,
+                  height: "70%",
+                  borderRadius: 2,
+                  backgroundColor: "var(--color-accent)",
+                }}
+              />
+            )}
+
+            {/* Cover thumbnail OR play button overlay (mutually exclusive on hover/active) */}
             <button
               type="button"
               onClick={() => handlePlay(index)}
               aria-label={t("playAriaLabel", { title: track.title, artist: track.artistName })}
+              className="boutique-track-cover-btn"
               style={{
-                width: 36,
-                height: 36,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                borderRadius: "var(--radius-full)",
-                border: "none",
-                background: isCurrent ? "var(--color-accent)" : "transparent",
-                color: isCurrent ? "var(--color-accent-text)" : "var(--color-text-primary)",
-                cursor: "pointer",
-                fontSize: "0.875rem",
-                fontWeight: 600,
+                position: "relative",
+                width: 56,
+                height: 56,
                 flexShrink: 0,
+                border: "none",
+                borderRadius: 8,
+                background: track.coverUrl
+                  ? `center/cover no-repeat url(${track.coverUrl})`
+                  : playlistGradient,
+                overflow: "hidden",
+                cursor: "pointer",
+                padding: 0,
               }}
-              className="boutique-track-play"
             >
-              {isCurrentlyPlaying ? "⏸" : isCurrent ? "▶" : index + 1}
+              {/* Subtle dark overlay on hover/active to host the play icon */}
+              <span
+                aria-hidden="true"
+                className="boutique-track-cover-overlay"
+                style={{
+                  position: "absolute",
+                  inset: 0,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  background: isCurrent ? "rgba(0,0,0,0.45)" : "rgba(0,0,0,0)",
+                  transition: "background 200ms ease",
+                  color: "white",
+                }}
+              >
+                {isCurrentlyPlaying ? (
+                  <NowPlayingBars />
+                ) : isCurrent ? (
+                  <Play size={20} strokeWidth={2.25} fill="currentColor" />
+                ) : (
+                  <Play size={18} strokeWidth={2.5} fill="currentColor" className="boutique-track-play-icon" />
+                )}
+              </span>
             </button>
 
             {/* Title + artist */}
@@ -105,34 +130,14 @@ export default function BoutiqueTrackList({ tracks, playlistName, playlistEmoji 
                 style={{
                   fontSize: "0.9375rem",
                   fontWeight: 600,
-                  color: "var(--color-text-primary)",
+                  color: isCurrent ? "var(--color-accent)" : "var(--color-text-primary)",
                   whiteSpace: "nowrap",
                   overflow: "hidden",
                   textOverflow: "ellipsis",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "0.5rem",
+                  letterSpacing: "-0.005em",
                 }}
               >
-                <span style={{ overflow: "hidden", textOverflow: "ellipsis" }}>{track.title}</span>
-                {track.isDemo && (
-                  <span
-                    style={{
-                      fontSize: "0.625rem",
-                      fontWeight: 700,
-                      textTransform: "uppercase",
-                      letterSpacing: "0.04em",
-                      padding: "0.125rem 0.5rem",
-                      borderRadius: "var(--radius-full)",
-                      background: "var(--color-accent)",
-                      color: "var(--color-accent-text)",
-                      flexShrink: 0,
-                    }}
-                    title={t("demoBadgeFull")}
-                  >
-                    {t("demoBadge")}
-                  </span>
-                )}
+                {track.title}
               </div>
               <div
                 style={{
@@ -141,11 +146,33 @@ export default function BoutiqueTrackList({ tracks, playlistName, playlistEmoji 
                   whiteSpace: "nowrap",
                   overflow: "hidden",
                   textOverflow: "ellipsis",
+                  marginTop: 2,
                 }}
               >
                 {track.artistName}
               </div>
             </div>
+
+            {/* Demo badge — pushed right, before duration */}
+            {track.isDemo && (
+              <span
+                style={{
+                  fontSize: "0.625rem",
+                  fontWeight: 700,
+                  textTransform: "uppercase",
+                  letterSpacing: "0.06em",
+                  padding: "0.25rem 0.5rem",
+                  borderRadius: 999,
+                  backgroundColor: "rgba(245,166,35,0.15)",
+                  color: "var(--color-accent)",
+                  border: "1px solid rgba(245,166,35,0.35)",
+                  flexShrink: 0,
+                }}
+                title={t("demoBadgeFull")}
+              >
+                {t("demoBadge")}
+              </span>
+            )}
 
             {/* Duration */}
             <div
@@ -154,6 +181,8 @@ export default function BoutiqueTrackList({ tracks, playlistName, playlistEmoji 
                 color: "var(--color-text-muted)",
                 fontVariantNumeric: "tabular-nums",
                 flexShrink: 0,
+                width: 44,
+                textAlign: "right",
               }}
             >
               {formatDuration(track.durationSeconds)}
@@ -164,3 +193,14 @@ export default function BoutiqueTrackList({ tracks, playlistName, playlistEmoji 
     </ol>
   );
 }
+
+function NowPlayingBars() {
+  return (
+    <span aria-hidden="true" className="boutique-now-playing">
+      <span />
+      <span />
+      <span />
+    </span>
+  );
+}
+

@@ -2,10 +2,51 @@ import { NextResponse, type NextRequest } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { db } from "@/db";
-import { tracks, subscriptions, downloads } from "@/db/schema";
+import { tracks, subscriptions, downloads, playlists, playlistTracks } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
 
 const SIGNED_URL_EXPIRY = 3600; // 1h
+
+/**
+ * Determines whether a track is a "public boutique demo" — i.e. should be
+ * streamable in full to anonymous visitors on the Musique d'ambiance pages.
+ *
+ * Mirrors the hybrid logic in src/lib/playlists/queries.ts: a track is a demo
+ * if it's explicitly marked as is_demo on a published boutique playlist, OR
+ * if it's at position 0 of such a playlist that has NO explicit demo set.
+ */
+async function isPublicBoutiqueDemo(trackId: string): Promise<boolean> {
+  const memberships = await db
+    .select({
+      playlistId: playlistTracks.playlistId,
+      position: playlistTracks.position,
+      isDemo: playlistTracks.isDemo,
+    })
+    .from(playlistTracks)
+    .innerJoin(playlists, eq(playlists.id, playlistTracks.playlistId))
+    .where(
+      and(
+        eq(playlistTracks.trackId, trackId),
+        eq(playlists.audience, "boutique"),
+        eq(playlists.isPublished, true),
+      ),
+    );
+
+  if (memberships.length === 0) return false;
+  if (memberships.some((m) => m.isDemo)) return true;
+
+  // Fallback: track is at position 0 of a playlist that has no explicit demo
+  for (const m of memberships) {
+    if (m.position !== 0) continue;
+    const allInPlaylist = await db
+      .select({ isDemo: playlistTracks.isDemo })
+      .from(playlistTracks)
+      .where(eq(playlistTracks.playlistId, m.playlistId));
+    if (!allInPlaylist.some((row) => row.isDemo)) return true;
+  }
+
+  return false;
+}
 
 export async function GET(
   req: NextRequest,
@@ -21,19 +62,32 @@ export async function GET(
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
-  if (!user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  // Resolve subscription status (only relevant for authed users)
+  let hasSubscription = false;
+  if (user) {
+    const [sub] = await db
+      .select({ id: subscriptions.id })
+      .from(subscriptions)
+      .where(and(eq(subscriptions.userId, user.id), eq(subscriptions.status, "active")))
+      .limit(1);
+    hasSubscription = !!sub;
   }
 
-  // Verify active subscription
-  const [sub] = await db
-    .select({ id: subscriptions.id })
-    .from(subscriptions)
-    .where(and(eq(subscriptions.userId, user.id), eq(subscriptions.status, "active")))
-    .limit(1);
-
-  if (!sub) {
-    return NextResponse.json({ error: "Subscription required" }, { status: 403 });
+  // If the caller can't claim a subscription, the only way to get a signed
+  // URL is for the track to be a public boutique demo (streaming-only, no
+  // download logging). Block downloads in that case.
+  let isBoutiqueDemoFallback = false;
+  if (!hasSubscription) {
+    if (isDownload) {
+      return NextResponse.json({ error: "Subscription required" }, { status: 403 });
+    }
+    isBoutiqueDemoFallback = await isPublicBoutiqueDemo(id);
+    if (!isBoutiqueDemoFallback) {
+      return NextResponse.json(
+        { error: user ? "Subscription required" : "Unauthorized" },
+        { status: user ? 403 : 401 },
+      );
+    }
   }
 
   // Get the track's full file path
@@ -64,7 +118,7 @@ export async function GET(
         .createSignedUrl(track.fileFullPath, SIGNED_URL_EXPIRY);
 
       if (fallback.data?.signedUrl) {
-        if (isDownload) {
+        if (isDownload && user) {
           try {
             await db.insert(downloads).values({ userId: user.id, trackId: id });
           } catch {}
@@ -75,8 +129,10 @@ export async function GET(
     return NextResponse.json({ error: "Could not generate URL" }, { status: 500 });
   }
 
-  // Log download only when caller is actually downloading (format param present)
-  if (isDownload) {
+  // Log download only when caller is actually downloading (format param present).
+  // `user` is always non-null here because the early-return above blocks anonymous
+  // callers from passing a `format` query param.
+  if (isDownload && user) {
     try {
       await db.insert(downloads).values({ userId: user.id, trackId: id });
     } catch {}
