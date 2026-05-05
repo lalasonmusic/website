@@ -121,8 +121,7 @@ export default function PlaylistEditor({ playlist: initialPlaylist, playlistTrac
       if (!search.trim()) return true;
       const q = search.toLowerCase();
       return t.title.toLowerCase().includes(q) || t.artistName.toLowerCase().includes(q);
-    })
-    .slice(0, 50);
+    });
 
   async function saveMetadata() {
     setSaving(true);
