@@ -101,31 +101,20 @@ export async function GET(
     return NextResponse.json({ error: "Track not found" }, { status: 404 });
   }
 
-  // Derive WAV path from MP3 path (same filename, different extension)
-  const filePath = format === "wav"
-    ? track.fileFullPath.replace(/\.mp3$/i, ".wav")
-    : track.fileFullPath;
+  // WAV downloads are now generated on-demand to keep storage usage low.
+  // Hand the client a URL to the streaming transcode endpoint instead of
+  // a Supabase signed URL — the client `await fetch(url)` flow works the
+  // same way (relative URL → same origin → blob download).
+  if (format === "wav") {
+    // Download is logged inside /api/tracks/[id]/wav itself, no need here.
+    return NextResponse.json({ url: `/api/tracks/${id}/wav`, format: "wav" });
+  }
 
   const { data, error } = await supabaseAdmin.storage
     .from("audio-full")
-    .createSignedUrl(filePath, SIGNED_URL_EXPIRY);
+    .createSignedUrl(track.fileFullPath, SIGNED_URL_EXPIRY);
 
   if (error || !data?.signedUrl) {
-    // If WAV not found, fall back to MP3
-    if (format === "wav") {
-      const fallback = await supabaseAdmin.storage
-        .from("audio-full")
-        .createSignedUrl(track.fileFullPath, SIGNED_URL_EXPIRY);
-
-      if (fallback.data?.signedUrl) {
-        if (isDownload && user) {
-          try {
-            await db.insert(downloads).values({ userId: user.id, trackId: id });
-          } catch {}
-        }
-        return NextResponse.json({ url: fallback.data.signedUrl, format: "mp3" });
-      }
-    }
     return NextResponse.json({ error: "Could not generate URL" }, { status: 500 });
   }
 
