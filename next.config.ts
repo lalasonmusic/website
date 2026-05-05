@@ -20,6 +20,11 @@ const nextConfig: NextConfig = {
       "./node_modules/ffmpeg-static/ffmpeg",
       "./node_modules/ffmpeg-static/ffmpeg.exe",
     ],
+    "/api/tracks/[id]/wav": [
+      "./node_modules/@ffprobe-installer/**/*",
+      "./node_modules/ffmpeg-static/ffmpeg",
+      "./node_modules/ffmpeg-static/ffmpeg.exe",
+    ],
   },
   redirects: async () => [
     // ── Blog : ancien préfixe Wix → nouveau préfixe ──
