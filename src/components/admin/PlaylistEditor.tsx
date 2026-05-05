@@ -17,11 +17,19 @@ type PlaylistData = {
   audience: "creator" | "boutique";
 };
 
+type TrackTag = {
+  slug: string;
+  labelFr: string;
+  labelEn: string;
+  type: "STYLE" | "THEME" | "MOOD";
+};
+
 type Track = {
   id: string;
   title: string;
   artistName: string;
   isDemo?: boolean;
+  categories?: TrackTag[];
 };
 
 type Props = {
@@ -120,7 +128,15 @@ export default function PlaylistEditor({ playlist: initialPlaylist, playlistTrac
     .filter((t) => {
       if (!search.trim()) return true;
       const q = search.toLowerCase();
-      return t.title.toLowerCase().includes(q) || t.artistName.toLowerCase().includes(q);
+      if (t.title.toLowerCase().includes(q)) return true;
+      if (t.artistName.toLowerCase().includes(q)) return true;
+      // Match against any tag's slug, FR label or EN label
+      return (t.categories ?? []).some(
+        (c) =>
+          c.slug.toLowerCase().includes(q) ||
+          c.labelFr.toLowerCase().includes(q) ||
+          c.labelEn.toLowerCase().includes(q),
+      );
     });
 
   async function saveMetadata() {
@@ -562,7 +578,7 @@ export default function PlaylistEditor({ playlist: initialPlaylist, playlistTrac
           </h3>
           <input
             type="text"
-            placeholder="Rechercher par titre ou artiste..."
+            placeholder="Rechercher par titre, artiste ou tag (style, thème, mood)..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             style={{ ...inputStyle, marginBottom: "0.5rem" }}
