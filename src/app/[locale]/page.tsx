@@ -187,7 +187,7 @@ export default async function HomePage({ params }: Props) {
             textAlign: "center",
           }}
         >
-          <span style={{ fontSize: "1.125rem", lineHeight: 1, flexShrink: 0 }} aria-hidden="true">⚠️</span>
+          <span style={{ fontSize: "1.125rem", lineHeight: 1, flexShrink: 0 }} aria-hidden="true">🎵</span>
           <p
             style={{
               margin: 0,
