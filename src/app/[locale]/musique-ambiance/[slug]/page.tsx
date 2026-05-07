@@ -16,6 +16,7 @@ import PlayerContextInit from "@/components/boutique/PlayerContextInit";
 import BoutiqueSubscriptionPopup from "@/components/boutique/BoutiqueSubscriptionPopup";
 import { Link } from "@/i18n/navigation";
 import { BASE_URL } from "@/lib/seo";
+import { buildBreadcrumbJsonLd } from "@/lib/seo/breadcrumb";
 
 type Props = {
   params: Promise<{ locale: string; slug: string }>;
@@ -105,6 +106,14 @@ export default async function MusiqueAmbianceDetailPage({ params }: Props) {
         ? t("playlist.trackCountSingular")
         : t("playlist.trackCount", { count: playlist.tracks.length });
 
+  const breadcrumbJsonLd = buildBreadcrumbJsonLd(localeTyped, [
+    {
+      name: localeTyped === "en" ? "Ambient Music" : "Musique d'ambiance",
+      path: localeTyped === "en" ? "/ambient-music" : "/musique-ambiance",
+    },
+    { name, path: `/${segment}/${localeSlug}` },
+  ]);
+
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "MusicPlaylist",
@@ -125,6 +134,10 @@ export default async function MusiqueAmbianceDetailPage({ params }: Props) {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
       />
 
       <PlayerContextInit hasBoutiqueAccess={access.hasBoutiqueAccess} />

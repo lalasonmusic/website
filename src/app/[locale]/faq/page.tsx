@@ -30,8 +30,28 @@ export default async function FaqPage({ params }: Props) {
     { q: t("q7"), a: t("a7") },
   ];
 
+  // schema.org FAQPage so Google can render the questions as a rich snippet
+  // directly in SERPs (collapsible accordion). Significant CTR boost on
+  // navigational/informational queries.
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: questions.map((item) => ({
+      "@type": "Question",
+      name: item.q,
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: item.a,
+      },
+    })),
+  };
+
   return (
     <div style={{ maxWidth: "760px", margin: "0 auto", padding: "3rem 1.5rem" }}>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <h1 style={{ fontWeight: 800, fontSize: "clamp(2rem, 4vw, 2.75rem)", marginBottom: "0.75rem" }}>
         {t("pageTitle")}
       </h1>
