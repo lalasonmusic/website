@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { useLocale } from "next-intl";
 import { usePlayerStore } from "@/store/playerStore";
@@ -76,7 +77,7 @@ export default function PlayerMobileExpanded() {
           {/* Cover */}
           <div style={{ width: "200px", height: "200px", borderRadius: "var(--radius-md)", overflow: "hidden", backgroundColor: "var(--color-bg-primary)" }}>
             {currentTrack.coverUrl ? (
-              <img src={currentTrack.coverUrl} alt={currentTrack.title} width={200} height={200} style={{ objectFit: "cover" }} />
+              <Image src={currentTrack.coverUrl} alt={currentTrack.title} width={200} height={200} sizes="200px" style={{ objectFit: "cover" }} />
             ) : (
               <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100%", fontSize: "4rem" }}>🎵</div>
             )}

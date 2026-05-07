@@ -1,5 +1,6 @@
 import { getTranslations } from "next-intl/server";
 import type { Metadata } from "next";
+import Image from "next/image";
 import { buildMetadata, BASE_URL } from "@/lib/seo";
 import { trackService } from "@/lib/services/trackService";
 import { artistService } from "@/lib/services/artistService";
@@ -436,11 +437,13 @@ export default async function HomePage({ params }: Props) {
                   }}
                 >
                   {post.coverUrl && (
-                    <div style={{ aspectRatio: "16/9", overflow: "hidden" }}>
-                      <img
+                    <div style={{ position: "relative", aspectRatio: "16/9", overflow: "hidden" }}>
+                      <Image
                         src={post.coverUrl}
                         alt={post.title}
-                        style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+                        fill
+                        sizes="(min-width: 1100px) 33vw, (min-width: 768px) 50vw, 100vw"
+                        style={{ objectFit: "cover", display: "block" }}
                       />
                     </div>
                   )}

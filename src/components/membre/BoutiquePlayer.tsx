@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback, useEffect } from "react";
+import Image from "next/image";
 import { usePlayerStore } from "@/store/playerStore";
 import type { TrackWithDetails, PlayerTrack } from "@/types/track";
 import PlaylistCarousel from "./PlaylistCarousel";
@@ -134,7 +135,7 @@ export default function BoutiquePlayer({ tracks, locale, moodFilters }: Props) {
         <div className="p-8 md:p-10 flex flex-col md:flex-row items-center gap-8">
           {/* Artist visual */}
           <div
-            className="w-28 h-28 sm:w-40 sm:h-40 md:w-48 md:h-48 rounded-2xl flex items-center justify-center shrink-0 overflow-hidden"
+            className="relative w-28 h-28 sm:w-40 sm:h-40 md:w-48 md:h-48 rounded-2xl flex items-center justify-center shrink-0 overflow-hidden"
             style={{
               background: nowPlaying
                 ? `linear-gradient(180deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.02) 100%)`
@@ -143,7 +144,13 @@ export default function BoutiquePlayer({ tracks, locale, moodFilters }: Props) {
             }}
           >
             {nowPlaying?.coverUrl ? (
-              <img src={nowPlaying.coverUrl} alt={nowPlaying.title} className="w-full h-full object-cover" />
+              <Image
+                src={nowPlaying.coverUrl}
+                alt={nowPlaying.title}
+                fill
+                sizes="(min-width: 768px) 192px, (min-width: 640px) 160px, 112px"
+                className="object-cover"
+              />
             ) : (
               <div className="text-center">
                 <p className="text-5xl font-extrabold text-white/20 mb-2">

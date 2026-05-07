@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { db } from "@/db";
 import { artists, tracks } from "@/db/schema";
 import { count, eq } from "drizzle-orm";
@@ -78,7 +79,14 @@ export default async function ArtistesPage() {
                 background: artist.photoUrl ? "none" : "linear-gradient(135deg, var(--color-accent) 0%, #e8961a 100%)",
               }}>
                 {artist.photoUrl ? (
-                  <img src={artist.photoUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                  <Image
+                    src={artist.photoUrl}
+                    alt=""
+                    width={48}
+                    height={48}
+                    sizes="48px"
+                    style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                  />
                 ) : (
                   <span style={{ color: "var(--color-accent-text)", fontWeight: 800, fontSize: "1rem" }}>
                     {artist.name.substring(0, 2).toUpperCase()}

@@ -1,3 +1,4 @@
+import Image from "next/image";
 import type { BlogPost } from "@/db/schema";
 
 type CardPost = Pick<
@@ -36,12 +37,13 @@ export default function BlogCard({ post, locale, categoryLabel, byLabel, readMor
       }}
     >
       {post.coverUrl && (
-        <div style={{ aspectRatio: "16/9", overflow: "hidden" }}>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
+        <div style={{ position: "relative", aspectRatio: "16/9", overflow: "hidden" }}>
+          <Image
             src={post.coverUrl}
             alt={post.title}
-            style={{ width: "100%", height: "100%", objectFit: "cover" }}
+            fill
+            sizes="(min-width: 1100px) 33vw, (min-width: 768px) 50vw, 100vw"
+            style={{ objectFit: "cover" }}
           />
         </div>
       )}

@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getBoutiquePlaylists, getBoutiquePlaylistBySlug } from "@/lib/playlists/queries";
 import { getUserAccess } from "@/lib/subscriptions/access";
 import { resolveSlugToDb, resolveDbToSlug, getAllSlugsForLocale } from "@/lib/boutique/slug-mapping";
+import Image from "next/image";
 import BoutiquePlaylistCard from "@/components/boutique/BoutiquePlaylistCard";
 import { getBoutiqueIcon } from "@/components/boutique/playlist-icons";
 import { getBoutiqueImage } from "@/lib/boutique/playlist-images";
@@ -155,18 +156,16 @@ export default async function MusiqueAmbianceDetailPage({ params }: Props) {
           isolation: "isolate",
         }}
       >
-        {/* Photo full-bleed (grayscale) */}
+        {/* Photo full-bleed (grayscale) — LCP element on this page */}
         {heroImage && (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
+          <Image
             src={heroImage}
             alt=""
             aria-hidden="true"
+            fill
+            priority
+            sizes="100vw"
             style={{
-              position: "absolute",
-              inset: 0,
-              width: "100%",
-              height: "100%",
               objectFit: "cover",
               filter: "grayscale(1)",
             }}

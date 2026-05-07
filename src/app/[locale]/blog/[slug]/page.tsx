@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import Image from "next/image";
 import { getTranslations } from "next-intl/server";
 import type { Metadata } from "next";
 import { blogService } from "@/lib/services/blogService";
@@ -88,14 +89,24 @@ export default async function BlogArticlePage({ params }: Props) {
         {dateStr && <> · {dateStr}</>}
       </p>
 
-      {/* Cover image */}
+      {/* Cover image — LCP element on this page */}
       {post.coverUrl && (
-        <div style={{ marginBottom: "2.5rem", borderRadius: "var(--radius-lg)", overflow: "hidden" }}>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
+        <div
+          style={{
+            position: "relative",
+            marginBottom: "2.5rem",
+            borderRadius: "var(--radius-lg)",
+            overflow: "hidden",
+            aspectRatio: "16 / 9",
+          }}
+        >
+          <Image
             src={post.coverUrl}
             alt={post.title}
-            style={{ width: "100%", display: "block" }}
+            fill
+            priority
+            sizes="(min-width: 800px) 800px, 100vw"
+            style={{ objectFit: "cover", display: "block" }}
           />
         </div>
       )}
