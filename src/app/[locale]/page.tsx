@@ -124,9 +124,12 @@ export default async function HomePage({ params }: Props) {
             {t("hero_subtitle")}
           </p>
 
+          {/* CRO: pricing is the primary CTA so visitors arriving with purchase
+              intent (email campaign) hit it first. Catalogue stays accessible
+              as a low-commitment secondary path. */}
           <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem", maxWidth: "320px" }}>
             <a
-              href={`/${locale}/catalogue`}
+              href={`/${locale}/abonnements`}
               style={{
                 padding: "0.875rem 2rem",
                 backgroundColor: "var(--color-accent)",
@@ -141,7 +144,7 @@ export default async function HomePage({ params }: Props) {
               {t("hero_cta_primary")}
             </a>
             <a
-              href={`/${locale}/abonnements`}
+              href={`/${locale}/catalogue`}
               style={{
                 padding: "0.875rem 2rem",
                 backgroundColor: "transparent",

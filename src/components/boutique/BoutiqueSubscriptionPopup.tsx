@@ -4,15 +4,25 @@ import { useState, useEffect } from "react";
 import { useTranslations } from "next-intl";
 import { Check } from "lucide-react";
 
-const POPUP_DELAY_MS = 15_000;
+// 8s strikes a better balance than 15s: long enough to let the visitor
+// see the cards / form an opinion, short enough to catch them BEFORE
+// they bounce or click into a deep page.
+const POPUP_DELAY_MS = 8_000;
 const SESSION_KEY = "boutique-popup-dismissed";
 
 type Props = {
   hasBoutiqueAccess: boolean;
   locale: "fr" | "en";
+  /**
+   * Optional context — when set (i.e. on a playlist detail page) the popup
+   * headline is rewritten to reference what the visitor is currently looking
+   * at, e.g. "Vous aimez Salon de coiffure ?". On the hub page this is
+   * undefined and we fall back to the generic title.
+   */
+  playlistName?: string;
 };
 
-export default function BoutiqueSubscriptionPopup({ hasBoutiqueAccess, locale }: Props) {
+export default function BoutiqueSubscriptionPopup({ hasBoutiqueAccess, locale, playlistName }: Props) {
   const t = useTranslations("boutique.popup");
   const [visible, setVisible] = useState(false);
   const [dismissed, setDismissed] = useState(false);
@@ -117,7 +127,7 @@ export default function BoutiqueSubscriptionPopup({ hasBoutiqueAccess, locale }:
           ✕
         </button>
 
-        {/* Title */}
+        {/* Title — contextual when we know which playlist the visitor is on */}
         <h2
           id="boutique-popup-title"
           style={{
@@ -129,7 +139,7 @@ export default function BoutiqueSubscriptionPopup({ hasBoutiqueAccess, locale }:
             lineHeight: 1.2,
           }}
         >
-          {t("title")}
+          {playlistName ? t("title_contextual", { playlist: playlistName }) : t("title")}
         </h2>
         <p
           style={{
@@ -140,7 +150,7 @@ export default function BoutiqueSubscriptionPopup({ hasBoutiqueAccess, locale }:
             lineHeight: 1.45,
           }}
         >
-          {t("subtitle")}
+          {playlistName ? t("subtitle_contextual") : t("subtitle")}
         </p>
 
         {/* Single plan card */}

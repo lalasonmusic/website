@@ -479,6 +479,7 @@ export default async function MusiqueAmbianceDetailPage({ params }: Props) {
       <BoutiqueSubscriptionPopup
         hasBoutiqueAccess={access.hasBoutiqueAccess}
         locale={localeTyped}
+        playlistName={name}
       />
     </main>
   );
