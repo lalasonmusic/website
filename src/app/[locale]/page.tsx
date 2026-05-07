@@ -163,6 +163,65 @@ export default async function HomePage({ params }: Props) {
         </div>
       </section>
 
+      {/* ── BOUTIQUE EDUCATION BAND ── targets visitors with a venue
+              (salons, restaurants, cabinets) without distracting creator-audience
+              visitors. Compact strip, immediately addresses the legal pain
+              point that makes Lalason valuable to that segment. */}
+      <section
+        style={{
+          background: "rgba(245, 166, 35, 0.06)",
+          borderTop: "1px solid rgba(245, 166, 35, 0.18)",
+          borderBottom: "1px solid rgba(245, 166, 35, 0.18)",
+          padding: "1.25rem 1.5rem",
+        }}
+      >
+        <div
+          style={{
+            maxWidth: 1100,
+            margin: "0 auto",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: "1rem",
+            flexWrap: "wrap",
+            textAlign: "center",
+          }}
+        >
+          <span style={{ fontSize: "1.125rem", lineHeight: 1, flexShrink: 0 }} aria-hidden="true">⚠️</span>
+          <p
+            style={{
+              margin: 0,
+              fontSize: "0.9375rem",
+              color: "rgba(255,255,255,0.92)",
+              lineHeight: 1.5,
+              maxWidth: 760,
+            }}
+          >
+            <strong style={{ fontWeight: 700 }}>{t("boutique_band_hook")}</strong>{" "}
+            <span style={{ color: "var(--color-accent)", fontWeight: 600 }}>
+              {t("boutique_band_warning")}
+            </span>{" "}
+            <span style={{ color: "rgba(255,255,255,0.75)" }}>{t("boutique_band_solution")}</span>
+          </p>
+          <a
+            href={`/${locale}/abonnements#boutique`}
+            style={{
+              padding: "0.5rem 1.125rem",
+              backgroundColor: "var(--color-accent)",
+              color: "var(--color-accent-text)",
+              fontWeight: 600,
+              fontSize: "0.875rem",
+              borderRadius: "var(--radius-full)",
+              textDecoration: "none",
+              whiteSpace: "nowrap",
+              flexShrink: 0,
+            }}
+          >
+            {t("boutique_band_cta")} →
+          </a>
+        </div>
+      </section>
+
       {/* ── POPULAR TRACKS ── */}
       {popularTracks.length > 0 && (
         <section style={{ padding: "5rem 1.5rem", background: "linear-gradient(to bottom, #e8edf0 0%, #f8f7f5 80px, #f8f7f5 100%)" }}>
