@@ -118,7 +118,10 @@ export default function PricingToggle({
   useEffect(() => {
     if (!confirmingPlan) return;
     function onKey(e: KeyboardEvent) {
-      if (e.key === "Escape" && loadingPlan === null) setConfirmingPlan(null);
+      if (e.key === "Escape" && loadingPlan === null) {
+        if (confirmingPlan) track("checkout_modal_cancel", { planType: confirmingPlan, source: "escape" });
+        setConfirmingPlan(null);
+      }
     }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
@@ -137,11 +140,26 @@ export default function PricingToggle({
 
   function handleSubscribeCreators() {
     const planType: PlanType = isAnnual ? "creators_annual" : "creators_monthly";
+    track("pricing_cta_click", { planType, source: "card" });
     setConfirmingPlan(planType);
   }
 
   function handleSubscribeBoutique() {
+    track("pricing_cta_click", { planType: "boutique_annual", source: "card" });
     setConfirmingPlan("boutique_annual");
+  }
+
+  function dismissConfirmation() {
+    if (loadingPlan !== null) return;
+    if (confirmingPlan) {
+      track("checkout_modal_cancel", { planType: confirmingPlan });
+    }
+    setConfirmingPlan(null);
+  }
+
+  function continueToStripe(planType: PlanType) {
+    track("checkout_modal_continue", { planType });
+    startStripeRedirect(planType);
   }
 
   // Resolve human-readable plan name + price for the confirmation modal
@@ -392,7 +410,7 @@ export default function PricingToggle({
           <>
             {/* Backdrop */}
             <div
-              onClick={() => !isLoading && setConfirmingPlan(null)}
+              onClick={dismissConfirmation}
               style={{
                 position: "fixed",
                 inset: 0,
@@ -505,7 +523,7 @@ export default function PricingToggle({
 
               {/* Continue CTA */}
               <button
-                onClick={() => startStripeRedirect(confirmingPlan)}
+                onClick={() => continueToStripe(confirmingPlan)}
                 disabled={isLoading}
                 style={{
                   width: "100%",
@@ -548,7 +566,7 @@ export default function PricingToggle({
 
               {/* Cancel link */}
               <button
-                onClick={() => !isLoading && setConfirmingPlan(null)}
+                onClick={dismissConfirmation}
                 disabled={isLoading}
                 style={{
                   width: "100%",

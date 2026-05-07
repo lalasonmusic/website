@@ -61,3 +61,28 @@ export function buildMetadata({
     ...(noIndex && { robots: { index: false, follow: false } }),
   };
 }
+
+type BuildOgUrlParams = {
+  title: string;
+  eyebrow?: string;
+  subtitle?: string;
+  /** Absolute https URL to a background photo */
+  image?: string;
+};
+
+/**
+ * Builds an absolute URL to the `/api/og` dynamic image generator. Used as
+ * the `image` parameter to `buildMetadata` on detail pages that benefit
+ * from a personalised OG image (blog posts, boutique playlists, artists).
+ *
+ * Social scrapers (FB / Twitter / LinkedIn / WhatsApp) need an absolute
+ * URL, hence the BASE_URL prefix — a relative path would fail validation.
+ */
+export function buildDynamicOgUrl(p: BuildOgUrlParams): string {
+  const params = new URLSearchParams();
+  params.set("title", p.title);
+  if (p.eyebrow) params.set("eyebrow", p.eyebrow);
+  if (p.subtitle) params.set("subtitle", p.subtitle);
+  if (p.image) params.set("image", p.image);
+  return `${BASE_URL}/api/og?${params.toString()}`;
+}

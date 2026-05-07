@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useTranslations } from "next-intl";
 import { Check } from "lucide-react";
+import { track } from "@/lib/analytics";
 
 // 8s strikes a better balance than 15s: long enough to let the visitor
 // see the cards / form an opinion, short enough to catch them BEFORE
@@ -42,12 +43,21 @@ export default function BoutiqueSubscriptionPopup({ hasBoutiqueAccess, locale, p
       setVisible(true);
       // Mark as shown immediately so navigating between hub/détail doesn't re-trigger
       sessionStorage.setItem(SESSION_KEY, "1");
+      track("boutique_popup_shown", {
+        context: playlistName ? "detail" : "hub",
+        playlist: playlistName ?? null,
+      });
     }, POPUP_DELAY_MS);
 
     return () => clearTimeout(timer);
-  }, [hasBoutiqueAccess]);
+  }, [hasBoutiqueAccess, playlistName]);
 
-  function handleClose() {
+  function handleClose(reason: "x" | "backdrop" | "escape" = "x") {
+    track("boutique_popup_dismissed", {
+      reason,
+      context: playlistName ? "detail" : "hub",
+      playlist: playlistName ?? null,
+    });
     setVisible(false);
     setDismissed(true);
   }
@@ -56,7 +66,7 @@ export default function BoutiqueSubscriptionPopup({ hasBoutiqueAccess, locale, p
   useEffect(() => {
     if (!visible) return;
     function onKey(e: KeyboardEvent) {
-      if (e.key === "Escape") handleClose();
+      if (e.key === "Escape") handleClose("escape");
     }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
@@ -76,7 +86,7 @@ export default function BoutiqueSubscriptionPopup({ hasBoutiqueAccess, locale, p
     <>
       {/* Backdrop */}
       <div
-        onClick={handleClose}
+        onClick={() => handleClose("backdrop")}
         style={{
           position: "fixed",
           inset: 0,
@@ -109,7 +119,7 @@ export default function BoutiqueSubscriptionPopup({ hasBoutiqueAccess, locale, p
       >
         {/* Close */}
         <button
-          onClick={handleClose}
+          onClick={() => handleClose("x")}
           aria-label={t("closeAriaLabel")}
           style={{
             position: "absolute",
@@ -205,6 +215,10 @@ export default function BoutiqueSubscriptionPopup({ hasBoutiqueAccess, locale, p
           </p>
           <a
             href={`/${locale}/abonnements#boutique`}
+            onClick={() => track("boutique_popup_cta_click", {
+              context: playlistName ? "detail" : "hub",
+              playlist: playlistName ?? null,
+            })}
             style={{
               display: "block",
               padding: "0.75rem",

@@ -16,7 +16,7 @@ import PreviewEndedToast from "@/components/boutique/PreviewEndedToast";
 import PlayerContextInit from "@/components/boutique/PlayerContextInit";
 import BoutiqueSubscriptionPopup from "@/components/boutique/BoutiqueSubscriptionPopup";
 import { Link } from "@/i18n/navigation";
-import { BASE_URL } from "@/lib/seo";
+import { BASE_URL, buildDynamicOgUrl } from "@/lib/seo";
 import { buildBreadcrumbJsonLd } from "@/lib/seo/breadcrumb";
 
 type Props = {
@@ -49,6 +49,16 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const enUrl = `${BASE_URL}/en/ambient-music/${enSlug}`;
   const canonical = localeTyped === "en" ? enUrl : frUrl;
 
+  // Build a dynamic OG image with the same Unsplash photo + duotone-style
+  // typography overlay. Eyebrow surfaces the section so shares read as part
+  // of a curated collection, not a random page.
+  const eyebrow = localeTyped === "en" ? "Ambient Music" : "Musique d'ambiance";
+  const ogImageUrl = buildDynamicOgUrl({
+    title: name,
+    eyebrow,
+    image: getBoutiqueImage(dbSlug) ?? undefined,
+  });
+
   return {
     title: name,
     description: description ?? undefined,
@@ -63,6 +73,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       siteName: "Lalason",
       locale: localeTyped === "fr" ? "fr_FR" : "en_US",
       type: "website",
+      images: [{ url: ogImageUrl, width: 1200, height: 630 }],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${name} | Lalason`,
+      description: description ?? undefined,
+      images: [ogImageUrl],
     },
   };
 }

@@ -3,7 +3,7 @@ import Image from "next/image";
 import { getTranslations } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { artistService } from "@/lib/services/artistService";
-import { buildMetadata } from "@/lib/seo";
+import { buildMetadata, buildDynamicOgUrl } from "@/lib/seo";
 import { buildBreadcrumbJsonLd } from "@/lib/seo/breadcrumb";
 import { getArtistPhoto } from "@/lib/artistPhotos";
 import { createClient } from "@/lib/supabase/server";
@@ -21,12 +21,19 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const artist = await artistService.getBySlug(slug);
   if (!artist) return {};
   const bio = locale === "fr" ? artist.bioFr : artist.bioEn;
+  const photo = getArtistPhoto(slug, artist.photoUrl) ?? undefined;
+  const eyebrow = locale === "en" ? "Artist" : "Artiste";
+  const ogImage = buildDynamicOgUrl({
+    title: artist.name,
+    eyebrow,
+    image: photo,
+  });
   return buildMetadata({
     title: artist.name,
     description: bio ?? artist.name,
     locale,
     pagePath: `/nos-artistes/${slug}`,
-    image: getArtistPhoto(slug, artist.photoUrl) ?? undefined,
+    image: ogImage,
   });
 }
 
