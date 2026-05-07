@@ -80,6 +80,22 @@ export default async function AbonnementsPage({ params }: Props) {
           subscribeLabel={t("subscribe")}
           perMonth={t("perMonth")}
           perYear={t("perYear")}
+          trustLabels={{
+            noCommitment: t("no_commitment"),
+            moneyBack: t("money_back"),
+            securePayment: t("secure_payment"),
+          }}
+          confirmLabels={{
+            title: t("confirm_title"),
+            desc: t("confirm_desc"),
+            bullet1: t("confirm_bullet1"),
+            bullet2: t("confirm_bullet2"),
+            bullet3: t("confirm_bullet3"),
+            bullet4: t("confirm_bullet4"),
+            secure: t("confirm_secure"),
+            cta: t("confirm_cta"),
+            cancel: t("confirm_cancel"),
+          }}
         />
       </section>
 

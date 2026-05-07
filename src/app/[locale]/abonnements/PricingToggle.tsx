@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { track } from "@/lib/analytics";
 
 type PlanType = "creators_monthly" | "creators_annual" | "boutique_annual";
@@ -56,6 +56,22 @@ type Props = {
   subscribeLabel: string;
   perMonth: string;
   perYear: string;
+  trustLabels: {
+    noCommitment: string;
+    moneyBack: string;
+    securePayment: string;
+  };
+  confirmLabels: {
+    title: string;
+    desc: string;
+    bullet1: string;
+    bullet2: string;
+    bullet3: string;
+    bullet4: string;
+    secure: string;
+    cta: string;
+    cancel: string;
+  };
 };
 
 function CheckIcon() {
@@ -81,12 +97,34 @@ export default function PricingToggle({
   subscribeLabel,
   perMonth,
   perYear,
+  trustLabels,
+  confirmLabels,
 }: Props) {
-  const [isAnnual, setIsAnnual] = useState(false);
+  // CRO: default to annual — most-attractive deal first, matches every
+  // major competitor (Epidemic Sound, Artlist, Bensound). Monthly remains
+  // one click away via the toggle.
+  const [isAnnual, setIsAnnual] = useState(true);
   const [loadingPlan, setLoadingPlan] = useState<PlanType | null>(null);
   const [error, setError] = useState<string | null>(null);
+  // CRO: a confirmation step between "Subscribe" click and Stripe redirect.
+  // Reduces checkout abandonment by reaffirming value + guarantees + secure
+  // payment right before the user enters card details — the most anxious
+  // moment of the funnel.
+  const [confirmingPlan, setConfirmingPlan] = useState<PlanType | null>(null);
 
-  async function handleSubscribe(planType: PlanType) {
+  // Allow Escape to dismiss the confirmation modal (unless we're already
+  // mid-redirect to Stripe — let that finish to avoid leaving the user in
+  // a half-state).
+  useEffect(() => {
+    if (!confirmingPlan) return;
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape" && loadingPlan === null) setConfirmingPlan(null);
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [confirmingPlan, loadingPlan]);
+
+  async function startStripeRedirect(planType: PlanType) {
     setLoadingPlan(planType);
     setError(null);
     try {
@@ -97,11 +135,29 @@ export default function PricingToggle({
     setLoadingPlan(null);
   }
 
-  // Read the current toggle state at click-time to avoid stale closure issues
-  // where a re-render between click and effect could send the wrong plan.
   function handleSubscribeCreators() {
     const planType: PlanType = isAnnual ? "creators_annual" : "creators_monthly";
-    handleSubscribe(planType);
+    setConfirmingPlan(planType);
+  }
+
+  function handleSubscribeBoutique() {
+    setConfirmingPlan("boutique_annual");
+  }
+
+  // Resolve human-readable plan name + price for the confirmation modal
+  function getConfirmationDetails(planType: PlanType) {
+    if (planType === "boutique_annual") {
+      return {
+        name: boutiqueData.name,
+        price: boutiqueData.annualPrice,
+        period: perYear,
+      };
+    }
+    return {
+      name: creatorsData.name,
+      price: planType === "creators_annual" ? creatorsData.annualPrice : creatorsData.monthlyPrice,
+      period: planType === "creators_annual" ? perYear : perMonth,
+    };
   }
 
   return (
@@ -190,7 +246,7 @@ export default function PricingToggle({
             <p className="text-sm text-white/50 mb-8 leading-relaxed">{creatorsData.description}</p>
 
             {/* Price */}
-            <div className="mb-8">
+            <div className="mb-3">
               <span className="text-3xl md:text-5xl font-extrabold text-white tracking-tight">
                 {isAnnual ? creatorsData.annualPrice : creatorsData.monthlyPrice}
               </span>
@@ -198,6 +254,18 @@ export default function PricingToggle({
                 {isAnnual ? perYear : perMonth}
               </span>
             </div>
+
+            {/* Trust signals — risk reversal next to the price */}
+            <ul className="space-y-1.5 mb-7 text-[0.8125rem] text-white/65">
+              <li className="flex items-start gap-2">
+                <CheckIcon />
+                <span>{trustLabels.noCommitment}</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <CheckIcon />
+                <span>{trustLabels.moneyBack}</span>
+              </li>
+            </ul>
 
             {/* CTA */}
             <button
@@ -207,7 +275,7 @@ export default function PricingToggle({
                 text-[var(--color-accent-text)] border-0
                 hover:scale-[1.02] active:scale-[0.98]
                 disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:scale-100
-                mb-8"
+                mb-2"
               style={{
                 background: "linear-gradient(135deg, var(--color-accent) 0%, #e8961a 100%)",
                 boxShadow: "0 4px 24px rgba(245,166,35,0.25)",
@@ -215,6 +283,15 @@ export default function PricingToggle({
             >
               {loadingPlan === "creators_monthly" || loadingPlan === "creators_annual" ? "..." : subscribeLabel}
             </button>
+
+            {/* Secure payment reassurance below CTA */}
+            <p className="flex items-center justify-center gap-1.5 text-[0.6875rem] text-white/35 mb-6">
+              <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+              </svg>
+              {trustLabels.securePayment}
+            </p>
 
             {/* Divider */}
             <div className="h-px bg-white/10 mb-6" />
@@ -249,27 +326,48 @@ export default function PricingToggle({
           <p className="text-sm text-white/50 mb-8 leading-relaxed">{boutiqueData.description}</p>
 
           {/* Price */}
-          <div className="mb-8">
+          <div className="mb-3">
             <span className="text-3xl md:text-5xl font-extrabold text-white tracking-tight">
               {boutiqueData.annualPrice}
             </span>
             <span className="text-white/40 text-sm ml-1.5">{perYear}</span>
           </div>
 
+          {/* Trust signals */}
+          <ul className="space-y-1.5 mb-7 text-[0.8125rem] text-white/65">
+            <li className="flex items-start gap-2">
+              <CheckIcon />
+              <span>{trustLabels.noCommitment}</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <CheckIcon />
+              <span>{trustLabels.moneyBack}</span>
+            </li>
+          </ul>
+
           {/* CTA */}
           <button
-            onClick={() => handleSubscribe("boutique_annual")}
+            onClick={handleSubscribeBoutique}
             disabled={loadingPlan !== null}
             className="w-full py-3.5 rounded-xl font-semibold text-base transition-all duration-300 cursor-pointer
               text-white border border-white/[0.12]
               hover:border-white/[0.2] hover:scale-[1.02]
               active:scale-[0.98]
               disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:scale-100
-              mb-8"
+              mb-2"
             style={{ background: "rgba(255,255,255,0.06)" }}
           >
             {loadingPlan === "boutique_annual" ? "..." : subscribeLabel}
           </button>
+
+          {/* Secure payment reassurance */}
+          <p className="flex items-center justify-center gap-1.5 text-[0.6875rem] text-white/35 mb-6">
+            <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+              <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+            </svg>
+            {trustLabels.securePayment}
+          </p>
 
           {/* Divider */}
           <div className="h-px bg-white/10 mb-6" />
@@ -285,6 +383,192 @@ export default function PricingToggle({
           </ul>
         </div>
       </div>
+
+      {/* ── Confirmation modal — pre-Stripe value recap + guarantees ── */}
+      {confirmingPlan && (() => {
+        const details = getConfirmationDetails(confirmingPlan);
+        const isLoading = loadingPlan === confirmingPlan;
+        return (
+          <>
+            {/* Backdrop */}
+            <div
+              onClick={() => !isLoading && setConfirmingPlan(null)}
+              style={{
+                position: "fixed",
+                inset: 0,
+                backgroundColor: "rgba(0, 0, 0, 0.65)",
+                backdropFilter: "blur(4px)",
+                zIndex: 200,
+                animation: "boutiquePopupFadeIn 0.25s ease",
+              }}
+            />
+            {/* Modal */}
+            <div
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="checkout-confirm-title"
+              style={{
+                position: "fixed",
+                top: "50%",
+                left: "50%",
+                transform: "translate(-50%, -50%)",
+                zIndex: 201,
+                width: "92%",
+                maxWidth: 460,
+                backgroundColor: "white",
+                borderRadius: 16,
+                padding: "2rem 1.75rem 1.5rem",
+                boxShadow: "0 20px 60px rgba(0, 0, 0, 0.35)",
+                animation: "boutiquePopupSlideUp 0.25s ease",
+              }}
+            >
+              {/* Plan recap */}
+              <p
+                style={{
+                  fontSize: "0.6875rem",
+                  fontWeight: 700,
+                  textTransform: "uppercase",
+                  letterSpacing: "0.08em",
+                  color: "#9ca3af",
+                  textAlign: "center",
+                  margin: "0 0 0.375rem",
+                }}
+              >
+                {details.name}
+              </p>
+              <h2
+                id="checkout-confirm-title"
+                style={{
+                  fontWeight: 800,
+                  fontSize: "1.5rem",
+                  color: "#1b3a4b",
+                  textAlign: "center",
+                  margin: "0 0 0.25rem",
+                  lineHeight: 1.15,
+                }}
+              >
+                {confirmLabels.title}
+              </h2>
+              <p
+                style={{
+                  textAlign: "center",
+                  fontSize: "1.5rem",
+                  fontWeight: 800,
+                  color: "var(--color-accent)",
+                  margin: "0.5rem 0 0.875rem",
+                }}
+              >
+                {details.price}
+                <span style={{ fontSize: "0.875rem", fontWeight: 500, color: "#9ca3af", marginLeft: 4 }}>
+                  {details.period}
+                </span>
+              </p>
+              <p
+                style={{
+                  fontSize: "0.875rem",
+                  color: "#6b7280",
+                  textAlign: "center",
+                  margin: "0 0 1.25rem",
+                }}
+              >
+                {confirmLabels.desc}
+              </p>
+
+              {/* Value bullets */}
+              <ul
+                style={{
+                  listStyle: "none",
+                  padding: 0,
+                  margin: "0 0 1.25rem",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "0.625rem",
+                }}
+              >
+                {[confirmLabels.bullet1, confirmLabels.bullet2, confirmLabels.bullet3, confirmLabels.bullet4].map((b) => (
+                  <li
+                    key={b}
+                    style={{
+                      display: "flex",
+                      alignItems: "flex-start",
+                      gap: "0.625rem",
+                      fontSize: "0.875rem",
+                      color: "#374151",
+                      lineHeight: 1.45,
+                    }}
+                  >
+                    <CheckIcon />
+                    <span>{b}</span>
+                  </li>
+                ))}
+              </ul>
+
+              {/* Continue CTA */}
+              <button
+                onClick={() => startStripeRedirect(confirmingPlan)}
+                disabled={isLoading}
+                style={{
+                  width: "100%",
+                  padding: "0.875rem",
+                  backgroundColor: "var(--color-accent)",
+                  color: "var(--color-accent-text)",
+                  fontWeight: 700,
+                  fontSize: "0.9375rem",
+                  borderRadius: 9999,
+                  border: "none",
+                  cursor: isLoading ? "wait" : "pointer",
+                  opacity: isLoading ? 0.7 : 1,
+                  marginBottom: "0.625rem",
+                  fontFamily: "inherit",
+                }}
+              >
+                {isLoading ? "..." : `${confirmLabels.cta} →`}
+              </button>
+
+              {/* Secure payment line */}
+              <p
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: "0.375rem",
+                  fontSize: "0.6875rem",
+                  color: "#9ca3af",
+                  margin: "0 0 0.75rem",
+                  textAlign: "center",
+                  lineHeight: 1.4,
+                }}
+              >
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                  <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                </svg>
+                {confirmLabels.secure}
+              </p>
+
+              {/* Cancel link */}
+              <button
+                onClick={() => !isLoading && setConfirmingPlan(null)}
+                disabled={isLoading}
+                style={{
+                  width: "100%",
+                  padding: "0.5rem",
+                  background: "none",
+                  border: "none",
+                  color: "#6b7280",
+                  fontSize: "0.8125rem",
+                  fontWeight: 500,
+                  cursor: isLoading ? "wait" : "pointer",
+                  textDecoration: "underline",
+                  fontFamily: "inherit",
+                }}
+              >
+                {confirmLabels.cancel}
+              </button>
+            </div>
+          </>
+        );
+      })()}
     </div>
   );
 }

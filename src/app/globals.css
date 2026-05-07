@@ -508,3 +508,14 @@ body {
   0%, 100% { transform: scaleY(0.4); }
   50% { transform: scaleY(1); }
 }
+
+/* ── Boutique / pricing modal animations (shared by BoutiqueSubscriptionPopup
+      and the pre-Stripe confirmation modal in PricingToggle) ── */
+@keyframes boutiquePopupFadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes boutiquePopupSlideUp {
+  from { opacity: 0; transform: translate(-50%, -45%); }
+  to   { opacity: 1; transform: translate(-50%, -50%); }
+}
