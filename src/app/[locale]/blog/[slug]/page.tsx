@@ -4,7 +4,7 @@ import { getTranslations } from "next-intl/server";
 import type { Metadata } from "next";
 import { blogService } from "@/lib/services/blogService";
 import BlogCard from "@/components/blog/BlogCard";
-import { buildMetadata, BASE_URL } from "@/lib/seo";
+import { buildMetadata, buildDynamicOgUrl, BASE_URL } from "@/lib/seo";
 import { buildBreadcrumbJsonLd } from "@/lib/seo/breadcrumb";
 
 export const revalidate = 86400; // ISR — revalidate every 24h
@@ -17,12 +17,21 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale, slug } = await params;
   const post = await blogService.getBySlug(slug, locale);
   if (!post) return {};
+  const t = await getTranslations({ locale, namespace: "blog" });
+  // Use the post's category as the eyebrow ("GUIDE", "TUTORIEL", …) so the
+  // OG image carries content context, not just the title.
+  const categoryLabel = t(`categories.${post.category}` as Parameters<typeof t>[0]);
+  const ogImage = buildDynamicOgUrl({
+    title: post.title,
+    eyebrow: categoryLabel,
+    image: post.coverUrl ?? undefined,
+  });
   return buildMetadata({
     title: post.metaTitle ?? post.title,
     description: post.metaDescription ?? undefined,
     locale,
     pagePath: `/blog/${slug}`,
-    image: post.coverUrl ?? undefined,
+    image: ogImage,
     type: "article",
   });
 }
