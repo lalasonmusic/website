@@ -3,6 +3,7 @@ import { getTranslations } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { artistService } from "@/lib/services/artistService";
 import { buildMetadata } from "@/lib/seo";
+import { buildBreadcrumbJsonLd } from "@/lib/seo/breadcrumb";
 import { getArtistPhoto } from "@/lib/artistPhotos";
 import { createClient } from "@/lib/supabase/server";
 import { db } from "@/db";
@@ -54,8 +55,18 @@ export default async function ArtistePage({ params }: Props) {
     }
   } catch {}
 
+  const artistsHubLabel = locale === "en" ? "Our artists" : "Nos artistes";
+  const breadcrumbJsonLd = buildBreadcrumbJsonLd(locale, [
+    { name: artistsHubLabel, path: "/nos-artistes" },
+    { name: artist.name, path: `/nos-artistes/${artist.slug}` },
+  ]);
+
   return (
     <div>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+      />
       {/* Hero — artist photo + name */}
       <section style={{
         padding: "4rem 1.5rem 3rem",

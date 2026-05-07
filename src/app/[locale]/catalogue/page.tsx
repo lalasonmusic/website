@@ -165,6 +165,23 @@ export default async function CataloguePage({ params, searchParams }: Props) {
           }}
         />
         <div style={{ position: "relative", maxWidth: "900px", margin: "0 auto" }}>
+          <h1
+            style={{
+              fontFamily: "var(--font-poppins, Poppins, sans-serif)",
+              fontWeight: 800,
+              fontSize: "clamp(1.75rem, 3.5vw, 2.5rem)",
+              color: "white",
+              margin: "0 0 1rem",
+              lineHeight: 1.15,
+              letterSpacing: "-0.01em",
+              textShadow: "0 2px 12px rgba(0,0,0,0.3)",
+            }}
+          >
+            {locale === "fr"
+              ? "Catalogue de musique libre de droit"
+              : "Royalty-free music catalogue"}
+          </h1>
+
           {/* Quick link to favorites for Creators */}
           {canDownload && (
             <div style={{ marginBottom: "1.25rem" }}>

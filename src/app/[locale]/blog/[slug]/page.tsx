@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 import { blogService } from "@/lib/services/blogService";
 import BlogCard from "@/components/blog/BlogCard";
 import { buildMetadata, BASE_URL } from "@/lib/seo";
+import { buildBreadcrumbJsonLd } from "@/lib/seo/breadcrumb";
 
 export const revalidate = 86400; // ISR — revalidate every 24h
 
@@ -120,6 +121,17 @@ export default async function BlogArticlePage({ params }: Props) {
             image: post.coverUrl ?? undefined,
             url: `${BASE_URL}/${locale}/blog/${post.slug}`,
           }),
+        }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(
+            buildBreadcrumbJsonLd(locale, [
+              { name: "Blog", path: "/blog" },
+              { name: post.title, path: `/blog/${post.slug}` },
+            ]),
+          ),
         }}
       />
 
