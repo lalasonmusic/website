@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { usePlayerStore } from "@/store/playerStore";
+import { track as trackEvent } from "@/lib/analytics";
 import PlayerDesktop from "./PlayerDesktop";
 import PlayerMobileMini from "./PlayerMobileMini";
 
@@ -68,6 +69,12 @@ export default function PlayerProvider({ isSubscribed, canDownload }: Props) {
       ) {
         audio.pause();
         usePlayerStore.setState({ isPlaying: false, isPreviewEnded: true });
+        // Strong CRO signal: visitor heard 30s of a non-demo track and got
+        // capped. Captures intent to listen → friction → conversion opportunity.
+        trackEvent("boutique_preview_cut", {
+          track_title: ct.title,
+          artist: ct.artistName,
+        });
       }
     };
 

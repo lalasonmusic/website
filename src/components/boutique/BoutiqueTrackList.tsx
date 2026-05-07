@@ -3,6 +3,7 @@
 import { useTranslations } from "next-intl";
 import { Play } from "lucide-react";
 import { usePlayerStore } from "@/store/playerStore";
+import { track as trackEvent } from "@/lib/analytics";
 import type { BoutiqueTrack } from "@/lib/playlists/queries";
 import type { PlayerTrack } from "@/types/track";
 
@@ -44,9 +45,16 @@ export default function BoutiqueTrackList({ tracks, playlistName, playlistEmoji,
   const playerTracks = tracks.map(toPlayerTrack);
 
   function handlePlay(index: number) {
-    const track = playerTracks[index];
+    const playerTrack = playerTracks[index];
+    trackEvent("track_play_boutique", {
+      playlist: playlistName,
+      track_title: playerTrack.title,
+      artist: playerTrack.artistName,
+      is_demo: !!playerTrack.isDemo,
+      position: index,
+    });
     setActivePlaylist(playlistName, playlistEmoji, playerTracks.map((p) => p.id));
-    playTrack(track, playerTracks, index);
+    playTrack(playerTrack, playerTracks, index);
   }
 
   return (
