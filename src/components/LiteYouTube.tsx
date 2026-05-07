@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 
 export function LiteYouTube({
   videoId,
@@ -41,11 +42,12 @@ export function LiteYouTube({
         ...style,
       }}
     >
-      <img
+      <Image
         src={`https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`}
         alt={title}
-        loading="lazy"
-        style={{ width: "100%", height: "100%", objectFit: "cover" }}
+        fill
+        sizes="(min-width: 1100px) 33vw, (min-width: 768px) 50vw, 100vw"
+        style={{ objectFit: "cover" }}
       />
       {/* Play button overlay */}
       <div

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import Image from "next/image";
 import { usePlayerStore } from "@/store/playerStore";
 import type { TrackWithDetails, PlayerTrack } from "@/types/track";
 import { track as trackEvent } from "@/lib/analytics";
@@ -243,9 +244,12 @@ export default function TrackCard({ track, queue, queueIndex, locale, isSubscrib
           }}
         >
           {track.coverUrl ? (
-            <img
+            <Image
               src={track.coverUrl}
               alt=""
+              width={48}
+              height={48}
+              sizes="48px"
               style={{ width: "100%", height: "100%", objectFit: "cover" }}
             />
           ) : (

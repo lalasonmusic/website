@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { useLocale } from "next-intl";
 import { usePathname } from "next/navigation";
@@ -178,7 +179,7 @@ export default function PlayerDesktop() {
           flexShrink: 0,
         }}>
           {currentTrack.coverUrl ? (
-            <img src={currentTrack.coverUrl} alt={currentTrack.title} width={36} height={36} style={{ objectFit: "cover" }} />
+            <Image src={currentTrack.coverUrl} alt={currentTrack.title} width={36} height={36} sizes="36px" style={{ objectFit: "cover" }} />
           ) : (
             <div style={{
               width: "100%",

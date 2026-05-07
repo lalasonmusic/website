@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import { Play } from "lucide-react";
 import { usePlayerStore } from "@/store/playerStore";
 import type { PlayerTrack } from "@/types/track";
@@ -126,17 +127,13 @@ export default function PlaylistCarousel({ locale }: Props) {
             >
               {/* Photo background (grayscale) — only for boutique playlists with mapped image */}
               {imageUrl && (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
+                <Image
                   src={imageUrl}
                   alt=""
+                  fill
+                  sizes="(min-width: 1100px) 25vw, (min-width: 768px) 33vw, 80vw"
                   className="boutique-playlist-card-image"
-                  loading="lazy"
                   style={{
-                    position: "absolute",
-                    inset: 0,
-                    width: "100%",
-                    height: "100%",
                     objectFit: "cover",
                     filter: "grayscale(1)",
                     transition: "transform 600ms cubic-bezier(0.16, 1, 0.3, 1)",

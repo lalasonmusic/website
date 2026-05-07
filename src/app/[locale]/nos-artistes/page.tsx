@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import { getTranslations } from "next-intl/server";
 import { artistService } from "@/lib/services/artistService";
 import { buildMetadata } from "@/lib/seo";
@@ -86,11 +87,12 @@ export default async function NosArtistesPage({ params }: Props) {
                     transition: "border-color 0.2s, transform 0.2s",
                   }}>
                     {getArtistPhoto(artist.slug, artist.photoUrl) ? (
-                      <img
+                      <Image
                         src={getArtistPhoto(artist.slug, artist.photoUrl)!}
                         alt={artist.name}
                         width={140}
                         height={140}
+                        sizes="140px"
                         style={{ objectFit: "cover", display: "block", width: "100%", height: "100%" }}
                       />
                     ) : (

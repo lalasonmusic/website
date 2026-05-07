@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import Image from "next/image";
 
 type Testimonial = {
   name: string;
@@ -60,11 +61,12 @@ export default function TestimonialCarousel({ testimonials }: Props) {
             border: "3px solid var(--color-accent)",
             boxShadow: "0 4px 20px rgba(245, 166, 35, 0.15)",
           }}>
-            <img
+            <Image
               src={PHOTOS[current % PHOTOS.length]}
               alt={item.name}
               width={88}
               height={88}
+              sizes="88px"
               style={{ objectFit: "cover", display: "block", width: "100%", height: "100%" }}
             />
           </div>

@@ -11,6 +11,25 @@ const nextConfig: NextConfig = {
     "ffmpeg-static",
     "@ffprobe-installer/ffprobe",
   ],
+  // next/image remote source allowlist. Required for any non-/public image
+  // served through <Image>. Specific paths used so we don't open the proxy
+  // to arbitrary subdomains.
+  images: {
+    remotePatterns: [
+      // Curated Unsplash photos used by the boutique playlist cards/heros.
+      { protocol: "https", hostname: "images.unsplash.com", pathname: "/**" },
+      // Supabase Storage public buckets (track covers, playlist images,
+      // audio-previews art, etc.). The hostname segment is the Supabase
+      // project ref — kept as a wildcard so this still works if a sibling
+      // env (preview/prod) ever points to a different project.
+      { protocol: "https", hostname: "*.supabase.co", pathname: "/storage/v1/object/public/**" },
+      // Google avatar from OAuth sign-in (shown in user menu / member area).
+      { protocol: "https", hostname: "lh3.googleusercontent.com", pathname: "/**" },
+      // YouTube thumbnails for LiteYouTube embeds on the home page.
+      { protocol: "https", hostname: "i.ytimg.com", pathname: "/**" },
+      { protocol: "https", hostname: "img.youtube.com", pathname: "/**" },
+    ],
+  },
   // Force Vercel's file tracer to include native binaries that are loaded via
   // dynamic `require.resolve` (platform-specific). Without this, @ffprobe-installer
   // throws at module import on Vercel because the binary file isn't in the lambda.

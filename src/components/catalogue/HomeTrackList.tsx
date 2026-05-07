@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import Image from "next/image";
 import { usePlayerStore } from "@/store/playerStore";
 import type { TrackWithDetails, PlayerTrack } from "@/types/track";
 import { track as trackEvent } from "@/lib/analytics";
@@ -117,15 +118,18 @@ export default function HomeTrackList({ tracks, locale }: Props) {
               >
                 {/* Cover image or gradient */}
                 <div style={{
+                  position: "relative",
                   width: "100%",
                   height: "100%",
                   transition: "transform 0.3s ease",
                 }}>
                   {t.coverUrl ? (
-                    <img
+                    <Image
                       src={t.coverUrl}
                       alt=""
-                      style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+                      fill
+                      sizes="(min-width: 1100px) 200px, (min-width: 640px) 25vw, 50vw"
+                      style={{ objectFit: "cover", display: "block" }}
                     />
                   ) : (
                     <div style={{
