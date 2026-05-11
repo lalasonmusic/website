@@ -28,6 +28,9 @@ const nextConfig: NextConfig = {
       // YouTube thumbnails for LiteYouTube embeds on the home page.
       { protocol: "https", hostname: "i.ytimg.com", pathname: "/**" },
       { protocol: "https", hostname: "img.youtube.com", pathname: "/**" },
+      // Wix-hosted blog cover images — legacy from the migration. Posts
+      // imported from the Wix site still point coverUrl at static.wixstatic.com.
+      { protocol: "https", hostname: "static.wixstatic.com", pathname: "/**" },
     ],
   },
   // Force Vercel's file tracer to include native binaries that are loaded via
